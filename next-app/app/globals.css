@@ -1,0 +1,47 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1c2128;
+  --border: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #58a6ff;
+  --green: #3fb950;
+  --gold: #d29922;
+  --purple: #bc8cff;
+  --red: #f85149;
+  --teal: #39d353;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[var(--accent)] text-[#0d1117] px-4 py-2 rounded-md font-medium hover:opacity-90 transition-all;
+  }
+  
+  .btn-ghost {
+    @apply text-[var(--text)] px-4 py-2 rounded-md font-medium hover:bg-[var(--surface2)] transition-all;
+  }
+
+  .card-base {
+    @apply bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5;
+  }
+
+  .nav-link {
+    @apply text-[var(--muted)] hover:text-[var(--text)] px-3 py-1.5 rounded-md text-sm transition-all;
+  }
+
+  .nav-link.active {
+    @apply bg-[var(--surface2)] text-[var(--text)];
+  }
+}
