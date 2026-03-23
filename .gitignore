@@ -13,11 +13,21 @@ package-lock.json
 bun.lock
 
 # =============================================================================
-# Testing
+# Environment & Secrets  ⚠️ NEVER COMMIT
 # =============================================================================
-/coverage
-*.lcov
-.nyc_output/
+.env
+.env.*
+!.env.example
+!.env.local.example
+!.env.*.example
+
+# =============================================================================
+# Firebase / Service Accounts  ⚠️ CRITICAL
+# =============================================================================
+backend/config/*.json
+*-adminsdk*.json
+serviceAccountKey.json
+*-key.json
 
 # =============================================================================
 # Next.js
@@ -27,11 +37,18 @@ bun.lock
 *.vercel
 
 # =============================================================================
-# Production & Build
+# Build & Production
 # =============================================================================
 /build
 dist/
 .tsdist/
+
+# =============================================================================
+# Testing
+# =============================================================================
+/coverage
+*.lcov
+.nyc_output/
 
 # =============================================================================
 # Logs
@@ -39,35 +56,15 @@ dist/
 logs/
 *.log
 npm-debug.log*
-npm-error.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-.pnpm-debug.log*
-lerna-debug.log*
 
 # =============================================================================
-# Environment & Secrets (SENSITIVE - NEVER COMMIT)
+# TypeScript
 # =============================================================================
-.env
-.env.local
-.env.*.local
-.env.production.local
-.env.development.local
-.env.test.local
-.env.staging.local
-
-# =============================================================================
-# Service Account & API Keys (CRITICAL - DO NOT COMMIT)
-# =============================================================================
-/backend/config/*.json
-backend/config/*-adminsdk*.json
-firebase-adminsdk*.json
-serviceAccountKey.json
-*-key.json
-*.pem
-*.key
-*.priv
+*.tsbuildinfo
+next-env.d.ts
 
 # =============================================================================
 # IDE & Editor
@@ -77,127 +74,49 @@ serviceAccountKey.json
 *.swp
 *.swo
 *~
-.DS_Store
-Thumbs.db
 *.sublime-project
 *.sublime-workspace
-.atom/
-.project
-.settings/
-.classpath
 
 # =============================================================================
-# Python
-# =============================================================================
-__pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
-dist/
-build/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-venv/
-env/
-.venv/
-.env/
-.Python
-*.so
-.Python
-develop-eggs/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-
-# =============================================================================
-# TypeScript
-# =============================================================================
-*.tsbuildinfo
-next-env.d.ts
-
-# =============================================================================
-# macOS
+# OS Files
 # =============================================================================
 .DS_Store
 .AppleDouble
 .LSOverride
 ._*
-
-# =============================================================================
-# Windows
-# =============================================================================
 Thumbs.db
 ehthumbs.db
 Desktop.ini
 
 # =============================================================================
-# Optional npm cache directory
+# Keys & Certificates
+# =============================================================================
+*.pem
+*.key
+*.priv
+
+# =============================================================================
+# Python (AI module)
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+venv/
+.venv/
+
+# =============================================================================
+# Misc
 # =============================================================================
 .npm
-
-# =============================================================================
-# Optional REPL history
-# =============================================================================
 .node_repl_history
-
-# =============================================================================
-# Temporary files
-# =============================================================================
+.cache
 *.tmp
 *.bak
-*.swp
 .tmp/
 tmp/
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# env files
-.env*.local
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# =============================================================================
+# Seed & Dev Scripts (ไม่ต้อง commit ขึ้น prod)
+# =============================================================================
+backend/src/seed.ts

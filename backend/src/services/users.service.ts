@@ -1,4 +1,4 @@
-import { db, Collections } from './firebase.service'
+import { db, Collections, FieldValue } from './firebase.service'
 
 /**
  * Retrieve authenticated user's profile
@@ -61,9 +61,9 @@ export async function getPublicProfile(username: string) {
         userData.github = { ...userData.github, accessToken: undefined }
     }
 
-    // Increment profile view counter
+    // Increment profile view counter (atomic operation)
     await userDoc.ref.update({
-        'stats.profileViews': (userData.stats?.profileViews || 0) + 1,
+        'stats.profileViews': FieldValue.increment(1),
     })
 
     return { id: userDoc.id, ...userData }

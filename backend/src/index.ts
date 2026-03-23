@@ -7,6 +7,7 @@ import { skillsRoute } from './routes/skills.route'
 import { endorsementsRoute } from './routes/endorsements.route'
 import { githubRoute } from './routes/github.route'
 import { badgesRoute } from './routes/badges.route'
+import { exportRoute } from './routes/export.route'
 
 const app = new Elysia()
     .use(cors({ origin: process.env.FRONTEND_URL ?? 'http://localhost:3000', credentials: true }))
@@ -23,7 +24,8 @@ const app = new Elysia()
                 { name: 'GitHub', description: 'GitHub integration routes' },
                 { name: 'Skills', description: 'Skills management routes' },
                 { name: 'Endorsements', description: 'Endorsement request and submit flow' },
-                { name: 'Badges', description: 'Automatically minted skill badges' }
+                { name: 'Badges', description: 'Automatically minted skill badges' },
+                { name: 'Export', description: 'Export portfolio as PDF' }
             ],
             components: {
                 securitySchemes: {
@@ -51,8 +53,9 @@ const app = new Elysia()
     .use(endorsementsRoute)
     .use(githubRoute)
     .use(badgesRoute)
+    .use(exportRoute)
 
     .listen(process.env.PORT ?? 3000)
 
-console.log(`🦊 Skill Wallet API running at http://localhost:${app.server?.port}`)
-console.log(`📖 Swagger UI is available  at http://localhost:${app.server?.port}/swagger`)
+console.log(`Skill Wallet API running at http://localhost:${app.server?.port}`)
+console.log(`Swagger UI is available at http://localhost:${app.server?.port}/swagger`)
