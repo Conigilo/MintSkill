@@ -1,5 +1,7 @@
 import * as EndorsementsService from '../services/endorsements.service'
 import { verifyToken } from '../middleware/auth.middleware'
+import { validateEndorsementInput, validateRequiredString } from '../utils/validators'
+import { AuthenticationError, AuthorizationError, NotFoundError, ValidationError } from '../utils/errors'
 
 /**
  * Get endorsements for authenticated user
@@ -7,18 +9,31 @@ import { verifyToken } from '../middleware/auth.middleware'
 export async function getEndorsementsHandler({ headers, params, set }: any) {
     try {
         const user = await verifyToken(headers['authorization'] || null)
+        const userId = validateRequiredString(params.userId, 'User ID')
 
         // Users can only view their own endorsements
-        if (user.uid !== params.userId) {
+        if (user.uid !== userId) {
             set.status = 403
-            return { error: 'Can only view your own endorsements' }
+            return { 
+                success: false,
+                error: 'Can only view your own endorsements',
+                code: 'FORBIDDEN'
+            }
         }
 
-        const endorsements = await EndorsementsService.getEndorsementsByUser(params.userId)
-        return { endorsements }
+        const endorsements = await EndorsementsService.getEndorsementsByUser(userId)
+        return { 
+            success: true,
+            data: endorsements,
+            meta: { count: endorsements.length }
+        }
     } catch (error: any) {
         set.status = 401
-        return { error: error.message }
+        return { 
+            success: false,
+            error: error.message,
+            code: 'AUTH_ERROR'
+        }
     }
 }
 
@@ -28,22 +43,35 @@ export async function getEndorsementsHandler({ headers, params, set }: any) {
 export async function requestEndorsementHandler({ headers, body, set }: any) {
     try {
         const user = await verifyToken(headers['authorization'] || null)
+        const recipientName = validateRequiredString(body.recipientName, 'Recipient name')
+        const recipientEmail = validateRequiredString(body.recipientEmail, 'Recipient email')
 
         const result = await EndorsementsService.createEndorsementRequest(
             user.uid,
-            body.recipientName,
-            body.recipientEmail
+            recipientName,
+            recipientEmail
         )
 
-        return result
-    } catch (error: any) {
-        if (error.message === 'EMPTY_NAME') {
-            set.status = 400
-            return { error: 'recipientName is required' }
+        set.status = 201
+        return { 
+            success: true,
+            data: result 
         }
-
-        set.status = error.message.includes('invalid') || error.message.includes('Missing') ? 401 : 500
-        return { error: error.message }
+    } catch (error: any) {
+        if (error instanceof ValidationError) {
+            set.status = 400
+            return { 
+                success: false,
+                error: error.message,
+                code: error.code
+            }
+        }
+        set.status = 500
+        return { 
+            success: false,
+            error: error.message,
+            code: 'INTERNAL_ERROR'
+        }
     }
 }
 
@@ -52,10 +80,28 @@ export async function requestEndorsementHandler({ headers, body, set }: any) {
  */
 export async function verifyTokenHandler({ params, set }: any) {
     try {
-        return await EndorsementsService.verifyEndorsementToken(params.token)
+        const token = validateRequiredString(params.token, 'Token')
+        const result = await EndorsementsService.verifyEndorsementToken(token)
+        
+        return { 
+            success: true,
+            data: result 
+        }
     } catch (error: any) {
+        if (error.message === 'INVALID_TOKEN' || error instanceof NotFoundError) {
+            set.status = 404
+            return { 
+                success: false,
+                error: 'Invalid or expired token',
+                code: 'INVALID_TOKEN'
+            }
+        }
         set.status = 500
-        return { error: error.message }
+        return { 
+            success: false,
+            error: error.message,
+            code: 'INTERNAL_ERROR'
+        }
     }
 }
 
@@ -64,20 +110,38 @@ export async function verifyTokenHandler({ params, set }: any) {
  */
 export async function submitEndorsementHandler({ params, body, set }: any) {
     try {
-        const result = await EndorsementsService.submitEndorsement(params.token, body)
-        return result
-    } catch (error: any) {
-        if (error.message === 'MISSING_FIELDS') {
-            set.status = 400
-            return { error: 'message, skills, and fromName are required' }
-        }
+        const token = validateRequiredString(params.token, 'Token')
+        const validatedInput = validateEndorsementInput(body)
 
+        const result = await EndorsementsService.submitEndorsement(token, validatedInput)
+        
+        set.status = 201
+        return { 
+            success: true,
+            data: result 
+        }
+    } catch (error: any) {
+        if (error instanceof ValidationError) {
+            set.status = 400
+            return { 
+                success: false,
+                error: error.message,
+                code: error.code
+            }
+        }
         if (error.message === 'INVALID_TOKEN') {
             set.status = 404
-            return { error: 'Invalid or expired token' }
+            return { 
+                success: false,
+                error: 'Invalid or expired token',
+                code: 'INVALID_TOKEN'
+            }
         }
-
         set.status = 500
-        return { error: error.message }
+        return { 
+            success: false,
+            error: error.message,
+            code: 'INTERNAL_ERROR'
+        }
     }
 }

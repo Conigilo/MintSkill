@@ -40,6 +40,39 @@ export async function updateMyProfile(uid: string, body: Record<string, any>) {
 }
 
 /**
+ * Sync user profile from Firebase auth data
+ * Creates a new user if not exists, otherwise updates existing
+ */
+export async function syncProfile(uid: string, userData: any) {
+    const userRef = db.collection(Collections.USERS).doc(uid)
+    const doc = await userRef.get()
+    
+    if (!doc.exists) {
+        const newUser = {
+            ...userData,
+            username: userData.email?.split('@')[0] || uid.substring(0, 8),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            stats: {
+                verifiedSkills: 0,
+                endorsements: 0,
+                profileViews: 0
+            }
+        }
+        await userRef.set(newUser)
+        return newUser
+    } else {
+        const updates = {
+            updatedAt: new Date(),
+            displayName: userData.displayName || doc.data()?.displayName,
+            photoURL: userData.photoURL || doc.data()?.photoURL
+        }
+        await userRef.update(updates)
+        return { ...doc.data(), ...updates }
+    }
+}
+
+/**
  * Get public profile information for a user by username
  * Increments profile view count
  */
@@ -128,4 +161,39 @@ export async function getPortfolio(username: string) {
         endorsements,
         repositories,
     }
+}
+
+/**
+ * Search for users by basic filters
+ */
+export async function searchUsers(query?: string, filters?: any) {
+    let usersQuery: any = db.collection(Collections.USERS)
+
+    // Simplified search logic for Firestore
+    if (query) {
+        // Firestore doesn't support full-text search out of the box
+        // We do a simple prefix search on display name
+        usersQuery = usersQuery
+            .where('displayName', '>=', query)
+            .where('displayName', '<=', query + '\uf8ff')
+    }
+
+    if (filters?.location) {
+        usersQuery = usersQuery.where('location', '==', filters.location)
+    }
+
+    const snapshot = await usersQuery.limit(filters?.limit || 20).get()
+    return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
+}
+
+/**
+ * Get recommended developers for discovery
+ */
+export async function getRecommendations(limit = 10) {
+    const querySnapshot = await db.collection(Collections.USERS)
+        .orderBy('stats.verifiedSkills', 'desc')
+        .limit(limit)
+        .get()
+
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
 }

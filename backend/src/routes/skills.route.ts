@@ -3,7 +3,16 @@ import * as SkillsController from '../controllers/skills.controller';
 
 export const skillsRoute = new Elysia({ prefix: '/skills', tags: ['Skills'] })
 
-    // GET /skills/:userId 
+    // GET /skills/me
+    .get('/me', SkillsController.getMySkillsHandler, {
+        detail: {
+            summary: 'Get My Skills',
+            description: 'ดึง skills ของ user ที่กําลัง login อยู่ (ต้องส่ง Bearer token)',
+            security: [{ bearerAuth: [] }],
+        },
+    })
+
+    // GET /skills/:userId
     .get('/:userId', SkillsController.getSkillsHandler, {
         detail: {
             summary: 'Get User Skills',

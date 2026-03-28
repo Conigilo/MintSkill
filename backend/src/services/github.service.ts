@@ -35,6 +35,18 @@ async function getGitHubAccessToken(uid: string): Promise<string> {
 }
 
 /**
+ * Save GitHub access token for a user
+ */
+export async function saveGitHubToken(uid: string, accessToken: string) {
+    await db.collection(Collections.USERS).doc(uid).update({
+        'github.accessToken': accessToken,
+        'github.connected': true,
+        'github.lastConnected': new Date()
+    })
+    return { success: true }
+}
+
+/**
  * Sync GitHub repositories and auto-detect skills
  * Fetches all repos, calculates stats, and adds language skills
  */

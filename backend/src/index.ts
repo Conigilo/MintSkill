@@ -10,7 +10,7 @@ import { badgesRoute } from './routes/badges.route'
 import { exportRoute } from './routes/export.route'
 
 const app = new Elysia()
-    .use(cors({ origin: process.env.FRONTEND_URL ?? 'http://localhost:3000', credentials: true }))
+    .use(cors({ origin: process.env.FRONTEND_URL ?? 'http://localhost:8000', credentials: true }))
     .use(swagger({
         path: '/swagger',
         documentation: {

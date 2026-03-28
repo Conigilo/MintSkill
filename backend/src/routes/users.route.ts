@@ -3,11 +3,57 @@ import * as UsersController from '../controllers/users.controller';
 
 export const usersRoute = new Elysia({ prefix: '/users', tags: ['Users'] })
 
-    // GET /users/me
+    // GET /users/search — Search for users
+    .get('/search', UsersController.searchUsersHandler, {
+        query: t.Object({
+            q: t.Optional(t.String()),
+            location: t.Optional(t.String()),
+            limit: t.Optional(t.String()),
+        }),
+        detail: {
+            summary: 'Search Users',
+            description: 'ค้นหาผู้ใช้งาน (ไม่ต้อง login)',
+        },
+    })
+
+    // GET /users/recommendations — Get recommended developers
+    .get('/recommendations', UsersController.getRecommendationsHandler, {
+        query: t.Object({
+            limit: t.Optional(t.String()),
+        }),
+        detail: {
+            summary: 'Get Recommended Users',
+            description: 'ดึงรายชื่อผู้แนะนำให้น่าสนใจ (ไม่ต้อง login)',
+        },
+    })
+
+    // GET /users/me or /users/profile
     .get('/me', UsersController.getMyProfileHandler, {
         detail: {
             summary: 'Get My Profile',
             description: 'ดึงโปรไฟล์ของ user ที่ login อยู่ (ต้องส่ง Bearer token)',
+            security: [{ bearerAuth: [] }],
+        },
+    })
+    .get('/profile', UsersController.getMyProfileHandler, {
+        detail: {
+            summary: 'Get My Profile (Alias)',
+            description: 'ดึงโปรไฟล์ของ user ที่ login อยู่ (ต้องส่ง Bearer token)',
+            security: [{ bearerAuth: [] }],
+        },
+    })
+
+    // POST /users/sync
+    .post('/sync', UsersController.syncProfileHandler, {
+        body: t.Object({
+            uid: t.String(),
+            email: t.Optional(t.String()),
+            displayName: t.Optional(t.String()),
+            photoURL: t.Optional(t.String()),
+        }),
+        detail: {
+            summary: 'Sync User Profile',
+            description: 'ซิงค์ข้อมูลจาก Firebase Auth มายังฐานข้อมูล Firestore',
             security: [{ bearerAuth: [] }],
         },
     })
@@ -27,7 +73,7 @@ export const usersRoute = new Elysia({ prefix: '/users', tags: ['Users'] })
             security: [{ bearerAuth: [] }],
         },
     })
-
+    
     // ⚠️ ต้องประกาศ /:username/portfolio ก่อน /:username เสมอ
     // ไม่งั้น Elysia จะ match "portfolio" เป็น :username แทน
     // GET /users/:username/portfolio — ดึงข้อมูลทั้งหมดสำหรับ Resume/CV
