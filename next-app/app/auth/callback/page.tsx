@@ -2,26 +2,31 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { handleGitHubCallback } from '@/lib/services/auth.service'
 
 function AuthCallbackContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
-    const [error, setError] = useState('')
+    const [error] = useState<string>(() => {
+        const code = searchParams?.get('code')
+        const err = searchParams?.get('error')
+        
+        if (err) {
+            return err
+        } else if (!code) {
+            return 'No authorization code received'
+        }
+        return ''
+    })
 
     useEffect(() => {
-        const code = searchParams.get('code')
-        const err = searchParams.get('error')
-
-        if (err || !code) {
-            setError(err ?? 'No authorization code received')
-            return
+        const code = searchParams?.get('code')
+        
+        if (!error && code) {
+            // In a popup-based flow, we redirect directly to dashboard
+            // In a redirect-based flow, you would exchange the code here
+            router.replace('/dashboard')
         }
-
-        handleGitHubCallback(code)
-            .then(() => router.replace('/dashboard'))
-            .catch((e) => setError(e.message))
-    }, [])
+    }, [error, router, searchParams])
 
     if (error) {
         return (

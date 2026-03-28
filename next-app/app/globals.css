@@ -1,47 +1,87 @@
+/* ใช้คำสั่งใหม่ของ Tailwind v4 */
 @import "tailwindcss";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
-:root {
-  --bg: #0d1117;
-  --surface: #161b22;
-  --surface2: #1c2128;
-  --border: #30363d;
-  --text: #e6edf3;
-  --muted: #8b949e;
-  --accent: #58a6ff;
-  --green: #3fb950;
-  --gold: #d29922;
-  --purple: #bc8cff;
-  --red: #f85149;
-  --teal: #39d353;
+@layer base {
+  :root {
+    --background: #090d14;
+    /* สีพื้นหลังหลัก */
+    --card: #161b22;
+    /* สีพื้นหลังกล่อง */
+    --border: #30363d;
+    /* สีเส้นขอบ */
+    --primary: #7c3aed;
+    /* สีม่วงหลัก (Glow) */
+  }
+
+  /* เขียนด้วย Native CSS แทนการใช้ @apply เพื่อตัดปัญหา */
+  body {
+    background-color: var(--background);
+    color: #ffffff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: rgba(168, 85, 247, 0.3);
+    /* สีม่วงโปร่งแสง */
+  }
+
+  /* Custom Scrollbar ให้ดูเนียนตา */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: #1f2937;
+    /* gray-800 */
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #374151;
+    /* gray-700 */
+  }
+
+  /* Style for select options - dark theme */
+  select {
+    color-scheme: dark;
+    appearance: auto;
+    background-color: #090d14 !important;
+    color: white !important;
+  }
+
+  option {
+    background-color: #161b22 !important;
+    color: white !important;
+    padding: 8px;
+    background-image: linear-gradient(#161b22, #161b22) !important;
+  }
+
+  option:hover,
+  option:checked {
+    background-color: #30363d !important;
+    background-image: linear-gradient(#30363d, #30363d) !important;
+    color: white !important;
+  }
+
+  option:disabled {
+    background-color: #0d1117 !important;
+    color: #666 !important;
+  }
 }
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Inter', sans-serif;
-}
-
-@layer components {
-  .btn-primary {
-    @apply bg-[var(--accent)] text-[#0d1117] px-4 py-2 rounded-md font-medium hover:opacity-90 transition-all;
-  }
-  
-  .btn-ghost {
-    @apply text-[var(--text)] px-4 py-2 rounded-md font-medium hover:bg-[var(--surface2)] transition-all;
+@layer utilities {
+  .glow-primary {
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
   }
 
-  .card-base {
-    @apply bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5;
-  }
-
-  .nav-link {
-    @apply text-[var(--muted)] hover:text-[var(--text)] px-3 py-1.5 rounded-md text-sm transition-all;
-  }
-
-  .nav-link.active {
-    @apply bg-[var(--surface2)] text-[var(--text)];
+  .glass-panel {
+    background-color: rgba(22, 27, 34, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
   }
 }

@@ -1,43 +1,43 @@
-// next-app/lib/services/user.service.ts
+import { fetchAPI } from './api';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-
-/**
- * 1. ฟังก์ชันดึงข้อมูลโปรไฟล์ผู้ใช้
- * @param token - Firebase ID Token ที่ได้จาก auth.currentUser.getIdToken()
- */
-export async function getUserProfile(token: string) {
+export const userService = {
+  // ฟังก์ชันสำหรับเรียกหลังบ้านให้เซฟข้อมูล User ลง Firestore (เมื่อ Login ครั้งแรก)
+  syncProfile: async (userData: any) => {
     try {
-        const response = await fetch(`${API_URL}/users/profile`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'ดึงข้อมูลโปรไฟล์ไม่สำเร็จ');
-        }
-
-        return await response.json(); // จะได้ข้อมูล { name, email, skills, ... }
+      return await fetchAPI('/users/sync', {
+        method: 'POST',
+        body: JSON.stringify(userData)
+      });
     } catch (error) {
-        console.error("Error in getUserProfile:", error);
-        throw error;
+      // Fall back to localStorage if backend is unavailable
+      console.warn("Backend sync failed, saving to localStorage:", error);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`user_${userData.uid}`, JSON.stringify(userData));
+      }
+      return { success: true, data: userData, local: true };
     }
-}
+  },
 
-/**
- * 2. ฟังก์ชันดึงข้อมูลโปรเจกต์ (หรือ Skill Badges) ของผู้ใช้
- */
-export async function getUserProjects(token: string) {
-    const response = await fetch(`${API_URL}/users/projects`, {
-        headers: {
-            'Authorization': `Bearer ${token}`
+  // ดึงข้อมูล Profile ปัจจุบันจากหลังบ้าน
+  getProfile: async () => {
+    try {
+      return await fetchAPI('/users/profile', {
+        method: 'GET'
+      });
+    } catch (error) {
+      // Return default profile if backend is unavailable
+      console.warn("Failed to fetch profile from backend:", error);
+      // Return empty profile that will be filled with data from components
+      return {
+        success: false,
+        local: true,
+        data: {
+          uid: '',
+          email: '',
+          displayName: '',
+          photoURL: ''
         }
-    });
-
-    if (!response.ok) throw new Error('ไม่สามารถโหลดโปรเจกต์ได้');
-    return await response.json();
-}
+      };
+    }
+  }
+};

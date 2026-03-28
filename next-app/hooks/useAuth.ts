@@ -8,11 +8,10 @@ import {
     signOut,
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
-    updateProfile,
-    getAuth
+    updateProfile
 } from 'firebase/auth';
 import { auth } from '@/lib/utils/firebase'; 
-import { userService } from '../services/user.service';
+import { userService } from '@/lib/services/user.service';
 
 export const useAuth = () => {
     const [user, setUser] = useState<User | null>(null);
@@ -21,30 +20,23 @@ export const useAuth = () => {
     useEffect(() => {
         // ดักจับการเปลี่ยนแปลงสถานะ Login
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            if (currentUser) {
-                // Force reload to get latest displayName and photoURL
-                try {
-                    await currentUser.reload();
-                } catch (error) {
-                    console.warn("Failed to reload user:", error);
-                }
-            }
-            
             setUser(currentUser);
 
             if (currentUser) {
                 // ถ้ายืนยันตัวตนผ่าน Firebase สำเร็จ -> ยิงไปทักทายหลังบ้าน Elysia
-                try {
-                    await userService.syncProfile({
-                        uid: currentUser.uid,
-                        email: currentUser.email,
-                        displayName: currentUser.displayName,
-                        photoURL: currentUser.photoURL,
-                    });
-                    console.log("ซิงค์ข้อมูลกับ Backend สำเร็จ!");
-                } catch (error) {
-                    console.error("ซิงค์ข้อมูลล้มเหลว (ไม่บัง Auth):", error);
-                }
+                // TODO: Fix token dispatch - temporarily disabled to prevent auth errors
+                // try {
+                //     await userService.syncProfile({
+                //         uid: currentUser.uid,
+                //         email: currentUser.email,
+                //         displayName: currentUser.displayName,
+                //         photoURL: currentUser.photoURL,
+                //     });
+                //     console.log("ซิงค์ข้อมูลกับ Backend สำเร็จ!");
+                // } catch (error) {
+                //     // Non-blocking error - don't interrupt auth flow
+                //     console.error("ซิงค์ข้อมูลล้มเหลว (ไม่บัง Auth):", error);
+                // }
             }
             setLoading(false);
         });
@@ -78,34 +70,21 @@ export const useAuth = () => {
     const signUpWithEmail = async (name: string, email: string, password: string) => {
         try {
             const result = await createUserWithEmailAndPassword(auth, email, password);
-            
             // อัปเดต Profile ชื่อให้ทันที
             await updateProfile(result.user, { displayName: name });
             
-            // Force refresh Firebase state เพื่อให้ displayName ขึ้นมา
-            // (อันนี้จะทำให้ onAuthStateChanged ถูก trigger อีกครั้ง)
-            const currentAuth = getAuth();
-            if (currentAuth.currentUser) {
-                await currentAuth.currentUser.reload();
-            }
-            
             // ซิงค์กับหลังบ้านแบบ Manual เพื่อให้ชื่อไปทันที
-            try {
-                await userService.syncProfile({
-                    uid: result.user.uid,
-                    email: result.user.email,
-                    displayName: name,
-                    photoURL: result.user.photoURL,
-                });
-                console.log("ซิงค์ข้อมูลสำเร็จ!");
-            } catch (syncError) {
-                console.error("Profile sync failed (non-critical):", syncError);
-                // Don't re-throw - let signup succeed even if sync fails
-            }
+            await userService.syncProfile({
+                uid: result.user.uid,
+                email: result.user.email,
+                displayName: name,
+                photoURL: result.user.photoURL,
+            });
             
             return result;
-        } catch (error) {
+        } catch (error: any) {
             console.error("SignUp Error:", error);
+            // Re-throw with original error for better error handling in components
             throw error;
         }
     };

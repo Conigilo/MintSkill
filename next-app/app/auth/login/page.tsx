@@ -7,7 +7,6 @@ import { LoadingSpinner, Alert } from '@/components/ui'
 import { ROUTES } from '@/lib/constants'
 import Link from 'next/link'
 
-// import { loginWithGoogle } from '@/lib/utils/firebase' // Google provider may need to be added to useAuth
 
 export default function LoginPage() {
   const router = useRouter()
@@ -55,10 +54,8 @@ export default function LoginPage() {
       console.error(err)
       if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
         setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง")
-      } else if (err.code === "auth/operation-not-allowed") {
-        setError("Email/Password login is temporarily unavailable. Please use Google or GitHub instead.")
       } else {
-        setError(err.message || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ")
+        setError("เกิดข้อผิดพลาดในการเข้าสู่ระบบ")
       }
     }
   }
@@ -119,7 +116,7 @@ export default function LoginPage() {
               <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-1">Email Address</label>
               <div className="relative rounded-2xl bg-[var(--background)] border border-[var(--border)] focus-within:border-[var(--primary)] focus-within:ring-1 focus-within:ring-[var(--primary)] transition-all overflow-hidden flex items-center px-4 py-3.5">
                 <svg width="20" height="20" className="flex-shrink-0 text-gray-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v10a2 2 0 00-2 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 00-2 2z" />
                 </svg>
                 <input
                   type="email"
@@ -166,38 +163,24 @@ export default function LoginPage() {
             <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Or continue with</span>
             <div className="flex-1 h-px bg-[var(--border)]"></div>
           </div>
-          {/* 📍 ปุ่มย้อนกลับ (มุมซ้ายบน) */}
-          <Link
-            href="/"
-            className="absolute top-8 left-8 text-[10px] text-gray-500 hover:text-white font-bold uppercase tracking-widest flex items-center gap-2 transition-colors z-50"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Back to Home
-          </Link>
-          {/* Social Buttons */}
-          {/* Social Buttons */}
-          <div className="grid grid-cols-2 gap-4 mb-8">
 
-            {/* ปุ่ม GitHub */}
+          {/* Social Buttons */}
+          <div className="grid grid-cols-2 gap-4">
             <button
-              type="button"
               onClick={handleGitHubLogin}
+              disabled={loading || isGoogleLoading}
               className="flex items-center justify-center gap-2.5 bg-[#090d14] hover:bg-gray-800 border border-[var(--border)] rounded-xl py-3 text-[13px] font-semibold text-white transition-all active:scale-[0.98]"
             >
               <svg width="18" height="18" className="flex-shrink-0" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" /></svg>
               GitHub
             </button>
-
-            {/* ปุ่ม Google */}
             <button
-              type="button"
               onClick={handleGoogleLogin}
-              className="flex items-center justify-center gap-2.5 bg-[#090d14] hover:bg-gray-800 border border-[var(--border)] rounded-xl py-3 text-[13px] font-semibold text-white transition-all active:scale-[0.98]"
-            >
+              disabled={loading || isGoogleLoading}
+              className="flex items-center justify-center gap-2.5 bg-[#090d14] hover:bg-gray-800 border border-[var(--border)] rounded-xl py-3 text-[13px] font-semibold text-white transition-all active:scale-[0.98]">
               <svg width="18" height="18" className="flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.16v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.16C1.43 8.55 1 10.22 1 12s.43 3.45 1.16 4.93l3.68-2.84z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.16 7.07l3.68 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>
               Google
             </button>
-
           </div>
 
           <p className="text-center text-[12px] text-gray-500 mt-8">
