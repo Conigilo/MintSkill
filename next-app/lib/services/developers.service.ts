@@ -3,7 +3,7 @@
  */
 
 import { fetchAPI } from './api'
-import type { ApiResponse, UserProfile } from '@/lib/types'
+import type { UserProfile } from '@/lib/types'
 
 export interface Developer extends Omit<UserProfile, 'endorsements'> {
   matchScore?: number
@@ -57,7 +57,7 @@ export const developersService = {
   /**
    * Get developer portfolio (complete CV/Resume data)
    */
-  getDeveloperPortfolio: async (username: string): Promise<any | null> => {
+  getDeveloperPortfolio: async (username: string): Promise<Record<string, unknown> | null> => {
     try {
       const data = await fetchAPI(`/users/${username}/portfolio`)
       return data.data || null

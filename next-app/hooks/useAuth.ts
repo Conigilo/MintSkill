@@ -24,19 +24,17 @@ export const useAuth = () => {
 
             if (currentUser) {
                 // ถ้ายืนยันตัวตนผ่าน Firebase สำเร็จ -> ยิงไปทักทายหลังบ้าน Elysia
-                // TODO: Fix token dispatch - temporarily disabled to prevent auth errors
-                // try {
-                //     await userService.syncProfile({
-                //         uid: currentUser.uid,
-                //         email: currentUser.email,
-                //         displayName: currentUser.displayName,
-                //         photoURL: currentUser.photoURL,
-                //     });
-                //     console.log("ซิงค์ข้อมูลกับ Backend สำเร็จ!");
-                // } catch (error) {
-                //     // Non-blocking error - don't interrupt auth flow
-                //     console.error("ซิงค์ข้อมูลล้มเหลว (ไม่บัง Auth):", error);
-                // }
+                try {
+                    await userService.syncProfile({
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        displayName: currentUser.displayName,
+                        photoURL: currentUser.photoURL,
+                    });
+                } catch (error) {
+                    // Non-blocking error - don't interrupt auth flow
+                    console.warn("ซิงค์ข้อมูลล้มเหลว (ไม่บัง Auth):", error);
+                }
             }
             setLoading(false);
         });
@@ -82,9 +80,8 @@ export const useAuth = () => {
             });
             
             return result;
-        } catch (error: any) {
+        } catch (error) {
             console.error("SignUp Error:", error);
-            // Re-throw with original error for better error handling in components
             throw error;
         }
     };

@@ -1,7 +1,7 @@
 'use client'
 
 import { memo } from 'react'
-import { Card, Avatar } from '@/components/ui'
+import { Avatar } from '@/components/ui'
 import type { AuthUser } from '@/lib/types'
 
 interface ProfileCardProps {

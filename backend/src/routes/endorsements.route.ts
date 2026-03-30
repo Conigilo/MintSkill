@@ -16,6 +16,15 @@ export const endorsementsRoute = new Elysia({ prefix: '/endorsements', tags: ['E
         }
     })
 
+    // POST /endorsements/direct — logged-in user endorses another user directly
+    .post('/direct', EndorsementsController.directEndorseHandler, {
+        detail: {
+            summary: 'Direct Endorse',
+            description: 'ผู้ใช้ที่ login แล้ว endorse user อื่นได้โดยตรง (ต้อง login)',
+            security: [{ bearerAuth: [] }],
+        }
+    })
+
     // GET /endorsements/verify/:token — public
     .get('/verify/:token', EndorsementsController.verifyTokenHandler, {
         detail: {

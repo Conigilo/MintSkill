@@ -138,24 +138,26 @@ export function validateSkillInput(body: any): {
  * Validate endorsement input
  */
 export function validateEndorsementInput(body: any): {
-  skillId: string
-  endorsedUserId: string
-  message?: string
+  message: string
+  skills: string[]
+  fromName: string
+  fromRole?: string
+  fromAvatarUrl?: string
 } {
-  const skillId = validateRequiredString(body.skillId, 'Skill ID', 1, 100)
-  const endorsedUserId = validateRequiredString(
-    body.endorsedUserId,
-    'Endorsed User ID',
-    1,
-    100
-  )
-  const message = validateOptionalString(
-    body.message,
-    'Endorsement message',
-    500
-  )
+  const message = validateRequiredString(body.message, 'Endorsement message', 1, 500)
+  const fromName = validateRequiredString(body.fromName, 'Your name', 1, 100)
+  const fromRole = validateOptionalString(body.fromRole, 'Your role', 100)
+  const fromAvatarUrl = validateOptionalString(body.fromAvatarUrl, 'Avatar URL', 500)
 
-  return { skillId, endorsedUserId, message }
+  if (!Array.isArray(body.skills) || body.skills.length === 0) {
+    throw new ValidationError('At least one skill is required')
+  }
+  if (body.skills.length > 10) {
+    throw new ValidationError('Cannot endorse more than 10 skills at once')
+  }
+  const skills = body.skills.map((s: any) => validateRequiredString(s, 'Skill name', 1, 100))
+
+  return { message, skills, fromName, fromRole, fromAvatarUrl }
 }
 
 /**

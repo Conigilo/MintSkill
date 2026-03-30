@@ -3,7 +3,6 @@
  */
 
 import { fetchAPI } from './api'
-import type { ApiResponse } from '@/lib/types'
 
 export interface JobPosting {
   id: string

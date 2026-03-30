@@ -4,7 +4,7 @@
 
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks'
 import { LoadingSpinner } from '@/components/ui'
@@ -16,9 +16,15 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const router = useRouter()
-  const { isAuthenticated, isLoading } = useAuth()
+  const { user, loading } = useAuth()
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push(ROUTES.LOGIN)
+    }
+  }, [loading, user, router])
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner label="Loading..." />
@@ -26,9 +32,12 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     )
   }
 
-  if (!isAuthenticated) {
-    router.push(ROUTES.LOGIN)
-    return null
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner label="Redirecting..." />
+      </div>
+    )
   }
 
   return <>{children}</>

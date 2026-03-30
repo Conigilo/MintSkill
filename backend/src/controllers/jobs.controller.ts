@@ -87,3 +87,50 @@ export async function getJobByIdHandler({ params, set }: any) {
         }
     }
 }
+
+/**
+ * Apply for a job
+ */
+export async function applyForJobHandler({ params, body, headers, set }: any) {
+    try {
+        const decoded = await verifyToken(headers['authorization'] || null)
+        const jobId = validateRequiredString(params.id, 'Job ID')
+        
+        // Verify the job exists first
+        const job = await JobsService.getJobById(jobId)
+        if (!job) {
+            set.status = 404
+            return {
+                success: false,
+                error: 'Job not found',
+                code: 'JOB_NOT_FOUND'
+            }
+        }
+
+        // In a real app, save to a 'applications' collection in Firestore
+        // For now, return a simulated success response
+        return {
+            success: true,
+            data: {
+                applied: true,
+                applicationId: `app_${decoded.uid}_${jobId}_${Date.now()}`,
+                jobId,
+                userId: decoded.uid,
+                appliedAt: new Date().toISOString(),
+                coverLetter: body?.coverLetter || null,
+            },
+            message: 'Application submitted successfully'
+        }
+    } catch (error: any) {
+        if (error.message?.includes('token') || error.message?.includes('auth')) {
+            set.status = 401
+            return { success: false, error: 'Authentication required', code: 'UNAUTHORIZED' }
+        }
+        set.status = 500
+        return {
+            success: false,
+            error: error.message,
+            code: 'INTERNAL_ERROR'
+        }
+    }
+}

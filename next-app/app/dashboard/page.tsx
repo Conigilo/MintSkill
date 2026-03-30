@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 // Import Components ที่เราแยกไว้
@@ -11,22 +11,55 @@ import GapAnalysisTab from "@/components/dashboard/tabs/GapAnalysisTab";
 import WidgetExportTab from "@/components/dashboard/tabs/WidgetExportTab";
 import CVTemplate from "@/components/dashboard/CVTemplate";
 import { skillService } from "@/lib/services/skills.service";
-import { mockProfile, mockStats, mockSkills, mockEndorsements, mockProjects, mockGitHub } from '@/lib/mock-data';
+import { githubService } from '@/lib/services/github.service';
+import { userService } from '@/lib/services/user.service';
 
 export default function DashboardPage() {
 
   const router = useRouter();
+  const { user, logout } = useAuth();
   const [exploreFilter, setExploreFilter] = useState("All");
   const [jobsFilter, setJobsFilter] = useState("ทั้งหมด");
   const [activeTab, setActiveTab] = useState("Overview");
   const tabs = ["Overview", "Skills", "Endorsements", "Gap Analysis", "Developer Widgets"];
   const [showInbox, setShowInbox] = useState(false);
-  const [inboxCount, setInboxCount] = useState(3);
+  const [inboxCount, setInboxCount] = useState(0);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [requestForm, setRequestForm] = useState({ skill: "React", recipient: "", message: "" });
-  const { logout } = useAuth();
   const [activeMenu, setActiveMenu] = useState("Profile");
   const [targetRole, setTargetRole] = useState("Full-Stack Engineer");
+  const [githubStats, setGithubStats] = useState<{ repos?: number; contributions?: number } | null>(null);
+  const [profile, setProfile] = useState<any>(null);
+
+  // ดึง profile จาก backend
+  useEffect(() => {
+    const loadData = async () => {
+      if (!user?.uid) return;
+      try {
+        const profileRes = await userService.getProfile();
+        setProfile(profileRes?.data || profileRes?.user || profileRes);
+      } catch (e) {
+        // fallback to auth data
+        setProfile(user);
+      }
+      try {
+        const ghRes = await githubService.getMyRepos();
+        const repos = ghRes?.data;
+        if (repos) {
+          setGithubStats({ repos: repos.length, contributions: repos.reduce((sum: number, r: any) => sum + (r.stargazersCount || 0), 0) });
+        }
+      } catch (e) {
+        // GitHub not connected yet
+      }
+    };
+    loadData();
+  }, [user?.uid]);
+
+  const displayName = profile?.displayName || user?.displayName || 'User';
+  const avatarLetter = displayName[0]?.toUpperCase() || 'U';
+  const username = profile?.username || profile?.email?.split('@')[0] || '';
+  const bio = profile?.bio || '';
+  const isGitHubConnected = !!githubStats;
 
   const menuItems = [
     { label: "Profile", icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
@@ -184,14 +217,18 @@ export default function DashboardPage() {
                 <div className="glass-panel p-8 rounded-3xl text-center">
                   <div className="relative inline-block mb-4">
                     <div className="w-28 h-28 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 p-1">
-                      <div className="w-full h-full bg-[#161b22] rounded-full flex items-center justify-center text-4xl font-bold text-white border-4 border-[#090d14]">F</div>
+                      {user?.photoURL ? (
+                        <img src={user.photoURL} alt={displayName} className="w-full h-full rounded-full object-cover border-4 border-[#090d14]" />
+                      ) : (
+                        <div className="w-full h-full bg-[#161b22] rounded-full flex items-center justify-center text-4xl font-bold text-white border-4 border-[#090d14]">{avatarLetter}</div>
+                      )}
                     </div>
                     <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-2 border-[#161b22] rounded-full"></div>
                   </div>
-                  <h2 className="text-2xl font-bold text-white">Sarit Sridit</h2>
-                  <p className="text-gray-400 text-sm mb-1">@fiu_dev</p>
-                  <p className="text-blue-400 font-medium text-sm mb-6">Full-Stack Developer & CS Student</p>
-                  <p className="text-sm text-gray-400 text-left mb-6">Passionate about building products. Love algorithms, system design, and tech investing (NVDA, AMD, TSM).</p>
+                  <h2 className="text-2xl font-bold text-white">{displayName}</h2>
+                  {username && <p className="text-gray-400 text-sm mb-1">@{username}</p>}
+                  {profile?.title && <p className="text-blue-400 font-medium text-sm mb-6">{profile.title}</p>}
+                  {bio && <p className="text-sm text-gray-400 text-left mb-6">{bio}</p>}
 
                   <div className="space-y-3">
                     <button className="w-full bg-[#4f46e5] hover:bg-[#4338ca] text-white py-3 rounded-xl font-medium shadow-lg shadow-indigo-500/25">Request Endorsement</button>
@@ -207,13 +244,18 @@ export default function DashboardPage() {
                 <div className="glass-panel p-6 rounded-3xl">
                   <div className="flex justify-between items-center mb-5">
                     <h3 className="text-xs font-bold text-gray-500 tracking-widest uppercase">GitHub Status</h3>
-                    <span className="text-xs bg-green-500/10 text-green-400 border border-green-500/20 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Connected
+                    <span className={`text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 border ${
+                      isGitHubConnected
+                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                        : 'bg-gray-700/30 text-gray-500 border-gray-700'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${ isGitHubConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-600'}`}></span>
+                      {isGitHubConnected ? 'Connected' : 'Not Connected'}
                     </span>
                   </div>
                   <div className="space-y-3 text-sm mb-6">
-                    <div className="flex justify-between"><span className="text-gray-400">Repositories</span><span className="text-white font-mono">42</span></div>
-                    <div className="flex justify-between"><span className="text-gray-400">Contributions</span><span className="text-white font-mono">847</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">Repositories</span><span className="text-white font-mono">{githubStats?.repos ?? '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">Stars</span><span className="text-white font-mono">{githubStats?.contributions ?? '—'}</span></div>
                   </div>
 
                   {/* Mock Contribution Graph (แก้ Hydration Error แล้ว) */}

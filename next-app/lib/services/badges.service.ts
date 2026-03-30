@@ -1,9 +1,12 @@
 import { fetchAPI } from './api';
+import { auth } from '@/lib/utils/firebase';
 
 export const badgeService = {
-  // ดึง Badge ทั้งหมดที่เรามี
+  // ดึง Badge ทั้งหมดของ user ที่กำลัง login อยู่
   getMyBadges: async () => {
-    return await fetchAPI('/badges', { method: 'GET' });
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('Not authenticated');
+    return await fetchAPI(`/badges/${uid}`, { method: 'GET' });
   },
 
   /**
@@ -23,6 +26,8 @@ export const badgeService = {
 export interface Badge {
   id: string;
   name: string;
+  description?: string;
+  icon?: string;
   image?: string;
   earnedAt?: string;
 }

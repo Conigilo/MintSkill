@@ -44,6 +44,7 @@ export async function createEndorsementRequest(
         status: 'pending',
         token,
         createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
     })
 
     // TODO: Send email with endorsement link
@@ -68,6 +69,11 @@ export async function verifyEndorsementToken(token: string) {
 
     const endorsementDoc = endorsementSnapshot.docs[0]
     const endorsementData = endorsementDoc.data()
+
+    // Check if token has expired
+    if (endorsementData.expiresAt && new Date(endorsementData.expiresAt.toDate ? endorsementData.expiresAt.toDate() : endorsementData.expiresAt) < new Date()) {
+        return { valid: false }
+    }
 
     // Get target user information
     const userDoc = await db.collection(Collections.USERS)
@@ -141,44 +147,162 @@ export async function submitEndorsement(token: string, body: any) {
         'stats.endorsementCount': verifiedEndorsementsSnapshot.size,
     })
 
-    // Update skills and check for badge achievement
-    for (const skillName of skills) {
+    // Update skills and check for badge achievement (parallelized)
+    await Promise.all(skills.map(async (skillName: string) => {
         const skillSnapshot = await db.collection(Collections.SKILLS)
             .where('userId', '==', toUserId)
             .where('name', '==', skillName)
             .limit(1)
             .get()
 
+        let endorsementCount = 1
+
         if (!skillSnapshot.empty) {
+            // Skill มีอยู่แล้ว — เพิ่ม endorsementCount
             const skillDoc = skillSnapshot.docs[0]
-            const endorsementCount = (skillDoc.data().endorsementCount || 0) + 1
-
-            // Update skill endorsement count
+            endorsementCount = (skillDoc.data().endorsementCount || 0) + 1
             await skillDoc.ref.update({ endorsementCount })
+        } else {
+            // Skill ยังไม่มี — auto-create พร้อม endorsementCount = 1
+            await db.collection(Collections.SKILLS).add({
+                userId: toUserId,
+                name: skillName,
+                category: 'Other',
+                level: 1,
+                endorsementCount: 1,
+                verified: false,
+                createdAt: new Date(),
+            })
+        }
 
-            // Auto-mint badge when skill reaches 3 endorsements
-            if (endorsementCount === 3) {
-                const badgeSnapshot = await db.collection(Collections.BADGES)
-                    .where('userId', '==', toUserId)
-                    .where('skillName', '==', skillName)
-                    .limit(1)
-                    .get()
+        // Auto-mint badge เมื่อ endorse ครบ 3 ครั้ง (ใช้ >= เผื่อ count ข้าม)
+        if (endorsementCount >= 3) {
+            const badgeSnapshot = await db.collection(Collections.BADGES)
+                .where('userId', '==', toUserId)
+                .where('skillName', '==', skillName)
+                .limit(1)
+                .get()
 
-                // Only mint if badge doesn't already exist
-                if (badgeSnapshot.empty) {
-                    await db.collection(Collections.BADGES).add({
-                        userId: toUserId,
-                        skillName,
-                        name: `${skillName} Expert`,
-                        description: `Verified by 3+ colleagues for ${skillName}`,
-                        type: 'endorsement',
-                        iconUrl: 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png',
-                        unlockedAt: new Date(),
-                    })
-                }
+            // Only mint if badge doesn't already exist
+            if (badgeSnapshot.empty) {
+                await db.collection(Collections.BADGES).add({
+                    userId: toUserId,
+                    skillName,
+                    name: `${skillName} Expert`,
+                    description: `Verified by 3+ colleagues for ${skillName}`,
+                    type: 'endorsement',
+                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png',
+                    unlockedAt: new Date(),
+                })
             }
         }
-    }
+    }))
 
     return { success: true }
+}
+
+/**
+ * Direct endorsement: logged-in user endorses another user immediately (no token link required)
+ */
+export async function directEndorse(fromUserId: string, body: any) {
+    const { toUserId, skills, message, fromRole } = body
+
+    if (!toUserId || !skills?.length || !message) {
+        throw new Error('MISSING_FIELDS')
+    }
+
+    if (fromUserId === toUserId) {
+        throw new Error('CANNOT_ENDORSE_SELF')
+    }
+
+    // Prevent duplicate direct endorsement from the same user within 30 days
+    const recentSnap = await db.collection(Collections.ENDORSEMENTS)
+        .where('toUserId', '==', toUserId)
+        .where('fromUserId', '==', fromUserId)
+        .where('status', '==', 'verified')
+        .limit(1)
+        .get()
+
+    if (!recentSnap.empty) {
+        throw new Error('ALREADY_ENDORSED')
+    }
+
+    // Get from-user info
+    const fromUserDoc = await db.collection(Collections.USERS).doc(fromUserId).get()
+    const fromUserData = fromUserDoc.data()
+
+    const endorsementRef = await db.collection(Collections.ENDORSEMENTS).add({
+        toUserId,
+        fromUserId,
+        fromName: fromUserData?.displayName || 'Anonymous',
+        fromRole: fromRole || fromUserData?.title || '',
+        fromAvatarUrl: fromUserData?.avatarUrl || '',
+        message,
+        skills,
+        status: 'verified',
+        verifiedAt: new Date(),
+        createdAt: new Date(),
+    })
+
+    // Update toUser's endorsement count
+    const verifiedSnap = await db.collection(Collections.ENDORSEMENTS)
+        .where('toUserId', '==', toUserId)
+        .where('status', '==', 'verified')
+        .get()
+
+    await db.collection(Collections.USERS).doc(toUserId).update({
+        'stats.endorsementCount': verifiedSnap.size,
+    })
+
+    // Update per-skill endorsement counts + auto-mint badges
+    await Promise.all(skills.map(async (skillName: string) => {
+        const skillSnap = await db.collection(Collections.SKILLS)
+            .where('userId', '==', toUserId)
+            .where('name', '==', skillName)
+            .limit(1)
+            .get()
+
+        let endorsementCount = 1
+
+        if (!skillSnap.empty) {
+            // Skill มีอยู่แล้ว — เพิ่ม endorsementCount
+            const skillDoc = skillSnap.docs[0]
+            endorsementCount = (skillDoc.data().endorsementCount || 0) + 1
+            await skillDoc.ref.update({ endorsementCount })
+        } else {
+            // Skill ยังไม่มี — auto-create พร้อม endorsementCount = 1
+            await db.collection(Collections.SKILLS).add({
+                userId: toUserId,
+                name: skillName,
+                category: 'Other',
+                level: 1,
+                endorsementCount: 1,
+                verified: false,
+                createdAt: new Date(),
+            })
+        }
+
+        // Auto-mint badge เมื่อ endorse ครบ 3 ครั้ง (ใช้ >= เผื่อ count ข้าม)
+        if (endorsementCount >= 3) {
+            const badgeSnap = await db.collection(Collections.BADGES)
+                .where('userId', '==', toUserId)
+                .where('skillName', '==', skillName)
+                .limit(1)
+                .get()
+
+            if (badgeSnap.empty) {
+                await db.collection(Collections.BADGES).add({
+                    userId: toUserId,
+                    skillName,
+                    name: `${skillName} Expert`,
+                    description: `Verified by 3+ colleagues for ${skillName}`,
+                    type: 'endorsement',
+                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png',
+                    unlockedAt: new Date(),
+                })
+            }
+        }
+    }))
+
+    return { success: true, endorsementId: endorsementRef.id }
 }

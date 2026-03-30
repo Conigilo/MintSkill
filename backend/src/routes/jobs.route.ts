@@ -25,10 +25,24 @@ export const jobsRoute = new Elysia({ prefix: '/jobs', tags: ['Jobs'] })
     })
 
     // GET /jobs/:id — Detailed information for a single job
+    // ⚠️ ต้องอยู่ก่อน /:id/apply เพราะ Elysia match จาก top-down
     .get('/:id', JobsController.getJobByIdHandler, {
         params: t.Object({ id: t.String() }),
         detail: {
             summary: 'Get Job Detail',
             description: 'ดึงข้อมูลรายละเอียดงานรายชิ้น (ไม่ต้อง login)',
+        },
+    })
+
+    // POST /jobs/:id/apply — Apply for a job
+    .post('/:id/apply', JobsController.applyForJobHandler, {
+        params: t.Object({ id: t.String() }),
+        body: t.Object({
+            coverLetter: t.Optional(t.String()),
+        }),
+        detail: {
+            summary: 'Apply for Job',
+            description: 'สมัครงาน (ต้อง login)',
+            security: [{ bearerAuth: [] }],
         },
     })

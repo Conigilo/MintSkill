@@ -3,9 +3,8 @@ import {
   fetchUserSkills as fetchSkillsFromAPI, 
   type Skill 
 } from '@/lib/services/skills.service'
-import { badgeService } from '@/lib/services/badges.service';
-import { endorsementService } from '@/lib/services/endorsements.service';
-import { getIdToken } from '@/lib/services/auth.service'
+import { type Badge, fetchUserBadges as fetchBadgesFromAPI } from '@/lib/services/badges.service';
+import { type Endorsement, fetchMyEndorsements as fetchEndorsementsFromAPI } from '@/lib/services/endorsements.service';
 import { useAuth } from './useAuth'
 
 /**
@@ -85,8 +84,10 @@ export const useMyEndorsements = () => {
   const [error, setError] = useState<string | null>(null)
   const { user } = useAuth()
 
+  const userId = user?.uid
+
   const fetchEndorsements = useCallback(async () => {
-    if (!user) {
+    if (!userId) {
       setIsLoading(false)
       return
     }
@@ -102,7 +103,7 @@ export const useMyEndorsements = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [user])
+  }, [userId])
 
   useEffect(() => {
     fetchEndorsements()

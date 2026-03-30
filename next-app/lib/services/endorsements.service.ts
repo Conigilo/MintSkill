@@ -1,29 +1,71 @@
 import { fetchAPI } from './api';
+import { auth } from '@/lib/utils/firebase';
 
 export const endorsementService = {
   // ดึงประวัติว่ามีใครมากด Endorse เราบ้าง
   getMyEndorsements: async () => {
-    return await fetchAPI('/endorsements', { method: 'GET' });
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('Not authenticated');
+    return await fetchAPI(`/endorsements/${uid}`, { method: 'GET' });
   },
 
-  // กด Endorse ให้เพื่อน (ส่ง ID เพื่อน และ สกิลที่โหวตให้)
-  endorseFriend: async (targetUserId: string, skillName: string) => {
-    return await fetchAPI('/endorsements', {
+  // ขอ Endorsement Link (ส่งให้คนอื่นมากด endorse เรา)
+  requestEndorsement: async (recipientName: string, recipientEmail?: string) => {
+    return await fetchAPI('/endorsements/request', {
       method: 'POST',
-      body: JSON.stringify({ targetId: targetUserId, skill: skillName })
+      body: JSON.stringify({ recipientName, recipientEmail }),
     });
-  }
+  },
+
+  // Endorse เพื่อนโดยตรง — map ไปที่ directEndorse
+  endorseFriend: async (targetUserId: string, skillName: string) => {
+    return await fetchAPI('/endorsements/direct', {
+      method: 'POST',
+      body: JSON.stringify({
+        toUserId: targetUserId,
+        skills: [skillName],
+        message: `I endorse your skill: ${skillName}`,
+      }),
+    });
+  },
+
+  // Direct endorse: ส่ง endorsement ให้ user อื่นทันที (ต้อง login)
+  directEndorse: async (payload: {
+    toUserId: string;
+    skills: string[];
+    message: string;
+    fromRole?: string;
+  }) => {
+    return await fetchAPI('/endorsements/direct', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  // ดึง skills ของ user คนอื่น (สำหรับ populate ใน modal)
+  getUserSkills: async (userId: string) => {
+    const data = await fetchAPI(`/skills/${userId}`);
+    return (data.data || []) as Array<{ id: string; name: string }>;
+  },
 };
 
 export interface Endorsement {
   id: string;
-  fromUserId: string;
+  fromUserId?: string;
   fromUserName?: string;
-  skill: string;
-  createdAt?: string;
+  fromName?: string;
+  fromRole?: string;
+  fromAvatarUrl?: string;
+  message?: string;
+  skills?: string[];
+  skill?: string;
+  status?: 'pending' | 'verified';
+  createdAt?: any;
+  verifiedAt?: any;
 }
 
 // Named exports for hooks to ensure compatibility with Next.js SSR
 export async function fetchMyEndorsements(): Promise<Endorsement[]> {
-  return endorsementService.getMyEndorsements();
+  const res = await endorsementService.getMyEndorsements();
+  return res?.data || [];
 }

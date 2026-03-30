@@ -145,3 +145,35 @@ export async function submitEndorsementHandler({ params, body, set }: any) {
         }
     }
 }
+
+/**
+ * Direct endorsement: authenticated user endorses another user immediately
+ */
+export async function directEndorseHandler({ headers, body, set }: any) {
+    try {
+        const user = await verifyToken(headers['authorization'] || null)
+        const result = await EndorsementsService.directEndorse(user.uid, body)
+
+        set.status = 201
+        return { success: true, data: result }
+    } catch (error: any) {
+        if (error.message === 'MISSING_FIELDS') {
+            set.status = 400
+            return { success: false, error: 'toUserId, skills (array), and message are required', code: 'VALIDATION_ERROR' }
+        }
+        if (error.message === 'CANNOT_ENDORSE_SELF') {
+            set.status = 400
+            return { success: false, error: 'You cannot endorse yourself', code: 'CANNOT_ENDORSE_SELF' }
+        }
+        if (error.message === 'ALREADY_ENDORSED') {
+            set.status = 409
+            return { success: false, error: 'You have already endorsed this user', code: 'ALREADY_ENDORSED' }
+        }
+        if (error instanceof AuthenticationError) {
+            set.status = 401
+            return { success: false, error: error.message, code: 'UNAUTHORIZED' }
+        }
+        set.status = 500
+        return { success: false, error: error.message, code: 'INTERNAL_ERROR' }
+    }
+}

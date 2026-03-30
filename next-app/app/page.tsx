@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import Image from "next/image";
 import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function LandingPage() {
     const router = useRouter();
-    const { user, loading, loginWithGithub, logout } = useAuth();
+    const { user, loading, logout } = useAuth();
 
     // ถ้า Login แล้ว ก็ไม่ต้องเด้งไปทันที เพื่อให้เห็น Landing Page ก่อน
     // แต่เราจะเปลี่ยนปุ่ม Hero เป็น "Go to Dashboard" แทน
@@ -29,7 +29,7 @@ export default function LandingPage() {
                         <div className="w-24 h-9 bg-gray-800 animate-pulse rounded-full"></div>
                     ) : user ? (
                         <div className="flex items-center gap-4">
-                            {user.photoURL && <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full border border-gray-700" />}
+                            {user.photoURL && <Image src={user.photoURL} alt="Profile" width={32} height={32} className="w-8 h-8 rounded-full border border-gray-700" />}
                             <button onClick={logout} className="text-xs text-red-400 hover:text-red-300 transition-colors">Sign Out</button>
                         </div>
                     ) : (

@@ -47,6 +47,7 @@ export const Collections = {
     GITHUB_REPOS: 'github_repos',
     EXPORT_TOKENS: 'export_tokens',
     BADGES: 'badges',
+    JOBS: 'jobs',
 } as const
 
 /**

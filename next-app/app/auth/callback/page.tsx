@@ -22,9 +22,26 @@ function AuthCallbackContent() {
         const code = searchParams?.get('code')
         
         if (!error && code) {
-            // In a popup-based flow, we redirect directly to dashboard
-            // In a redirect-based flow, you would exchange the code here
-            router.replace('/dashboard')
+            // Exchange code with backend for authentication
+            const exchangeCode = async () => {
+                try {
+                    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+                    const res = await fetch(`${API_URL}/auth/github/callback?code=${encodeURIComponent(code)}`)
+                    const data = await res.json()
+                    
+                    if (data.token) {
+                        // Sign in with custom token from backend
+                        const { signInWithCustomToken } = await import('firebase/auth')
+                        const { auth } = await import('@/lib/utils/firebase')
+                        await signInWithCustomToken(auth, data.token)
+                    }
+                    router.replace('/dashboard')
+                } catch (err) {
+                    console.error('OAuth exchange failed:', err)
+                    router.replace('/login')
+                }
+            }
+            exchangeCode()
         }
     }, [error, router, searchParams])
 

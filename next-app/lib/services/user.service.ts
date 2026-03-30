@@ -1,8 +1,15 @@
 import { fetchAPI } from './api';
 
+interface SyncProfileData {
+  uid: string
+  email: string | null
+  displayName: string | null
+  photoURL: string | null
+}
+
 export const userService = {
   // ฟังก์ชันสำหรับเรียกหลังบ้านให้เซฟข้อมูล User ลง Firestore (เมื่อ Login ครั้งแรก)
-  syncProfile: async (userData: any) => {
+  syncProfile: async (userData: SyncProfileData) => {
     try {
       return await fetchAPI('/users/sync', {
         method: 'POST',
