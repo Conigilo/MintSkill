@@ -2,6 +2,70 @@ import { db, Collections } from './firebase.service'
 import { randomBytes } from 'crypto'
 
 /**
+ * Update skill endorsement count and auto-mint badge if threshold met
+ */
+async function updateSkillAndMintBadge(toUserId: string, skillName: string) {
+    const skillSnap = await db.collection(Collections.SKILLS)
+        .where('userId', '==', toUserId)
+        .where('name', '==', skillName)
+        .limit(1)
+        .get()
+
+    let endorsementCount = 1
+
+    if (!skillSnap.empty) {
+        const skillDoc = skillSnap.docs[0]
+        endorsementCount = (skillDoc.data().endorsementCount || 0) + 1
+        await skillDoc.ref.update({ endorsementCount })
+    } else {
+        await db.collection(Collections.SKILLS).add({
+            userId: toUserId,
+            name: skillName,
+            category: 'Other',
+            level: 1,
+            endorsementCount: 1,
+            verified: false,
+            createdAt: new Date(),
+        })
+    }
+
+    // Auto-mint badge when endorsed 3+ times
+    if (endorsementCount >= 3) {
+        const badgeSnap = await db.collection(Collections.BADGES)
+            .where('userId', '==', toUserId)
+            .where('skillName', '==', skillName)
+            .limit(1)
+            .get()
+
+        if (badgeSnap.empty) {
+            await db.collection(Collections.BADGES).add({
+                userId: toUserId,
+                skillName,
+                name: `${skillName} Expert`,
+                description: `Verified by 3+ colleagues for ${skillName}`,
+                type: 'endorsement',
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png',
+                unlockedAt: new Date(),
+            })
+        }
+    }
+}
+
+/**
+ * Update user's verified endorsement count
+ */
+async function updateUserEndorsementCount(toUserId: string) {
+    const verifiedSnap = await db.collection(Collections.ENDORSEMENTS)
+        .where('toUserId', '==', toUserId)
+        .where('status', '==', 'verified')
+        .get()
+
+    await db.collection(Collections.USERS).doc(toUserId).update({
+        'stats.endorsementCount': verifiedSnap.size,
+    })
+}
+
+/**
  * Get all endorsements received by a user
  */
 export async function getEndorsementsByUser(userId: string) {
@@ -138,65 +202,10 @@ export async function submitEndorsement(token: string, body: any) {
     const toUserId = endorsementDoc.data().toUserId
 
     // Update user's endorsement count
-    const verifiedEndorsementsSnapshot = await db.collection(Collections.ENDORSEMENTS)
-        .where('toUserId', '==', toUserId)
-        .where('status', '==', 'verified')
-        .get()
+    await updateUserEndorsementCount(toUserId)
 
-    await db.collection(Collections.USERS).doc(toUserId).update({
-        'stats.endorsementCount': verifiedEndorsementsSnapshot.size,
-    })
-
-    // Update skills and check for badge achievement (parallelized)
-    await Promise.all(skills.map(async (skillName: string) => {
-        const skillSnapshot = await db.collection(Collections.SKILLS)
-            .where('userId', '==', toUserId)
-            .where('name', '==', skillName)
-            .limit(1)
-            .get()
-
-        let endorsementCount = 1
-
-        if (!skillSnapshot.empty) {
-            // Skill มีอยู่แล้ว — เพิ่ม endorsementCount
-            const skillDoc = skillSnapshot.docs[0]
-            endorsementCount = (skillDoc.data().endorsementCount || 0) + 1
-            await skillDoc.ref.update({ endorsementCount })
-        } else {
-            // Skill ยังไม่มี — auto-create พร้อม endorsementCount = 1
-            await db.collection(Collections.SKILLS).add({
-                userId: toUserId,
-                name: skillName,
-                category: 'Other',
-                level: 1,
-                endorsementCount: 1,
-                verified: false,
-                createdAt: new Date(),
-            })
-        }
-
-        // Auto-mint badge เมื่อ endorse ครบ 3 ครั้ง (ใช้ >= เผื่อ count ข้าม)
-        if (endorsementCount >= 3) {
-            const badgeSnapshot = await db.collection(Collections.BADGES)
-                .where('userId', '==', toUserId)
-                .where('skillName', '==', skillName)
-                .limit(1)
-                .get()
-
-            // Only mint if badge doesn't already exist
-            if (badgeSnapshot.empty) {
-                await db.collection(Collections.BADGES).add({
-                    userId: toUserId,
-                    skillName,
-                    name: `${skillName} Expert`,
-                    description: `Verified by 3+ colleagues for ${skillName}`,
-                    type: 'endorsement',
-                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png',
-                    unlockedAt: new Date(),
-                })
-            }
-        }
-    }))
+    // Update skills and check for badge achievement
+    await Promise.all(skills.map((skillName: string) => updateSkillAndMintBadge(toUserId, skillName)))
 
     return { success: true }
 }
@@ -245,64 +254,10 @@ export async function directEndorse(fromUserId: string, body: any) {
     })
 
     // Update toUser's endorsement count
-    const verifiedSnap = await db.collection(Collections.ENDORSEMENTS)
-        .where('toUserId', '==', toUserId)
-        .where('status', '==', 'verified')
-        .get()
-
-    await db.collection(Collections.USERS).doc(toUserId).update({
-        'stats.endorsementCount': verifiedSnap.size,
-    })
+    await updateUserEndorsementCount(toUserId)
 
     // Update per-skill endorsement counts + auto-mint badges
-    await Promise.all(skills.map(async (skillName: string) => {
-        const skillSnap = await db.collection(Collections.SKILLS)
-            .where('userId', '==', toUserId)
-            .where('name', '==', skillName)
-            .limit(1)
-            .get()
-
-        let endorsementCount = 1
-
-        if (!skillSnap.empty) {
-            // Skill มีอยู่แล้ว — เพิ่ม endorsementCount
-            const skillDoc = skillSnap.docs[0]
-            endorsementCount = (skillDoc.data().endorsementCount || 0) + 1
-            await skillDoc.ref.update({ endorsementCount })
-        } else {
-            // Skill ยังไม่มี — auto-create พร้อม endorsementCount = 1
-            await db.collection(Collections.SKILLS).add({
-                userId: toUserId,
-                name: skillName,
-                category: 'Other',
-                level: 1,
-                endorsementCount: 1,
-                verified: false,
-                createdAt: new Date(),
-            })
-        }
-
-        // Auto-mint badge เมื่อ endorse ครบ 3 ครั้ง (ใช้ >= เผื่อ count ข้าม)
-        if (endorsementCount >= 3) {
-            const badgeSnap = await db.collection(Collections.BADGES)
-                .where('userId', '==', toUserId)
-                .where('skillName', '==', skillName)
-                .limit(1)
-                .get()
-
-            if (badgeSnap.empty) {
-                await db.collection(Collections.BADGES).add({
-                    userId: toUserId,
-                    skillName,
-                    name: `${skillName} Expert`,
-                    description: `Verified by 3+ colleagues for ${skillName}`,
-                    type: 'endorsement',
-                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png',
-                    unlockedAt: new Date(),
-                })
-            }
-        }
-    }))
+    await Promise.all(skills.map((skillName: string) => updateSkillAndMintBadge(toUserId, skillName)))
 
     return { success: true, endorsementId: endorsementRef.id }
 }

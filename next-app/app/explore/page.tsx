@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { developersService, type Developer } from "@/lib/services/developers.service";
 import { useAuth } from "@/lib/hooks/useAuth";
 import EndorseModal from "@/components/EndorseModal";
+import SidebarLayout from "@/components/dashboard/SidebarLayout";
 
 export default function ExplorePage() {
     const router = useRouter();
@@ -35,14 +36,12 @@ export default function ExplorePage() {
     }, [searchQuery]);
 
     return (
-        <div className="min-h-screen bg-[#090d14] text-white p-10">
-            <button
-                onClick={() => router.push('/dashboard')}
-                className="mb-8 flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm font-medium"
-            >
-                ← Back to Profile
-            </button>
-            
+        <SidebarLayout activePage="explore">
+        <div className="text-white p-10 relative">
+            <div className="absolute top-[-10%] left-[10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
+
+            <div className="relative z-10">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold mb-6">Explore Developers</h1>
                 <input
@@ -153,6 +152,8 @@ export default function ExplorePage() {
                     onSuccess={() => setEndorseTarget(null)}
                 />
             )}
+            </div>
         </div>
+        </SidebarLayout>
     );
 }

@@ -26,16 +26,23 @@ function AuthCallbackContent() {
             const exchangeCode = async () => {
                 try {
                     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-                    const res = await fetch(`${API_URL}/auth/github/callback?code=${encodeURIComponent(code)}`)
+                    const res = await fetch(`${API_URL}/auth/github/callback`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code }),
+                    })
                     const data = await res.json()
                     
-                    if (data.token) {
+                    if (data.success && data.data?.token) {
                         // Sign in with custom token from backend
                         const { signInWithCustomToken } = await import('firebase/auth')
                         const { auth } = await import('@/lib/utils/firebase')
-                        await signInWithCustomToken(auth, data.token)
+                        await signInWithCustomToken(auth, data.data.token)
+                        router.replace('/dashboard')
+                    } else {
+                        console.error('OAuth exchange failed:', data.error)
+                        router.replace('/login')
                     }
-                    router.replace('/dashboard')
                 } catch (err) {
                     console.error('OAuth exchange failed:', err)
                     router.replace('/login')

@@ -1,6 +1,6 @@
 import * as AuthService from '../services/auth.service'
 import { validateRequiredString } from '../utils/validators'
-import { AuthenticationError, ValidationError } from '../utils/errors'
+import { ValidationError } from '../utils/errors'
 
 /**
  * Handle GitHub OAuth callback
@@ -37,8 +37,8 @@ export async function githubCallbackHandler({ body, set }: any) {
  */
 export async function verifyTokenHandler({ headers, set }: any) {
     try {
-        const token = validateRequiredString(headers['authorization'] || '', 'Authorization header')
-        const result = await AuthService.verifyFirebaseToken(token)
+        const authHeader = headers['authorization'] || ''
+        const result = await AuthService.verifyFirebaseToken(authHeader)
         
         if (!result.valid) {
             set.status = 401
@@ -49,14 +49,6 @@ export async function verifyTokenHandler({ headers, set }: any) {
             data: result 
         }
     } catch (error: any) {
-        if (error instanceof ValidationError) {
-            set.status = 400
-            return { 
-                success: false,
-                error: error.message,
-                code: error.code
-            }
-        }
         set.status = 401
         return { 
             success: false,

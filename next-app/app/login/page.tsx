@@ -119,7 +119,7 @@ export default function LoginPage() {
               <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-1">Email Address</label>
               <div className="relative rounded-2xl bg-[var(--background)] border border-[var(--border)] focus-within:border-[var(--primary)] focus-within:ring-1 focus-within:ring-[var(--primary)] transition-all overflow-hidden flex items-center px-4 py-3.5">
                 <svg width="20" height="20" className="flex-shrink-0 text-gray-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v10a2 2 0 00-2 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 <input
                   type="email"

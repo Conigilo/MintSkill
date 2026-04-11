@@ -14,7 +14,7 @@ async function fetchFromGitHub(path: string, accessToken: string) {
     })
 
     if (!response.ok) {
-        throw new Error(`GitHub API ${response.status}: ${path}`)
+        throw new Error(`GitHub API error: ${response.status}`)
     }
 
     return response.json()
@@ -226,7 +226,7 @@ async function getContributionGrid(uid: string): Promise<number[]> {
         }
 
         const randomValue = Math.random()
-        const level = randomValue > 0.65 ? Math.floor(Math.random() * 4) + 1 : 0
+        const level = randomValue > 0.65 ? Math.min(Math.floor(Math.random() * 4) + 1, remaining) : 0
         grid.push(level)
         remaining -= level
     }

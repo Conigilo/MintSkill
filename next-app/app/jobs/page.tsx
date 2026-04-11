@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { jobsService, type JobPosting } from "@/lib/services/jobs.service";
 import { useAuth } from "@/lib/hooks/useAuth";
+import SidebarLayout from "@/components/dashboard/SidebarLayout";
 
 export default function JobsPage() {
     const router = useRouter();
@@ -49,14 +50,12 @@ export default function JobsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#090d14] text-white p-10">
-            <button
-                onClick={() => router.push('/dashboard')}
-                className="mb-8 flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm font-medium"
-            >
-                ← Back to Dashboard
-            </button>
+        <SidebarLayout activePage="jobs">
+        <div className="text-white p-10 relative">
+            <div className="absolute top-[-10%] left-[10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
 
+            <div className="relative z-10">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold mb-6">Skill-Matched Jobs</h1>
                 
@@ -160,6 +159,8 @@ export default function JobsPage() {
                     ))}
                 </div>
             )}
+            </div>
         </div>
+        </SidebarLayout>
     );
 }

@@ -5,6 +5,7 @@ import {
     GithubAuthProvider,
     GoogleAuthProvider,
     signInWithPopup,
+    linkWithPopup,
     signOut,
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
@@ -59,6 +60,20 @@ export const useAuth = () => {
             return await signInWithPopup(auth, provider);
         } catch (error) {
             console.error("GitHub Login Error:", error);
+            throw error;
+        }
+    };
+
+    const linkGithubAccount = async () => {
+        if (!auth.currentUser) {
+            throw new Error("No user logged in");
+        }
+
+        const provider = new GithubAuthProvider();
+        try {
+            return await linkWithPopup(auth.currentUser, provider);
+        } catch (error) {
+            console.error("GitHub Link Error:", error);
             throw error;
         }
     };
@@ -128,6 +143,7 @@ export const useAuth = () => {
         user, 
         loading, 
         loginWithGithub, 
+        linkGithubAccount,
         loginWithGoogle, 
         signUpWithEmail, 
         signInWithEmail, 

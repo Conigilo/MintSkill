@@ -186,10 +186,11 @@ export async function getPortfolioHandler({ params, set }: any) {
  */
 export async function searchUsersHandler({ query, set }: any) {
     try {
-        const q = validateRequiredString(query.q || '', 'Search query')
-        const limit = query.limit ? parseInt(query.limit) : 20
+        const q = (query.q || '').trim()
+        const parsedLimit = query.limit ? parseInt(query.limit, 10) : 20
+        const limit = isNaN(parsedLimit) ? 20 : Math.min(Math.max(parsedLimit, 1), 100)
         
-        const users = await UsersService.searchUsers(q, {
+        const users = await UsersService.searchUsers(q || undefined, {
             location: query.location,
             limit
         })
