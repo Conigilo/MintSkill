@@ -32,9 +32,6 @@ export async function getRecommendations(userSkills: string[], limit = 5) {
     if (userSkills.length === 0) {
         return await getAllJobs({ limit })
     }
-
-    // Firestore doesn't support 'array-contains-any' with more than 10 items
-    // So we pick the first 10 skills or just filter in-memory for simplicity in this MVP
     const snapshot = await db.collection(Collections.JOBS)
         .where('requiredSkills', 'array-contains-any', userSkills.slice(0, 10))
         .limit(limit)

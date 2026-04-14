@@ -22,31 +22,27 @@ export default function PublicProfilePage() {
     setIsLoading(true);
     developersService
       .getDeveloperPortfolio(username)
-      .then((data) => {
-        if (data) {
-          setPortfolio(data);
-        } else {
-          setError("User not found");
-        }
-      })
+      .then((data) => { if (data) setPortfolio(data); else setError("User not found"); })
       .catch(() => setError("Failed to load profile"))
       .finally(() => setIsLoading(false));
   }, [username]);
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-[#090d14] flex justify-center items-center">
-        <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+      <main className="min-h-screen bg-[#0a0d13] flex flex-col justify-center items-center gap-4">
+        <div className="w-10 h-10 border-[3px] border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <p className="text-gray-500 text-xs font-mono tracking-widest uppercase">Loading profile...</p>
       </main>
     );
   }
 
   if (error || !portfolio) {
     return (
-      <main className="min-h-screen bg-[#090d14] flex flex-col items-center justify-center text-white gap-4">
-        <p className="text-4xl">😕</p>
-        <p className="text-gray-400">{error || "Something went wrong"}</p>
-        <button onClick={() => router.push("/explore")} className="text-blue-400 hover:underline text-sm">
+      <main className="min-h-screen bg-[#0a0d13] flex flex-col items-center justify-center gap-4">
+        <p className="text-5xl">😕</p>
+        <p className="text-lg font-semibold text-white">Profile not found</p>
+        <p className="text-sm text-gray-500">{error}</p>
+        <button onClick={() => router.push("/explore")} className="mt-2 text-sm text-blue-400 hover:text-blue-300 hover:underline transition">
           ← Back to Explore
         </button>
       </main>
@@ -58,248 +54,267 @@ export default function PublicProfilePage() {
   const badges: any[] = portfolio.badges || [];
   const endorsements: any[] = portfolio.endorsements || [];
   const repos: any[] = portfolio.repositories || [];
-
   const verifiedSkills = skills.filter((s: any) => s.verified);
 
   return (
-    <main className="min-h-screen bg-[#090d14] text-white relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute top-[-10%] left-[10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
+    <main className="min-h-screen bg-[#0a0d13] text-white pb-24">
 
-      {/* Header */}
-      <div className="relative z-10 border-b border-gray-800 bg-[#0d1117]/80 backdrop-blur-md">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
-          <button onClick={() => router.push("/explore")} className="text-gray-400 hover:text-white transition text-sm">
-            ← Explore
-          </button>
-          <span className="text-gray-700">/</span>
-          <span className="text-gray-300 font-medium">{p.displayName || p.username}</span>
-        </div>
+      {/* Subtle background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[160px]" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-indigo-600/5 rounded-full blur-[160px]" />
       </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-6 py-10">
-        {/* Profile Card */}
-        <div className="flex flex-col md:flex-row gap-8 mb-10">
-          {/* Avatar + Info */}
-          <div className="flex flex-col items-center md:items-start gap-4 md:w-64 shrink-0">
+      {/* Navbar */}
+      <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#0a0d13]/90 backdrop-blur-md">
+        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+          <button
+            onClick={() => router.push("/explore")}
+            className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Explore
+          </button>
+          <span className="text-xs text-gray-600 font-mono">Public Profile</span>
+        </div>
+      </nav>
+
+      <div className="relative z-10 max-w-5xl mx-auto px-6 pt-10 space-y-8">
+
+        {/* ── Profile Header ── */}
+        <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-start">
+
+          {/* Avatar */}
+          <div className="shrink-0">
             {p.avatarUrl || p.photoURL ? (
               <img
                 src={p.avatarUrl || p.photoURL}
                 alt={p.displayName}
-                className="w-32 h-32 rounded-full object-cover border-4 border-gray-800"
+                className="w-24 h-24 rounded-2xl object-cover border border-white/10 shadow-lg"
               />
             ) : (
-              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-4xl font-bold border-4 border-gray-800">
-                {(p.displayName || "U")[0]}
+              <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-3xl font-bold border border-white/10 shadow-lg">
+                {(p.displayName || p.username || "U")[0].toUpperCase()}
               </div>
             )}
+          </div>
 
-            <div className="text-center md:text-left">
-              <h1 className="text-2xl font-bold">{p.displayName || "Developer"}</h1>
-              <p className="text-gray-400 text-sm">@{p.username || username}</p>
-              {p.title && <p className="text-blue-400 text-sm mt-1">{p.title}</p>}
-              {p.bio && <p className="text-gray-400 text-xs mt-2 leading-relaxed">{p.bio}</p>}
-              {p.location && (
-                <p className="text-gray-500 text-xs mt-2 flex items-center gap-1">
-                  📍 {p.location}
-                </p>
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-3 mb-1">
+              <h1 className="text-2xl font-bold text-white">{p.displayName || "Developer"}</h1>
+              {p.title && (
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                  {p.title}
+                </span>
               )}
             </div>
+            <p className="text-sm text-gray-500 mb-3">@{p.username || username}</p>
 
-            {/* Endorse button */}
-            {user && user.uid !== p.id && (
+            {p.bio && <p className="text-sm text-gray-300 leading-relaxed mb-4 max-w-lg">{p.bio}</p>}
+
+            <div className="flex flex-wrap items-center gap-4">
+              {p.location && (
+                <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {p.location}
+                </span>
+              )}
+              {p.linkedinUrl && (
+                <a href={p.linkedinUrl} target="_blank" rel="noreferrer"
+                  className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                  </svg>
+                  LinkedIn
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* Endorse Button */}
+          {(!user || user.uid !== p.id) && (
+            <div className="shrink-0 mt-1">
               <button
                 onClick={() => setEndorseOpen(true)}
-                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors shadow-lg shadow-blue-900/40"
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-all shadow-lg shadow-blue-900/30"
               >
-                ✦ Endorse This Developer
+                ✦ Endorse
               </button>
-            )}
-          </div>
-
-          {/* Stats */}
-          <div className="flex-1 space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[
-                { label: "SKILLS", value: skills.length, color: "text-blue-400" },
-                { label: "VERIFIED", value: verifiedSkills.length, color: "text-green-400" },
-                { label: "BADGES", value: badges.length, color: "text-yellow-400" },
-                { label: "ENDORSEMENTS", value: endorsements.length, color: "text-purple-400" },
-              ].map((s, i) => (
-                <div key={i} className="bg-[#161b22] border border-gray-800 rounded-xl p-4 text-center">
-                  <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-                  <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mt-1">{s.label}</p>
-                </div>
-              ))}
             </div>
-
-            {/* Skills */}
-            {skills.length > 0 && (
-              <div className="bg-[#161b22] border border-gray-800 rounded-2xl p-6">
-                <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">Skills</h3>
-                <div className="flex flex-wrap gap-2">
-                  {skills.map((skill: any, i: number) => (
-                    <span
-                      key={i}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
-                        skill.verified
-                          ? "bg-green-500/10 border-green-500/30 text-green-400"
-                          : "bg-[#0d1117] border-gray-700 text-gray-400"
-                      }`}
-                    >
-                      {skill.verified && "✓ "}{skill.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Badges */}
-            {badges.length > 0 && (
-              <div className="bg-[#161b22] border border-gray-800 rounded-2xl p-6">
-                <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">Earned Badges</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {badges.map((badge: any, i: number) => (
-                    <div
-                      key={i}
-                      onClick={() => setBadgeModal(badge)}
-                      className="bg-[#0d1117] border border-gray-800 rounded-xl p-4 text-center hover:border-blue-500/50 hover:bg-[#161b22] transition-all cursor-pointer"
-                    >
-                      <img
-                        src={badge.iconUrl || "https://cdn-icons-png.flaticon.com/512/5968/5968863.png"}
-                        className="w-8 h-8 mx-auto mb-2 object-contain"
-                        alt=""
-                      />
-                      <h4 className="text-xs font-semibold text-white">{badge.name}</h4>
-                      <p className="text-[10px] text-gray-500 mt-1">{badge.skillName}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
-        {/* Endorsements */}
+        {/* ── Stats Row ── */}
+        <div className="grid grid-cols-4 gap-3">
+          {[
+            { label: "Skills", value: skills.length },
+            { label: "Verified", value: verifiedSkills.length },
+            { label: "Badges", value: badges.length },
+            { label: "Endorsements", value: endorsements.length },
+          ].map((s, i) => (
+            <div key={i} className="bg-[#111827]/80 border border-white/5 rounded-xl p-4 text-center">
+              <p className="text-2xl font-bold text-white">{s.value}</p>
+              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold mt-1">{s.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Skills ── */}
+        {skills.length > 0 && (
+          <Section title="Skills">
+            <div className="flex flex-wrap gap-2">
+              {skills.map((skill: any, i: number) => (
+                <span
+                  key={i}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border font-medium ${
+                    skill.verified
+                      ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-300"
+                      : "bg-[#161d2c] border-white/5 text-gray-400"
+                  }`}
+                >
+                  {skill.verified && (
+                    <svg className="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                  {skill.name}
+                </span>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {/* ── Badges ── */}
+        {badges.length > 0 && (
+          <Section title="Badges">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {badges.map((badge: any, i: number) => (
+                <button
+                  key={i}
+                  onClick={() => setBadgeModal(badge)}
+                  className="flex items-center gap-3 bg-[#111827] border border-white/5 rounded-xl p-4 text-left hover:border-blue-500/30 hover:bg-blue-500/5 transition-all"
+                >
+                  <img
+                    src={badge.iconUrl || "https://cdn-icons-png.flaticon.com/512/5968/5968863.png"}
+                    className="w-9 h-9 object-contain shrink-0"
+                    alt=""
+                  />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-white truncate">{badge.name}</p>
+                    <p className="text-[10px] text-blue-400 font-bold uppercase tracking-wide mt-0.5">{badge.skillName}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {/* ── Endorsements ── */}
         {endorsements.length > 0 && (
-          <div className="bg-[#161b22] border border-gray-800 rounded-2xl p-6 mb-8">
-            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">
-              Endorsements ({endorsements.length})
-            </h3>
-            <div className="space-y-4">
+          <Section title={`Endorsements (${endorsements.length})`}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {endorsements.slice(0, 6).map((e: any, i: number) => (
-                <div key={i} className="flex items-start gap-3 bg-[#0d1117] border border-gray-800 rounded-xl p-4">
-                  <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-xs font-bold text-blue-400 shrink-0">
-                    {(e.fromName || "?")[0].toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-white">{e.fromName || "Anonymous"}</span>
-                      {e.fromRole && <span className="text-xs text-gray-500">— {e.fromRole}</span>}
+                <div key={i} className="bg-[#111827] border border-white/5 rounded-xl p-5">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-sm font-bold text-white shrink-0">
+                      {(e.fromName || "?")[0].toUpperCase()}
                     </div>
-                    {e.message && <p className="text-xs text-gray-400 mt-1 line-clamp-2">"{e.message}"</p>}
-                    {e.skills?.length > 0 && (
-                      <div className="flex gap-1.5 mt-2 flex-wrap">
-                        {e.skills.map((s: string, j: number) => (
-                          <span key={j} className="text-[10px] bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-0.5 rounded">
-                            {s}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    <div>
+                      <p className="text-sm font-semibold text-white">{e.fromName || "Anonymous"}</p>
+                      {e.fromRole && <p className="text-xs text-gray-500">{e.fromRole}</p>}
+                    </div>
                   </div>
+                  {e.message && (
+                    <p className="text-sm text-gray-400 leading-relaxed mb-3 pl-12">"{e.message}"</p>
+                  )}
+                  {e.skills?.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pl-12">
+                      {e.skills.map((s: string, j: number) => (
+                        <span key={j} className="text-[10px] px-2 py-1 rounded bg-green-500/10 text-green-400 border border-green-500/20 font-bold">
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
-          </div>
+          </Section>
         )}
 
-        {/* GitHub Repos */}
+        {/* ── GitHub Repos ── */}
         {repos.length > 0 && (
-          <div className="bg-[#161b22] border border-gray-800 rounded-2xl p-6 mb-8">
-            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">
-              Repositories ({repos.length})
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Section title="Repositories">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {repos.slice(0, 6).map((repo: any, i: number) => (
                 <a
                   key={i}
                   href={repo.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-[#0d1117] border border-gray-800 rounded-xl p-4 hover:border-gray-600 transition-colors block"
+                  className="group bg-[#111827] border border-white/5 rounded-xl p-5 hover:border-white/10 hover:-translate-y-0.5 transition-all"
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-sm font-semibold text-blue-400">{repo.name}</h4>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      {repo.stars > 0 && <span>⭐ {repo.stars}</span>}
-                      {repo.forks > 0 && <span>🍴 {repo.forks}</span>}
-                    </div>
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="text-sm font-semibold text-blue-400 group-hover:text-blue-300 transition-colors">{repo.name}</h4>
+                    <svg className="w-3.5 h-3.5 text-gray-600 group-hover:text-gray-400 transition-colors shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
                   </div>
                   {repo.description && (
-                    <p className="text-xs text-gray-500 line-clamp-1">{repo.description}</p>
+                    <p className="text-xs text-gray-500 line-clamp-2 mb-3 leading-relaxed">{repo.description}</p>
                   )}
-                  {repo.language && (
-                    <span className="inline-block text-[10px] bg-gray-800 px-2 py-0.5 rounded mt-2 text-gray-400">
-                      {repo.language}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-4 text-xs text-gray-600">
+                    {repo.language && (
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+                        {repo.language}
+                      </span>
+                    )}
+                    {repo.stars > 0 && <span>⭐ {repo.stars}</span>}
+                    {repo.forks > 0 && <span>🍴 {repo.forks}</span>}
+                  </div>
                 </a>
               ))}
             </div>
-          </div>
+          </Section>
         )}
+
       </div>
 
-      {/* Badge Modal */}
+      {/* ── Badge Detail Modal ── */}
       {badgeModal && (
-        <div
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-          onClick={() => setBadgeModal(null)}
-        >
-          <div
-            className="bg-[#0d1117] border border-gray-700 rounded-3xl w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-5 py-4 bg-[#161b22] border-b border-gray-800">
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Skill Certificate</span>
-              <button onClick={() => setBadgeModal(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-all">
-                ✕
-              </button>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setBadgeModal(null)}>
+          <div className="bg-[#111827] border border-white/10 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Badge Detail</span>
+              <button onClick={() => setBadgeModal(null)} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/5 text-gray-500 hover:text-white transition-all">✕</button>
             </div>
-            <div className="flex flex-col items-center pt-8 pb-4 px-6">
-              <div className="w-20 h-20 rounded-full bg-blue-500 flex items-center justify-center shadow-lg relative mb-4">
-                <img src={badgeModal.iconUrl || "https://cdn-icons-png.flaticon.com/512/5968/5968863.png"} className="w-10 h-10 object-contain" alt="" />
-                <div className="absolute -bottom-1 -right-1 bg-green-500 border-2 border-[#0d1117] w-6 h-6 rounded-full flex items-center justify-center">
-                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
+            <div className="p-6 text-center">
+              <div className="w-20 h-20 mx-auto mb-4 bg-[#1c2333] rounded-2xl flex items-center justify-center border border-white/5">
+                <img src={badgeModal.iconUrl || "https://cdn-icons-png.flaticon.com/512/5968/5968863.png"} className="w-12 h-12 object-contain" alt="" />
               </div>
-              <h3 className="text-xl font-bold text-white tracking-tight">{badgeModal.name}</h3>
-              <p className="text-blue-400 text-sm font-medium mt-1">Verified Expert</p>
-            </div>
-            <div className="px-6 pb-6 space-y-3">
-              <div className="bg-[#090d14] rounded-2xl p-4 border border-gray-800 space-y-3 text-left">
-                <div>
-                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Verification</p>
-                  <p className="text-sm text-green-400 font-medium">{badgeModal.description}</p>
-                  <p className="text-[10px] text-gray-500 mt-1">
-                    Issued: {new Date(badgeModal.unlockedAt?.seconds ? badgeModal.unlockedAt.seconds * 1000 : badgeModal.unlockedAt || Date.now()).toLocaleDateString()}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Earned by</p>
-                  <p className="text-xs text-gray-400">{p.displayName || p.username}</p>
-                </div>
-              </div>
+              <h3 className="text-xl font-bold text-white">{badgeModal.name}</h3>
+              <span className="inline-block mt-2 px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                Verified Expert
+              </span>
+              {badgeModal.description && (
+                <p className="text-sm text-gray-400 mt-4 leading-relaxed">{badgeModal.description}</p>
+              )}
+              <p className="text-xs text-gray-600 mt-4">
+                Issued: {new Date(badgeModal.unlockedAt?.seconds ? badgeModal.unlockedAt.seconds * 1000 : badgeModal.unlockedAt || Date.now()).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+              </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Endorse Modal */}
+      {/* ── Endorse Modal ── */}
       {endorseOpen && (
         <EndorseModal
           targetUserId={p.id}
@@ -307,13 +322,20 @@ export default function PublicProfilePage() {
           onClose={() => setEndorseOpen(false)}
           onSuccess={() => {
             setEndorseOpen(false);
-            // Refresh data
-            developersService.getDeveloperPortfolio(username).then((data) => {
-              if (data) setPortfolio(data);
-            });
+            developersService.getDeveloperPortfolio(username).then((data) => { if (data) setPortfolio(data); });
           }}
         />
       )}
     </main>
+  );
+}
+
+// ── Reusable Section Wrapper ──
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="bg-[#0e1420]/60 border border-white/5 rounded-2xl p-6 space-y-4">
+      <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500">{title}</h2>
+      {children}
+    </section>
   );
 }

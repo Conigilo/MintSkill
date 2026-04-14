@@ -14,8 +14,7 @@ export async function generatePDFHandler({ headers, body, set }: any) {
             endorsements: any[]
             profile: any
         }
-
-        // Validate required fields
+        
         if (!skills || !Array.isArray(skills)) {
             throw new ValidationError('skills must be an array')
         }

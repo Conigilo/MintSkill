@@ -11,11 +11,10 @@ import { exportRoute } from './routes/export.route'
 import { jobsRoute } from './routes/jobs.route'
 import { challengesRoute } from './routes/challenges.route'
 
-// Validate required environment variables
 const requiredEnvVars = ['GITHUB_CLIENT_ID', 'GITHUB_CLIENT_SECRET']
 for (const envVar of requiredEnvVars) {
     if (!process.env[envVar]) {
-        console.warn(`⚠️  Missing environment variable: ${envVar}`)
+        console.warn(`Missing environment variable: ${envVar}`)
     }
 }
 
@@ -81,7 +80,6 @@ const app = new Elysia()
             tags: ['Health'],
         }
     })
-
     // ------------------ Routes ------------------
     .use(authRoute)
     .use(usersRoute)
@@ -92,7 +90,6 @@ const app = new Elysia()
     .use(exportRoute)
     .use(jobsRoute)
     .use(challengesRoute)
-
     .listen(process.env.PORT ?? 3000)
 
 console.log(`Skill Wallet API running at http://localhost:${app.server?.port}`)
