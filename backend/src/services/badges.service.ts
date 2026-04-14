@@ -7,7 +7,7 @@ export async function getBadgesByUser(userId: string) {
 
     return snap.docs
         .map(doc => ({ id: doc.id, ...doc.data() as Record<string, any> }))
-        .sort((a, b) => {
+        .sort((a: any, b: any) => {
             const aTime = a.unlockedAt?.toMillis?.() ?? 0;
             const bTime = b.unlockedAt?.toMillis?.() ?? 0;
             return bTime - aTime;

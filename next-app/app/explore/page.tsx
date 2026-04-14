@@ -16,6 +16,10 @@ export default function ExplorePage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [endorseTarget, setEndorseTarget] = useState<{ id: string; name: string } | null>(null);
 
+    // Helper to get best display name from Firestore user data
+    const getName = (dev: any) => dev.name || dev.displayName || 'Developer';
+    const getHandle = (dev: any) => dev.username || dev.handle || dev.id;
+
     useEffect(() => {
         const loadDevelopers = async () => {
             setIsLoading(true);
@@ -81,7 +85,7 @@ export default function ExplorePage() {
                             className="bg-[#161b22] border border-gray-800 p-6 rounded-2xl hover:border-gray-600 transition-all hover:shadow-lg hover:shadow-blue-500/10 flex flex-col"
                         >
                             <div
-                                onClick={() => router.push(`/profile/${dev.handle || dev.id}`)}
+                                onClick={() => router.push(`/profile/${getHandle(dev)}`)}
                                 className="cursor-pointer flex-1"
                             >
                                 <div className="flex gap-4 items-center mb-4">
@@ -93,11 +97,11 @@ export default function ExplorePage() {
                                         />
                                     ) : (
                                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center font-bold text-lg">
-                                            {(dev.name || 'D').charAt(0).toUpperCase()}
+                                            {getName(dev).charAt(0).toUpperCase()}
                                         </div>
                                     )}
                                     <div>
-                                        <h3 className="font-bold">{dev.name || 'Developer'}</h3>
+                                        <h3 className="font-bold">{getName(dev)}</h3>
                                         <p className="text-sm text-gray-400">{dev.title || 'Professional'}</p>
                                     </div>
                                 </div>
@@ -131,11 +135,11 @@ export default function ExplorePage() {
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        setEndorseTarget({ id: dev.id, name: dev.name || 'Developer' });
+                                        setEndorseTarget({ id: dev.id, name: getName(dev) });
                                     }}
                                     className="mt-2 w-full py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 text-sm font-medium transition-colors"
                                 >
-                                    ✦ Endorse
+                                    Endorse
                                 </button>
                             )}
                         </div>

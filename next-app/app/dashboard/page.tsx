@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -9,6 +9,7 @@ import SkillsTab from "@/components/dashboard/tabs/SkillsTab";
 import EndorsementsTab from "@/components/dashboard/tabs/EndorsementsTab";
 import GapAnalysisTab from "@/components/dashboard/tabs/GapAnalysisTab";
 import WidgetExportTab from "@/components/dashboard/tabs/WidgetExportTab";
+import ChallengesTab from "@/components/dashboard/tabs/ChallengesTab";
 import SidebarLayout from "@/components/dashboard/SidebarLayout";
 import { useUserSkills, useMyEndorsements } from "@/hooks/useProfileData";
 import CVTemplate from "@/components/dashboard/CVTemplate";
@@ -199,8 +200,9 @@ export default function DashboardPage() {
                         try {
                           await githubService.syncGitHub();
                           window.location.reload();
-                        } catch (e) {
+                        } catch (e: any) {
                           console.error("Sync failed:", e);
+                          alert("GitHub Sync Failed: " + (e.message || "Token might be expired. Please click Sync GitHub again or re-login."));
                         }
                       }}
                       className="w-full bg-[#111110] hover:bg-[#1a1a19] text-[13px] text-white font-medium px-4 py-2.5 rounded-xl border border-gray-700 transition-colors flex items-center justify-center gap-2"
@@ -255,7 +257,7 @@ export default function DashboardPage() {
 
               <div className="mt-6">
                 {activeTab === "Overview" && <OverviewTab />}
-                {activeTab === "Skills" && <SkillsTab />}
+                {activeTab === "Skills" && <SkillsTab onNavigateToEndorse={() => setActiveTab("Endorsements")} />}
                 {activeTab === "Endorsements" && <EndorsementsTab />}
                 {activeTab === "Gap Analysis" && <GapAnalysisTab skills={skills || []} />}
                 {activeTab === "Developer Widgets" && <WidgetExportTab userName={user?.displayName || "user"} />}

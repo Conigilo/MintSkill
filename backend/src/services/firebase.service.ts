@@ -48,6 +48,8 @@ export const Collections = {
     EXPORT_TOKENS: 'export_tokens',
     BADGES: 'badges',
     JOBS: 'jobs',
+    CHALLENGES: 'challenges',
+    CHALLENGE_ATTEMPTS: 'challenge_attempts',
 } as const
 
 /**

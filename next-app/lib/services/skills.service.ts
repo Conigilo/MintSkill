@@ -91,6 +91,22 @@ export const skillsService = {
       console.error('Error deleting skill:', error)
       return false
     }
+  },
+
+  /**
+   * Submit quiz score for a skill to count towards 8/10 verification
+   */
+  submitQuizAttempt: async (skillId: string, score: number): Promise<any> => {
+    try {
+      const data = await fetchAPI(`/skills/${skillId}/quiz`, {
+        method: 'POST',
+        body: JSON.stringify({ score }),
+      })
+      return { success: true, data: data.data || data }
+    } catch (error: any) {
+      console.error('Error submitting quiz attempt:', error)
+      return { success: false, error: error.message }
+    }
   }
 }
 

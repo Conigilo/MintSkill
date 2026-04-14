@@ -106,18 +106,26 @@ export async function getPublicProfile(username: string) {
  * Get complete portfolio data for a user including all related information
  * Used for resume/CV generation
  */
-export async function getPortfolio(username: string) {
-    // Step 1: Find user by username
-    const userQuerySnapshot = await db.collection(Collections.USERS)
-        .where('username', '==', username)
-        .limit(1)
-        .get()
+export async function getPortfolio(identifier: string) {
+    // Step 1: Find user by ID or username
+    let userDoc: any = null;
 
-    if (userQuerySnapshot.empty) {
-        return null
+    const docRef = await db.collection(Collections.USERS).doc(identifier).get()
+    if (docRef.exists) {
+        userDoc = docRef
+    } else {
+        const userQuerySnapshot = await db.collection(Collections.USERS)
+            .where('username', '==', identifier)
+            .limit(1)
+            .get()
+        if (!userQuerySnapshot.empty) {
+            userDoc = userQuerySnapshot.docs[0]
+        }
     }
 
-    const userDoc = userQuerySnapshot.docs[0]
+    if (!userDoc) {
+        return null
+    }
     const userData = { ...userDoc.data() }
     const userId = userDoc.id
 

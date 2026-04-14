@@ -1,33 +1,28 @@
 import { Elysia, t } from 'elysia';
-import * as AuthController from '../controllers/auth.controller';
+import { githubCallbackHandler, verifyTokenHandler, logoutHandler } from '../controllers/auth.controller';
 
 export const authRoute = new Elysia({ prefix: '/auth', tags: ['Auth'] })
-
-    // POST /auth/github/callback
-    // รับ code จาก GitHub OAuth → แลก access token → คืน Firebase custom token
-    .post('/github/callback', AuthController.githubCallbackHandler, {
-        body: t.Object({ code: t.String() }),
-        detail: {
-            summary: 'GitHub OAuth Callback',
-            description: 'รับ code จาก GitHub OAuth → แลก access token → คืน Firebase custom token',
-        },
-    })
-
-    // POST /auth/verify
-    // ตรวจสอบ Bearer token ว่า valid ไหม
-    .post('/verify', AuthController.verifyTokenHandler, {
-        detail: {
-            summary: 'Verify Token',
-            description: 'ตรวจสอบว่า Firebase ID token ยังใช้งานได้อยู่ (ส่ง Bearer token ใน Authorization header)',
-        },
-    })
-
-    // DELETE /auth/logout
-    // Revoke Firebase refresh tokens
-    .delete('/logout', AuthController.logoutHandler, {
-        detail: {
-            summary: 'Logout',
-            description: 'Revoke Firebase refresh tokens ของ user ที่ login อยู่',
-            security: [{ bearerAuth: [] }],
-        },
-    });
+  // GitHub OAuth callback
+  .post('/github/callback', githubCallbackHandler, {
+    body: t.Object({ code: t.String() }),
+    detail: {
+      summary: 'GitHub Auth Callback',
+      description: 'Exchange GitHub OAuth code for Firebase custom token',
+    },
+  })
+  // Verify Firebase token
+  .post('/verify', verifyTokenHandler, {
+    detail: {
+      summary: 'Verify Token',
+      description: 'Check if Firebase ID token is still valid (Bearer token in Authorization header)',
+      security: [{ BearerAuth: [] }],
+    },
+  })
+  // Logout and revoke refresh tokens
+  .delete('/logout', logoutHandler, {
+    detail: {
+      summary: 'Logout',
+      description: 'Revoke Firebase refresh tokens for the logged-in user',
+      security: [{ BearerAuth: [] }],
+    },
+  });

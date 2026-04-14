@@ -57,11 +57,19 @@ export async function syncGitHubHandler({ headers, set }: any) {
                 code: 'GITHUB_NOT_CONNECTED'
             }
         }
-        set.status = 401
+        if (error.message.includes('401') || error.message.includes('403')) {
+            set.status = 401
+            return { 
+                success: false,
+                error: 'GitHub token expired or invalid. Please re-connect your account.',
+                code: 'GITHUB_AUTH_FAILED'
+            }
+        }
+        set.status = 500
         return { 
             success: false,
             error: error.message,
-            code: 'AUTH_ERROR'
+            code: 'API_ERROR'
         }
     }
 }

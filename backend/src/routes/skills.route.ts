@@ -55,4 +55,16 @@ export const skillsRoute = new Elysia({ prefix: '/skills', tags: ['Skills'] })
             description: 'ลบ skill (ต้อง login + เป็นเจ้าของ)',
             security: [{ bearerAuth: [] }],
         },
+    })
+    
+    // POST /skills/:skillId/quiz
+    .post('/:skillId/quiz', SkillsController.submitQuizHandler, {
+        body: t.Object({
+            score: t.Number({ minimum: 0, maximum: 4 }),
+        }),
+        detail: {
+            summary: 'Submit Quiz Score',
+            description: 'ส่งคะแนนจากการสอบ quiz เพื่อรวมกับคะแนน endorsement (ต้อง login)',
+            security: [{ bearerAuth: [] }],
+        },
     });

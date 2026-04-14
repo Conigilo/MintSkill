@@ -116,3 +116,51 @@ export async function deleteSkill(uid: string, skillId: string) {
 
     return { ok: true }
 }
+
+/**
+ * Submit quiz attempt for a skill
+ * Returns object with ok flag, updates to 10-point scale
+ */
+export async function submitSkillQuizAttempt(uid: string, skillId: string, score: number) {
+    const skillDoc = await db.collection(Collections.SKILLS).doc(skillId).get()
+
+    if (!skillDoc.exists) {
+        return { ok: false, status: 404, error: 'Skill not found' }
+    }
+
+    const skillData = skillDoc.data()
+    
+    if (skillData?.userId !== uid) {
+        return { ok: false, status: 403, error: 'Not authorized to update this skill' }
+    }
+
+    const updateData: Record<string, any> = { updatedAt: new Date(), quizScore: score }
+    const totalScore = score + (skillData?.endorsementScore || 0)
+    
+    if (totalScore >= 8 && !skillData?.verified) {
+        updateData.verified = true
+        
+        // Auto-mint badge
+        const badgeSnap = await db.collection(Collections.BADGES)
+            .where('userId', '==', uid)
+            .where('skillName', '==', skillData!.name)
+            .limit(1)
+            .get()
+
+        if (badgeSnap.empty) {
+            await db.collection(Collections.BADGES).add({
+                userId: uid,
+                skillName: skillData!.name,
+                name: `${skillData!.name} Certified Expert`,
+                description: `Successfully verified by Endorsements and AI Quiz for ${skillData!.name}`,
+                type: 'skill_verification',
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png',
+                unlockedAt: new Date(),
+            })
+        }
+    }
+
+    await skillDoc.ref.update(updateData)
+    
+    return { ok: true, updated: { ...skillData, ...updateData } }
+}

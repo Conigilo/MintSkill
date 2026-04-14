@@ -9,15 +9,16 @@ export default function OverviewTab() {
   const { user, loading } = useAuth()
   const uid = user?.uid
   const { skills, isLoading: skillsLoading } = useUserSkills(uid)
-  const { badges, isLoading: badgesLoading } = useUserBadges(uid)
+  const { badges } = useUserBadges(uid)
   const { endorsements } = useMyEndorsements()
-  const [profile, setProfile] = useState<any>(null)
-  const [stats, setStats] = useState({
-    verifiedSkills: 0,
-    endorsements: 0,
-    contributions: 0,
-    projects: 0,
-  })
+  const [badgeModal, setBadgeModal] = useState<{ isOpen: boolean; badge: any | null }>({ isOpen: false, badge: null })
+  const [profile, setProfile] = useState<{ uid?: string, email?: string | null, photoURL?: string | null, displayName?: string | null, contributions?: number, projects?: any[], github?: { repoCount?: number, totalContributions?: number } } | null>(null)
+  const stats = {
+    verifiedSkills: skills?.length || 0,
+    endorsements: endorsements?.length || 0,
+    contributions: profile?.github?.totalContributions || profile?.contributions || 0,
+    projects: profile?.github?.repoCount || profile?.projects?.length || 0,
+  }
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -27,12 +28,10 @@ export default function OverviewTab() {
         setProfile(data?.user || data?.data || data)
       } catch (error) {
         console.error('Error loading profile:', error)
-        // Use current user from auth as fallback
         setProfile({
           uid: user?.uid,
           email: user?.email,
           displayName: user?.displayName,
-          photoURL: user?.photoURL
         })
       }
     }
@@ -40,17 +39,7 @@ export default function OverviewTab() {
     if (!loading && uid) {
       loadProfile()
     }
-  }, [uid, loading])
-
-  useEffect(() => {
-    // Calculate stats from loaded data
-    setStats({
-      verifiedSkills: skills?.length || 0,
-      endorsements: endorsements?.length || 0,
-      contributions: profile?.contributions || 0,
-      projects: profile?.projects?.length || 0,
-    })
-  }, [skills, endorsements, profile])
+  }, [uid, loading, user])
 
   const topSkills = skills?.slice(0, 5) || []
   const topBadges = badges?.slice(0, 4) || []
@@ -115,7 +104,11 @@ export default function OverviewTab() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {topBadges.map((badge, idx) => (
-              <div key={idx} className="bg-[#0d1117]/50 border border-gray-800 rounded-2xl p-4 text-center hover:border-blue-500/50 transition-all cursor-pointer">
+              <div 
+                key={idx} 
+                onClick={() => setBadgeModal({ isOpen: true, badge })}
+                className="bg-[#0d1117]/50 border border-gray-800 rounded-2xl p-4 text-center hover:border-blue-500/50 hover:bg-[#161b22] transition-all cursor-pointer shadow-sm shadow-blue-900/10"
+              >
                 <div className="text-3xl mb-2">{badge.icon || '🏆'}</div>
                 <h4 className="text-sm font-semibold text-white">{badge.name}</h4>
                 <p className="text-xs text-gray-400 mt-1">{badge.description}</p>
@@ -124,6 +117,62 @@ export default function OverviewTab() {
           </div>
         </div>
       )}
+
+      {/* ================= Badge Certificate Modal ================= */}
+      {badgeModal.isOpen && badgeModal.badge && (() => {
+        const activeBadge = badgeModal.badge;
+        const credId = `skw-${String(activeBadge.id).replace(/[^a-z0-9]/gi, '').substring(0, 8) || Math.random().toString(36).substring(2, 10)}`;
+        return (
+          <div
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            onClick={() => setBadgeModal({ isOpen: false, badge: null })}
+          >
+            <div
+              className="bg-[#0d1117] border border-gray-700 rounded-3xl w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between px-5 py-4 bg-[#161b22] border-b border-gray-800">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Skill Certificate</span>
+                <button
+                  onClick={() => setBadgeModal({ isOpen: false, badge: null })}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="flex flex-col items-center pt-8 pb-4 px-6">
+                <div className={`w-20 h-20 rounded-full bg-blue-500 flex items-center justify-center shadow-lg relative mb-4`}>
+                  <img src={activeBadge.iconUrl || 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png'} className="w-10 h-10 object-contain" alt="" />
+                  <div className="absolute -bottom-1 -right-1 bg-green-500 border-2 border-[#0d1117] w-6 h-6 rounded-full flex items-center justify-center">
+                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold text-white tracking-tight">{activeBadge.name}</h3>
+                <p className="text-blue-400 text-sm font-medium mt-1">Verified Expert</p>
+              </div>
+
+              <div className="px-6 pb-6 space-y-3">
+                <div className="bg-[#090d14] rounded-2xl p-4 border border-gray-800 space-y-3 text-left">
+                  <div>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Verification Details</p>
+                    <p className="text-sm text-green-400 font-medium">
+                      {activeBadge.description || `Successfully verified by Endorsements and AI Quiz for ${activeBadge.skillName}`}
+                    </p>
+                    <p className="text-[10px] text-gray-500 mt-1">Issued: {new Date(activeBadge.unlockedAt?.seconds ? activeBadge.unlockedAt.seconds * 1000 : activeBadge.unlockedAt || Date.now()).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Credential ID</p>
+                    <p className="text-xs text-gray-400 font-mono bg-[#161b22] px-2 py-1 rounded">{credId}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
     </div>
   )

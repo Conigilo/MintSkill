@@ -53,7 +53,10 @@ export async function addSkillHandler({ headers, body, set }: any) {
         const user = await verifyToken(headers['authorization'] || null)
         const validatedInput = validateSkillInput(body)
 
-        const skill = await SkillsService.addSkill(user.uid, validatedInput)
+        const skill = await SkillsService.addSkill(user.uid, {
+            ...validatedInput,
+            level: validatedInput.level ?? 1
+        })
         set.status = 201
         return { 
             success: true,
@@ -174,6 +177,45 @@ export async function deleteSkillHandler({ headers, params, set }: any) {
                 code: error.code
             }
         }
+        set.status = 500
+        return { 
+            success: false,
+            error: error.message,
+            code: 'INTERNAL_ERROR'
+        }
+    }
+}
+
+/**
+ * Submit Quiz Score
+ */
+export async function submitQuizHandler({ headers, params, body, set }: any) {
+    try {
+        const user = await verifyToken(headers['authorization'] || null)
+        const skillId = validateRequiredString(params.skillId, 'Skill ID')
+        const { score } = body
+
+        if (typeof score !== 'number' || score < 0 || score > 4) {
+            set.status = 400
+            return { success: false, error: 'Score must be between 0 and 4' }
+        }
+
+        const result = await SkillsService.submitSkillQuizAttempt(user.uid, skillId, score)
+
+        if (!result.ok) {
+            set.status = result.status || 500
+            return { 
+                success: false,
+                error: result.error,
+                code: 'UPDATE_FAILED'
+            }
+        }
+
+        return { 
+            success: true,
+            data: result.updated 
+        }
+    } catch (error: any) {
         set.status = 500
         return { 
             success: false,

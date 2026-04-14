@@ -11,26 +11,35 @@ async function updateSkillAndMintBadge(toUserId: string, skillName: string) {
         .limit(1)
         .get()
 
-    let endorsementCount = 1
+    let endorsementScore = 6
+    let quizScore = 0
+    let verified = false
 
     if (!skillSnap.empty) {
         const skillDoc = skillSnap.docs[0]
-        endorsementCount = (skillDoc.data().endorsementCount || 0) + 1
-        await skillDoc.ref.update({ endorsementCount })
+        const docData = skillDoc.data()
+        quizScore = docData.quizScore || 0
+        endorsementScore = 6 // Full points for endorsement
+        verified = (quizScore + endorsementScore) >= 8
+
+        await skillDoc.ref.update({ 
+            endorsementScore,
+            verified
+        })
     } else {
         await db.collection(Collections.SKILLS).add({
             userId: toUserId,
             name: skillName,
             category: 'Other',
             level: 1,
-            endorsementCount: 1,
+            endorsementScore: 6,
+            quizScore: 0,
             verified: false,
             createdAt: new Date(),
         })
     }
 
-    // Auto-mint badge when endorsed 3+ times
-    if (endorsementCount >= 3) {
+    if (verified) {
         const badgeSnap = await db.collection(Collections.BADGES)
             .where('userId', '==', toUserId)
             .where('skillName', '==', skillName)
@@ -41,9 +50,9 @@ async function updateSkillAndMintBadge(toUserId: string, skillName: string) {
             await db.collection(Collections.BADGES).add({
                 userId: toUserId,
                 skillName,
-                name: `${skillName} Expert`,
-                description: `Verified by 3+ colleagues for ${skillName}`,
-                type: 'endorsement',
+                name: `${skillName} Certified Expert`,
+                description: `Successfully verified by Endorsements and AI Quiz for ${skillName}`,
+                type: 'skill_verification',
                 iconUrl: 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png',
                 unlockedAt: new Date(),
             })
@@ -71,14 +80,17 @@ async function updateUserEndorsementCount(toUserId: string) {
 export async function getEndorsementsByUser(userId: string) {
     const querySnapshot = await db.collection(Collections.ENDORSEMENTS)
         .where('toUserId', '==', userId)
-        .orderBy('createdAt', 'desc')
         .get()
 
     return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         token: undefined, // Don't expose token
-    }))
+    })).sort((a: any, b: any) => {
+        const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime()
+        const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime()
+        return timeB - timeA
+    })
 }
 
 /**

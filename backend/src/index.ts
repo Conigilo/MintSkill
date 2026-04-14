@@ -9,6 +9,7 @@ import { githubRoute } from './routes/github.route'
 import { badgesRoute } from './routes/badges.route'
 import { exportRoute } from './routes/export.route'
 import { jobsRoute } from './routes/jobs.route'
+import { challengesRoute } from './routes/challenges.route'
 
 // Validate required environment variables
 const requiredEnvVars = ['GITHUB_CLIENT_ID', 'GITHUB_CLIENT_SECRET']
@@ -90,6 +91,7 @@ const app = new Elysia()
     .use(badgesRoute)
     .use(exportRoute)
     .use(jobsRoute)
+    .use(challengesRoute)
 
     .listen(process.env.PORT ?? 3000)
 
