@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 
 interface WidgetExportTabProps {
   userName?: string
-  skills?: Array<{ name: string; verified?: boolean; level?: number; [key: string]: any }>
+  skills?: Array<{ name: string; verified?: boolean; level?: number;[key: string]: any }>
 }
 
 const TEMPLATES = [
@@ -18,6 +18,7 @@ type TemplateId = typeof TEMPLATES[number]['id']
 
 interface ResumeData {
   fullName: string
+  username: string
   phone: string
   email: string
   title: string
@@ -29,6 +30,7 @@ interface ResumeData {
 
 const DEFAULT_RESUME: ResumeData = {
   fullName: '',
+  username: '',
   phone: '',
   email: '',
   title: 'Software Developer',
@@ -45,6 +47,7 @@ export default function WidgetExportTab({ userName = 'user', skills = [] }: Widg
   const [resume, setResume] = useState<ResumeData>({
     ...DEFAULT_RESUME,
     fullName: userName,
+    username: userName,
   })
 
   // Load saved resume from localStorage on mount
@@ -112,11 +115,10 @@ export default function WidgetExportTab({ userName = 'user', skills = [] }: Widg
         <div className="flex gap-2 mt-3 md:mt-0">
           <button
             onClick={handleSave}
-            className={`flex items-center gap-2 font-bold px-5 py-2.5 rounded-xl transition-all text-sm border ${
-              saved
-                ? 'bg-green-600 border-green-500 text-white'
-                : 'bg-transparent border-gray-700 text-gray-300 hover:border-gray-500 hover:text-white'
-            }`}
+            className={`flex items-center gap-2 font-bold px-5 py-2.5 rounded-xl transition-all text-sm border ${saved
+              ? 'bg-green-600 border-green-500 text-white'
+              : 'bg-transparent border-gray-700 text-gray-300 hover:border-gray-500 hover:text-white'
+              }`}
           >
             {saved ? (
               <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>Saved!</>
@@ -142,9 +144,8 @@ export default function WidgetExportTab({ userName = 'user', skills = [] }: Widg
           <button
             key={s}
             onClick={() => setActiveSection(s)}
-            className={`flex-1 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
-              activeSection === s ? 'bg-purple-600 text-white' : 'text-gray-500 hover:text-white'
-            }`}
+            className={`flex-1 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${activeSection === s ? 'bg-purple-600 text-white' : 'text-gray-500 hover:text-white'
+              }`}
           >
             {s === 'template' ? '🎨 Choose Template' : '✏️ Edit Resume'}
           </button>
@@ -158,11 +159,10 @@ export default function WidgetExportTab({ userName = 'user', skills = [] }: Widg
             <button
               key={t.id}
               onClick={() => setSelectedTemplate(t.id)}
-              className={`group relative rounded-2xl overflow-hidden border-2 transition-all duration-200 ${
-                selectedTemplate === t.id
-                  ? 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)]'
-                  : 'border-gray-800 hover:border-gray-600'
-              }`}
+              className={`group relative rounded-2xl overflow-hidden border-2 transition-all duration-200 ${selectedTemplate === t.id
+                ? 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)]'
+                : 'border-gray-800 hover:border-gray-600'
+                }`}
             >
               <div className="aspect-[3/4] relative overflow-hidden bg-[#f8fafc]">
                 <TemplateMiniPreview id={t.id} accent={t.accent} />
@@ -248,9 +248,8 @@ export default function WidgetExportTab({ userName = 'user', skills = [] }: Widg
               {allSkillNames.length === 0 ? (
                 <p className="text-xs text-gray-500 italic">No skills added yet. Go to Skills tab first.</p>
               ) : allSkillNames.map(s => (
-                <span key={s} className={`text-[11px] px-2.5 py-1 rounded-md border ${
-                  verifiedSkills.includes(s) ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-gray-800 border-gray-700 text-gray-400'
-                }`}>
+                <span key={s} className={`text-[11px] px-2.5 py-1 rounded-md border ${verifiedSkills.includes(s) ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-gray-800 border-gray-700 text-gray-400'
+                  }`}>
                   {verifiedSkills.includes(s) ? '✓' : '○'} {s}
                 </span>
               ))}
@@ -352,20 +351,20 @@ function TemplateMiniPreview({ id, accent }: { id: string; accent: string }) {
       <div className="h-2 w-3/4 rounded bg-gray-300 mb-1" />
       <div className="h-1.5 w-1/2 rounded bg-gray-200 mb-2" />
       <div className="h-1 w-1/4 rounded mb-2" style={{ background: accent }} />
-      {[1,2,3].map(i => <div key={i} className="h-1 w-full rounded bg-gray-100 mb-0.5" />)}
+      {[1, 2, 3].map(i => <div key={i} className="h-1 w-full rounded bg-gray-100 mb-0.5" />)}
       <div className="h-1 w-1/4 rounded mb-1 mt-2" style={{ background: accent }} />
-      {[1,2].map(i => <div key={i} className="h-1 w-full rounded bg-gray-100 mb-0.5" />)}
+      {[1, 2].map(i => <div key={i} className="h-1 w-full rounded bg-gray-100 mb-0.5" />)}
     </div>
   )
   if (id === 'modern') return (
     <div className="absolute inset-0 bg-white flex">
       <div className="w-[35%] h-full p-2" style={{ background: accent }}>
         <div className="w-4 h-4 rounded-full bg-white/20 mx-auto mb-1" />
-        {[1,2,3,4].map(i => <div key={i} className="h-1 w-full rounded bg-white/30 mb-0.5" />)}
+        {[1, 2, 3, 4].map(i => <div key={i} className="h-1 w-full rounded bg-white/30 mb-0.5" />)}
       </div>
       <div className="flex-1 p-2">
         <div className="h-2 w-3/4 rounded bg-gray-300 mb-1" />
-        {[1,2,3,4,5].map(i => <div key={i} className="h-1 w-full rounded bg-gray-100 mb-0.5" />)}
+        {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-1 w-full rounded bg-gray-100 mb-0.5" />)}
       </div>
     </div>
   )
@@ -374,7 +373,7 @@ function TemplateMiniPreview({ id, accent }: { id: string; accent: string }) {
       <div className="h-2 w-1/2 rounded bg-gray-800 mb-0.5" />
       <div className="h-1 w-1/3 rounded bg-gray-300 mb-2" />
       <div className="w-full h-px mb-2" style={{ background: accent }} />
-      {[1,2,3,4].map(i => <div key={i} className="h-1 w-full rounded bg-gray-100 mb-0.5" />)}
+      {[1, 2, 3, 4].map(i => <div key={i} className="h-1 w-full rounded bg-gray-100 mb-0.5" />)}
     </div>
   )
   return (
@@ -384,7 +383,7 @@ function TemplateMiniPreview({ id, accent }: { id: string; accent: string }) {
         <div className="h-1 w-1/2 rounded bg-white/50" />
       </div>
       <div className="bg-white p-2">
-        {[1,2,3,4].map(i => <div key={i} className="h-1 w-full rounded bg-gray-100 mb-0.5" />)}
+        {[1, 2, 3, 4].map(i => <div key={i} className="h-1 w-full rounded bg-gray-100 mb-0.5" />)}
       </div>
     </div>
   )
@@ -438,7 +437,7 @@ function generateResumeHtml(
     return `${head}
 <div style="max-width:21cm;margin:0 auto;padding:20px 0;">
   <div style="text-align:center;margin-bottom:16px;">
-    <h1 style="font-weight:900;margin-bottom:4px;">${r.fullName || userName}</h1>
+    <h1 style="font-weight:900;margin-bottom:4px;">${r.fullName || r.username}</h1>
     ${contactLine ? `<p style="font-size:11px;color:#555;">${contactLine}</p>` : ''}
   </div>
   ${eduHtml ? `<h2 style="${headingStyle}">Education</h2>${eduHtml}` : ''}
@@ -456,7 +455,7 @@ function generateResumeHtml(
 <div style="display:flex;min-height:29.7cm;max-width:21cm;margin:0 auto;">
   <div style="width:35%;background:#8b5cf6;color:white;padding:32px 20px;">
     <div style="width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;margin-bottom:16px;">${(r.fullName || 'U')[0].toUpperCase()}</div>
-    <h1 style="font-size:18px;color:white;margin-bottom:2px;">${r.fullName || userName}</h1>
+    <h1 style="font-size:18px;color:white;margin-bottom:2px;">${r.fullName || r.username}</h1>
     <p style="font-size:11px;opacity:0.8;margin-bottom:4px;">${r.title}</p>
     ${r.phone ? `<p style="font-size:10px;opacity:0.7;">📞 ${r.phone}</p>` : ''}
     ${r.email ? `<p style="font-size:10px;opacity:0.7;">✉️ ${r.email}</p>` : ''}
@@ -477,7 +476,7 @@ function generateResumeHtml(
   return `${head}
 <div style="max-width:21cm;margin:0 auto;">
   <div style="background:#f59e0b;padding:32px 40px;color:#1c1917;">
-    <h1 style="font-size:36px;font-weight:900;text-transform:uppercase;letter-spacing:3px;margin-bottom:2px;">${r.fullName || userName}</h1>
+    <h1 style="font-size:36px;font-weight:900;text-transform:uppercase;letter-spacing:3px;margin-bottom:2px;">${r.fullName || r.username}</h1>
     <p style="font-size:14px;font-weight:600;">${r.title} ${contactLine ? `· ${contactLine}` : ''}</p>
   </div>
   <div style="padding:28px 40px;">

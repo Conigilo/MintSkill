@@ -1,130 +1,167 @@
-# Skill Wallet — Developer Portfolio Platform
+# Skill Wallet — Developer Portfolio & Skill Verification Platform
 
-> ระบบจัดการ Portfolio สำหรับนักพัฒนา พร้อม Skill Badge, GitHub Integration และ Peer Endorsement
+> ระบบยืนยันทักษะและจัดการ Portfolio สำหรับนักพัฒนา พร้อม Skill Badge, GitHub Integration, Peer Endorsement, Gap Analysis, Resume Builder และ Job Matching
 
 ---
 
-## ภาพรวมระบบ
+## 📋 ภาพรวมระบบ
 
-Skill Wallet เป็นแพลตฟอร์มที่ช่วยให้นักพัฒนาสร้าง Portfolio ของตัวเอง โดยรวบรวมทักษะ (Skills), เหรียญรับรอง (Badges), ข้อมูลจาก GitHub และการรับรองจากเพื่อนร่วมงาน (Endorsements) ไว้ในที่เดียว
+Skill Wallet เป็นแพลตฟอร์มที่ช่วยให้นักพัฒนาสร้าง Portfolio ที่น่าเชื่อถือ โดยรวบรวมทักษะ (Skills) ที่ผ่านการรับรองจากเพื่อนร่วมงาน (Peer Endorsement), เหรียญรับรอง (Badges), ข้อมูลจาก GitHub, การวิเคราะห์ช่องว่างทักษะ (Gap Analysis) และระบบ Resume Builder ที่สามารถเลือก Template และ Export เป็น PDF ได้
 
-### ฟีเจอร์หลัก
+---
 
+## ✨ ฟีเจอร์ทั้งหมด
+
+### 🔐 Authentication & Security
 | ฟีเจอร์ | รายละเอียด |
 |---------|-----------|
-| **Authentication** | Login ผ่าน GitHub OAuth, Google, Email/Password โดยใช้ Firebase Auth |
-| **Skill Management** | เพิ่ม / แก้ไข / ลบทักษะ พร้อมระบุ Level (1–5) และ Category |
-| **Peer Endorsement** | ส่ง Link ให้คนอื่นมา Endorse ทักษะ — เมื่อได้ 3 endorsements จะ auto-mint Badge |
-| **GitHub Integration** | เชื่อมต่อ GitHub เพื่อดึง Repos, Contributions, Stars มาแสดงใน Profile |
-| **Skill Badge** | ระบบ Badge อัตโนมัติ — ได้รับเมื่อ Skill ถูก Endorse ครบตามเกณฑ์ |
-| **Gap Analysis** | วิเคราะห์ช่องว่างทักษะเทียบกับ Role ที่สนใจ เช่น Frontend, Backend, Fullstack |
-| **Job Matching** | แนะนำงานที่เหมาะสมตาม Skill Match Score |
-| **Export Portfolio** | Export เป็น PDF / หน้าเว็บ Public สำหรับแชร์ |
-| **Explore** | ค้นหานักพัฒนาคนอื่นในระบบ พร้อม Endorse ได้ |
+| **Multi-Provider Auth** | Login ผ่าน GitHub OAuth, Google OAuth, Email/Password โดยใช้ Firebase Authentication |
+| **Token Verification** | ทุก Protected Endpoint ต้อง verify Firebase ID Token ผ่าน Middleware |
+| **Rate Limiting** | จำกัด 100 requests/นาที/IP เพื่อป้องกัน abuse |
+| **CORS Protection** | จำกัด origin เฉพาะ Frontend URL ที่กำหนด |
+| **Input Validation** | ตรวจสอบ input ทุก endpoint ผ่าน validators |
+
+### 📊 Dashboard (5 Tabs)
+| Tab | รายละเอียด |
+|-----|-----------|
+| **Overview** | แสดง Stats (Verified Skills, Endorsements, Contributions, Projects), Top Skills, GitHub Status |
+| **Skills** | จัดการทักษะ — เพิ่ม/แก้ไข/ลบ Skill พร้อม Level (1–5) และ Category, ดูสถานะ Verified, กรอง/ค้นหา, Request Endorsement |
+| **Endorsements** | ดูรายการ Endorsement ที่ได้รับ, สร้าง Endorsement Link ส่งให้คนอื่นมารับรอง |
+| **Gap Analysis** | วิเคราะห์ช่องว่างทักษะเทียบกับ Role เป้าหมาย (Frontend, Backend, Fullstack, DevOps, Mobile), คำนวณ Match Score |
+| **Developer Widgets** | Resume Builder — เลือก Template (4 แบบ), กรอกข้อมูล Resume ครบ (Personal, Education, Activity, Project, Skills, Strengths), บันทึกข้อมูล, Export PDF |
+
+### 🏆 Skill Badge System
+| ฟีเจอร์ | รายละเอียด |
+|---------|-----------|
+| **Auto-Mint Badge** | เมื่อ Skill ได้รับ Endorsement ครบ 3 คน → ระบบสร้าง Badge อัตโนมัติ |
+| **Badge Certificate Modal** | กดดู Badge แต่ละอัน จะแสดง Certificate สวยงาม พร้อมวันที่ได้รับ |
+| **Verification Status** | แสดง ✓ Verified / ○ In Progress บนทุก Skill |
+
+### 🔗 GitHub Integration
+| ฟีเจอร์ | รายละเอียด |
+|---------|-----------|
+| **OAuth Link** | เชื่อมต่อ GitHub Account ผ่าน OAuth |
+| **Repo Sync** | ดึง Repositories, Stars, Forks, Languages มาแสดง |
+| **Contribution Stats** | ดึงข้อมูล Contributions, Commit History |
+| **Dashboard Card** | แสดงสถานะ GitHub (Connected/Not Connected) พร้อม Stats |
+
+### 👥 Peer Endorsement System
+```
+Flow การ Endorse:
+1. User A กด "Request Endorsement" → ระบบสร้าง Link พร้อม Token
+2. User B เปิด Link → กรอกชื่อ, ข้อความ, เลือก Skills ที่จะ Endorse
+3. ระบบบันทึก Endorsement → อัปเดต endorsementCount ใน Skill
+4. ถ้า Skill ได้ ≥3 Endorsements → Auto-Mint Badge
+```
+
+### 📄 Resume Builder & Export
+| ฟีเจอร์ | รายละเอียด |
+|---------|-----------|
+| **4 Templates** | Classic (สีน้ำเงิน), Modern (2 คอลัมน์สีม่วง), Minimal (เรียบ serif), Bold (Header สีทอง) |
+| **Template Preview** | แสดง Mini A4 Preview ของแต่ละ Template ให้เลือก |
+| **Resume Editor** | กรอกข้อมูลแบบ Form — Personal Info, Education, Activities, Projects, Strengths |
+| **Auto-Fill Skills** | ดึง Technical Skills จากข้อมูลจริงของ User ใส่ให้อัตโนมัติ |
+| **Bullet Points** | เพิ่ม/ลบ Bullet Point ใน Activity และ Project ได้ตามต้องการ |
+| **Save & Load** | บันทึกข้อมูล Resume ลง localStorage, โหลดกลับอัตโนมัติเมื่อเปิดหน้าใหม่ |
+| **Export PDF** | เปิดหน้าต่างใหม่ที่มีแค่ Resume → Print/Save เป็น PDF ได้เลย |
+
+### 📈 Gap Analysis
+| ฟีเจอร์ | รายละเอียด |
+|---------|-----------|
+| **Role-Based Analysis** | เลือก Role เป้าหมาย: Frontend Dev, Backend Dev, Fullstack Dev, DevOps Engineer, Mobile Dev |
+| **Match Score** | คำนวณ % ความตรงกันระหว่าง Skills ที่มีกับ Skills ที่ Role ต้องการ |
+| **Skill Gap List** | แสดงรายการ Skills ที่ยังขาดสำหรับแต่ละ Role |
+| **Visual Progress** | แสดง Progress Bar สีแสดงระดับ Match |
+
+### 💼 Job Board & Matching
+| ฟีเจอร์ | รายละเอียด |
+|---------|-----------|
+| **Job Recommendations** | แนะนำงานตาม Skill Match Score |
+| **Apply** | สมัครงานได้จากในระบบ |
+| **Skill Tags** | แสดง Required Skills ของแต่ละงาน พร้อมไฮไลต์ Skills ที่ตรงกับ User |
+
+### 🔍 Explore & Public Profile
+| ฟีเจอร์ | รายละเอียด |
+|---------|-----------|
+| **Developer Search** | ค้นหานักพัฒนาคนอื่นในระบบ |
+| **Public Profile** | หน้า Profile สาธารณะ (`/profile/:username`) แสดง Skills, Badges, GitHub Stats |
+| **Endorse Others** | Endorse Skills ของนักพัฒนาคนอื่นได้จากหน้า Explore |
 
 ---
 
-## Tech Stack
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | Next.js 16 (App Router) + React 19 + TypeScript |
+| **Styling** | TailwindCSS v4 + Custom CSS (Glassmorphism, Dark Theme) |
+| **Backend** | ElysiaJS (Bun Runtime) + TypeScript |
+| **Database** | Firebase Firestore (NoSQL) |
+| **Authentication** | Firebase Auth (GitHub OAuth, Google OAuth, Email/Password) |
+| **API Documentation** | Swagger UI (`/swagger`) |
+| **State Management** | React Hooks + localStorage |
+
+---
+
+## 🏗 สถาปัตยกรรม (Architecture)
 
 ```
-Frontend:   Next.js 16 (App Router) + React 19 + TypeScript + TailwindCSS
-Backend:    Elysia (Bun Runtime) + TypeScript
-Database:   Firebase Firestore
-Auth:       Firebase Authentication (GitHub, Google, Email/Password)
-API Docs:   Swagger UI (/swagger)
+┌──────────────────────────┐         ┌──────────────────────────┐
+│     Next.js Frontend     │  HTTP   │     Elysia Backend       │
+│     (Port 3000)          │◄───────►│     (Port 8000)          │
+│                          │         │                          │
+│  • App Router (Pages)    │         │  • REST API              │
+│  • Firebase Client SDK   │         │  • Firebase Admin SDK    │
+│  • TailwindCSS v4        │         │  • Rate Limiting         │
+│  • Custom Hooks          │         │  • Input Validation      │
+│  • Service Layer (API)   │         │  • Swagger UI            │
+│  • localStorage (Resume) │         │  • CORS Protection       │
+└──────────┬───────────────┘         └──────────┬───────────────┘
+           │                                    │
+           │       ┌────────────────────┐       │
+           └──────►│  Firebase          │◄──────┘
+                   │  • Authentication  │
+                   │  • Firestore DB    │
+                   └────────┬───────────┘
+                            │
+                   ┌────────▼───────────┐
+                   │  GitHub API        │
+                   │  (OAuth + REST)    │
+                   └────────────────────┘
+```
+
+### Data Flow
+
+```
+User → Frontend (Next.js) → API Request (fetch + Firebase ID Token)
+                           → Backend (ElysiaJS) → Auth Middleware (verify token)
+                                                → Controller → Service → Firestore
+                                                ← Response (JSON)
+                           ← Update UI
 ```
 
 ---
 
-## สถาปัตยกรรม (Architecture)
+## 📦 Firestore Collections
 
-```
-┌─────────────────────┐         ┌──────────────────────┐
-│    Next.js Frontend │  HTTP   │   Elysia Backend     │
-│    (Port 3000)      │◄───────►│   (Port 8000)        │
-│                     │         │                      │
-│  • App Router       │         │  • REST API          │
-│  • Firebase SDK     │         │  • Firebase Admin    │
-│  • TailwindCSS      │         │  • Rate Limiting     │
-│  • ShadCN UI        │         │  • Swagger UI        │
-└────────┬────────────┘         └──────────┬───────────┘
-         │                                 │
-         │       ┌─────────────────┐       │
-         └──────►│  Firebase       │◄──────┘
-                 │  • Auth         │
-                 │  • Firestore    │
-                 └────────┬────────┘
-                          │
-                 ┌────────▼────────┐
-                 │  GitHub API     │
-                 │  (OAuth + REST) │
-                 └─────────────────┘
-```
+| Collection | รายละเอียด | Fields หลัก |
+|-----------|-----------|-------------|
+| `users` | ข้อมูล Profile ของ User | `uid`, `displayName`, `email`, `username`, `title`, `bio`, `location`, `githubUsername`, `photoURL` |
+| `skills` | ทักษะของ User แต่ละคน | `userId`, `name`, `category`, `level` (1–5), `endorsementCount`, `verified` |
+| `endorsements` | การรับรองทักษะ | `skillId`, `fromName`, `message`, `status` (pending/verified), `token`, `skills[]` |
+| `badges` | Badge ที่ได้รับอัตโนมัติ | `userId`, `skillId`, `skillName`, `earnedAt` |
+| `github_repos` | Repos ที่ sync มาจาก GitHub | `userId`, `name`, `description`, `stars`, `forks`, `language`, `url` |
+| `jobs` | ประกาศงาน | `title`, `company`, `requiredSkills[]`, `description`, `location` |
+| `export_tokens` | Token สำหรับ Public Portfolio Link | `userId`, `token`, `createdAt`, `expiresAt` |
 
 ---
 
-## การติดตั้ง
+## 🔌 API Reference
 
-### 1. Clone โปรเจค
-
-```bash
-git clone <repo-url>
-cd skill-badge-platform
-```
-
-### 2. ตั้งค่า Backend
-
-```bash
-cd backend
-cp .env.example .env   # แก้ไข env ตามต้องการ
-bun install
-bun run dev            # เริ่ม server ที่ port 3000 (หรือตาม PORT ใน .env)
-```
-
-**Environment Variables ที่ต้องตั้ง:**
-```
-GITHUB_CLIENT_ID=<GitHub OAuth App Client ID>
-GITHUB_CLIENT_SECRET=<GitHub OAuth App Client Secret>
-FRONTEND_URL=http://localhost:3000
-PORT=8000
-```
-
-### 3. ตั้งค่า Frontend
-
-```bash
-cd next-app
-npm install
-npm run dev            # เริ่ม dev server ที่ port 3000
-```
-
-### 4. Firebase Config
-
-- ตั้งค่า Firebase project ใน Firebase Console
-- วาง Service Account JSON ไว้ที่ `backend/config/`
-- ตั้งค่า Firebase Client Config ใน Frontend
-
----
-
-## Firestore Collections
-
-| Collection | รายละเอียด |
-|-----------|-----------|
-| `users` | ข้อมูล Profile, GitHub stats, endorsement count |
-| `skills` | ทักษะของ user แต่ละคน (name, category, level, endorsementCount) |
-| `endorsements` | การรับรองทักษะ (status: pending/verified, token สำหรับ link) |
-| `github_repos` | Repos ที่ sync มาจาก GitHub |
-| `badges` | Badge ที่ได้รับอัตโนมัติเมื่อ skill ถูก endorse ครบเกณฑ์ |
-| `jobs` | ประกาศงาน พร้อม requiredSkills สำหรับ matching |
-| `export_tokens` | Token สำหรับ public portfolio link |
-
----
-
-## API Reference
-
-**Base URL:** `http://localhost:8000`  
+**Base URL:** `http://localhost:8000`
 **Swagger UI:** `http://localhost:8000/swagger`
 
-> Header สำหรับ Endpoint ที่ต้อง Auth: `Authorization: Bearer <Firebase_ID_Token>`
+> Header สำหรับ Protected Endpoint: `Authorization: Bearer <Firebase_ID_Token>`
 
 ### Health Check
 
@@ -168,14 +205,6 @@ npm run dev            # เริ่ม dev server ที่ port 3000
 | `POST` | `/endorsements/submit/:token` | ❌ | ส่ง Endorsement (fromName, message, skills[]) |
 | `GET` | `/endorsements/:userId` | ✅ | ดึง Endorsements ของตัวเอง (ต้องเป็น owner) |
 
-**Flow การ Endorse:**
-```
-1. User A กด "Request Endorsement" → ได้ link พร้อม token
-2. User B เปิด link → กรอกชื่อ, ข้อความ, เลือก Skills ที่จะ Endorse
-3. ระบบบันทึก endorsement → อัปเดต endorsementCount ใน skill
-4. ถ้า skill ได้ 3 endorsements → auto-mint Badge
-```
-
 ### GitHub (`/github`)
 
 | Method | Path | Auth | คำอธิบาย |
@@ -205,63 +234,200 @@ npm run dev            # เริ่ม dev server ที่ port 3000
 | `POST` | `/export/link` | ✅ | สร้าง public share link |
 | `GET` | `/export/public/:token` | ❌ | เข้าถึง portfolio ผ่าน public link |
 
+### Challenges (`/challenges`)
+
+| Method | Path | Auth | คำอธิบาย |
+|--------|------|------|---------|
+| `GET` | `/challenges` | ✅ | ดึง Challenges ทั้งหมด |
+| `POST` | `/challenges/:id/submit` | ✅ | ส่งคำตอบ Challenge |
+| `GET` | `/challenges/:id/status` | ✅ | ตรวจสอบสถานะ Challenge |
+
 ---
 
-## หน้าจอหลัก (Pages)
+## 📱 หน้าจอทั้งหมด (Pages)
 
 | Path | ชื่อหน้า | คำอธิบาย |
 |------|---------|---------|
-| `/` | Landing | หน้าแรก แนะนำระบบ |
+| `/` | Landing Page | หน้าแรก แนะนำระบบ พร้อม Call-to-Action |
 | `/login` | Login | เข้าสู่ระบบ (GitHub / Google / Email) |
-| `/signup` | Sign Up | สมัครสมาชิก |
-| `/dashboard` | Dashboard | หน้าหลัก — Profile Card, Tabs (Overview, Skills, Endorsements, Gap Analysis, Widgets) |
+| `/signup` | Sign Up | สมัครสมาชิกด้วย Email/Password |
+| `/auth/login` | Auth Login (alt) | หน้า Login อีก Route |
+| `/dashboard` | Dashboard | หน้าหลัก — Profile Card + 5 Tabs (Overview, Skills, Endorsements, Gap Analysis, Developer Widgets) |
 | `/explore` | Explore | ค้นหานักพัฒนาในระบบ พร้อม Endorse |
-| `/jobs` | Jobs | งานแนะนำตาม Skill Match |
+| `/jobs` | Jobs | งานแนะนำตาม Skill Match Score |
+| `/profile/:username` | Public Profile | หน้า Profile สาธารณะ แสดง Skills + Badges + Stats |
+| `/endorse/:token` | Endorsement Page | หน้ากรอก Endorsement สำหรับคนภายนอก |
+| `/verify-challenge` | Challenge Verify | หน้าตรวจสอบ Challenge |
 
 ---
 
-## โฟลเดอร์โปรเจค
+## 📂 โครงสร้างโปรเจค
 
 ```
 skill-badge-platform/
-├── backend/                    # Elysia API Server (Bun)
+├── backend/                        # Elysia API Server (Bun Runtime)
 │   ├── src/
-│   │   ├── index.ts           # Entry — Elysia app, CORS, Rate Limit, Swagger
-│   │   ├── controllers/       # Request handlers (auth, users, skills, ...)
-│   │   ├── services/          # Business logic (firebase, github, endorsements, ...)
-│   │   ├── middleware/        # Auth middleware (Firebase token verification)
-│   │   ├── routes/            # Route definitions
-│   │   └── utils/             # Validators, errors, token helpers
-│   └── config/                # Firebase Service Account JSON
+│   │   ├── index.ts               # Entry — Elysia app setup, CORS, Rate Limit, Swagger
+│   │   ├── seed.ts                # Seed script สำหรับสร้างข้อมูลทดสอบ
+│   │   ├── controllers/           # Request Handlers
+│   │   │   ├── auth.controller.ts         # GitHub OAuth callback, verify token, logout
+│   │   │   ├── users.controller.ts        # Profile CRUD, search, portfolio
+│   │   │   ├── skills.controller.ts       # Skill CRUD + validation
+│   │   │   ├── endorsements.controller.ts # Endorsement request, verify, submit
+│   │   │   ├── github.controller.ts       # GitHub sync, repos, dashboard
+│   │   │   ├── badges.controller.ts       # Badge retrieval
+│   │   │   ├── jobs.controller.ts         # Job recommendations, apply
+│   │   │   ├── export.controller.ts       # PDF export, public share link
+│   │   │   └── challenges.controller.ts   # Skill challenges
+│   │   ├── services/              # Business Logic Layer
+│   │   │   ├── firebase.service.ts        # Firebase Admin SDK initialization
+│   │   │   ├── auth.service.ts            # Token creation, GitHub OAuth exchange
+│   │   │   ├── users.service.ts           # User CRUD, search, profile sync
+│   │   │   ├── skills.service.ts          # Skill CRUD, validation
+│   │   │   ├── endorsements.service.ts    # Endorsement logic, auto-mint badge
+│   │   │   ├── github.service.ts          # GitHub API integration
+│   │   │   ├── badges.service.ts          # Badge queries
+│   │   │   ├── jobs.service.ts            # Job matching algorithm
+│   │   │   ├── challenges.service.ts      # Challenge logic
+│   │   │   └── pdf.service.ts             # PDF generation
+│   │   ├── middleware/            # Auth Middleware
+│   │   │   └── auth.ts                    # Firebase token verification middleware
+│   │   ├── routes/                # Route Definitions
+│   │   └── utils/                 # Validators, error handlers, token helpers
+│   ├── config/                    # Firebase Service Account JSON
+│   └── package.json               # Dependencies: elysia, firebase-admin, @elysiajs/*
 │
-├── next-app/                   # Next.js Frontend
-│   ├── app/                   # App Router pages
-│   │   ├── dashboard/         # Dashboard page
-│   │   ├── explore/           # Explore developers page
-│   │   ├── jobs/              # Job recommendations page
-│   │   ├── login/             # Login page
-│   │   └── signup/            # Sign up page
-│   ├── components/            # React components
-│   │   ├── dashboard/         # Sidebar, Profile Card, Tab components
-│   │   └── ui/                # Reusable UI (Button, Card, Badge, Alert, ...)
-│   ├── hooks/                 # Custom hooks (useAuth, useProfileData, ...)
+├── next-app/                       # Next.js Frontend
+│   ├── app/                       # App Router Pages
+│   │   ├── page.tsx                       # Landing Page
+│   │   ├── layout.tsx                     # Root Layout
+│   │   ├── globals.css                    # Global CSS + Print Styles
+│   │   ├── login/page.tsx                 # Login Page
+│   │   ├── signup/page.tsx                # Sign Up Page
+│   │   ├── auth/login/page.tsx            # Alt Login Route
+│   │   ├── dashboard/page.tsx             # Dashboard (5 Tabs)
+│   │   ├── explore/page.tsx               # Developer Search
+│   │   ├── jobs/page.tsx                  # Job Recommendations
+│   │   ├── profile/[username]/page.tsx    # Public Profile
+│   │   ├── endorse/[token]/page.tsx       # Endorsement Submission
+│   │   └── verify-challenge/page.tsx      # Challenge Verification
+│   ├── components/
+│   │   ├── dashboard/             # Dashboard Components
+│   │   │   ├── SidebarLayout.tsx          # Sidebar + Auth redirect layout
+│   │   │   ├── Sidebar.tsx                # Navigation sidebar (Profile, Explore, Jobs)
+│   │   │   ├── ProfileCard.tsx            # User avatar + info card
+│   │   │   ├── TabNavigation.tsx          # Tab switcher component
+│   │   │   ├── CVTemplate.tsx             # Legacy CV template for print
+│   │   │   ├── DashboardHeader.tsx        # Dashboard header bar
+│   │   │   ├── StatsCard.tsx              # Statistics card component
+│   │   │   ├── Navbar.tsx                 # Top navigation bar
+│   │   │   └── tabs/                      # Tab Content Components
+│   │   │       ├── OverviewTab.tsx            # Stats + Top Skills + GitHub Status
+│   │   │       ├── SkillsTab.tsx              # Skill Management (CRUD + Filter)
+│   │   │       ├── EndorsementsTab.tsx         # Endorsement list + Request
+│   │   │       ├── GapAnalysisTab.tsx          # Role-based skill gap analysis
+│   │   │       ├── WidgetExportTab.tsx         # Resume Builder + Template + PDF Export
+│   │   │       └── ChallengesTab.tsx           # Skill challenges
+│   │   └── ui/                    # Reusable UI Components
+│   ├── hooks/                     # Custom Hooks
+│   │   ├── useAuth.ts                     # Re-export auth hook
+│   │   ├── useFetch.ts                    # Generic fetch hook
+│   │   ├── useLocalStorage.ts             # localStorage hook
+│   │   ├── useNotification.ts             # Toast notification hook
+│   │   └── useProfileData.ts              # Profile data fetching hooks
 │   └── lib/
-│       ├── services/          # API client functions
-│       ├── hooks/             # Auth hook (canonical)
-│       ├── constants/         # API endpoints
-│       └── types/             # TypeScript type definitions
+│       ├── services/              # API Client Functions
+│       │   ├── api.ts                     # Base API client (fetch + auth header)
+│       │   ├── auth.service.ts            # Login, signup, OAuth
+│       │   ├── user.service.ts            # User profile API
+│       │   ├── skills.service.ts          # Skills CRUD API
+│       │   ├── endorsements.service.ts    # Endorsement API
+│       │   ├── github.service.ts          # GitHub sync API
+│       │   ├── badges.service.ts          # Badges API
+│       │   ├── jobs.service.ts            # Jobs API
+│       │   ├── developers.service.ts      # Developer search API
+│       │   └── challenges.service.ts      # Challenges API
+│       ├── hooks/useAuth.tsx              # Firebase Auth hook (canonical)
+│       ├── constants/                     # API endpoint constants
+│       ├── types/                         # TypeScript type definitions
+│       └── utils/                         # Utility functions
 │
-├── ai/                        # AI Services (stub)
+├── ai/                             # AI Services (Placeholder)
 │   └── services/
-│       ├── badge-recommender/ # Badge recommendation engine
-│       └── skill-analyzer/    # Skill analysis engine
+│       ├── badge-recommender/             # Badge recommendation engine
+│       └── skill-analyzer/                # Skill analysis engine
 │
-└── apiTestRef/                # API test reference document
+└── README/                         # Documentation
+    └── README.md                          # This file
 ```
 
 ---
 
-## วิธีรัน
+## 🚀 การติดตั้งและรัน
+
+### 1. Clone โปรเจค
+
+```bash
+git clone <repo-url>
+cd skill-badge-platform
+```
+
+### 2. ตั้งค่า Backend
+
+```bash
+cd backend
+cp .env.example .env   # แก้ไข env ตามด้านล่าง
+bun install
+bun run dev            # เริ่ม server ที่ port 8000
+```
+
+**Environment Variables (Backend):**
+```env
+GITHUB_CLIENT_ID=<GitHub OAuth App Client ID>
+GITHUB_CLIENT_SECRET=<GitHub OAuth App Client Secret>
+FRONTEND_URL=http://localhost:3000
+PORT=8000
+```
+
+### 3. ตั้งค่า Frontend
+
+```bash
+cd next-app
+cp .env.example .env   # ตั้ง Firebase config
+npm install
+npm run dev            # เริ่ม dev server ที่ port 3000
+```
+
+**Environment Variables (Frontend):**
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_FIREBASE_API_KEY=<your-key>
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=<your-domain>
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=<your-project-id>
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=<your-bucket>
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=<your-sender-id>
+NEXT_PUBLIC_FIREBASE_APP_ID=<your-app-id>
+```
+
+### 4. Firebase Setup
+
+1. สร้าง Firebase Project ใน [Firebase Console](https://console.firebase.google.com)
+2. เปิดใช้ Authentication → Sign-in methods: Email/Password, Google, GitHub
+3. สร้าง Firestore Database
+4. Download Service Account JSON → วางที่ `backend/config/`
+5. Copy Firebase Client Config → ตั้งค่าใน Frontend `.env`
+
+### 5. GitHub OAuth Setup
+
+1. ไปที่ [GitHub Developer Settings](https://github.com/settings/developers)
+2. สร้าง OAuth App ใหม่
+3. Homepage URL: `http://localhost:3000`
+4. Callback URL: `http://localhost:8000/auth/github/callback`
+5. Copy Client ID + Secret → ตั้งค่าใน Backend `.env`
+
+---
+
+## ▶️ วิธีรัน
 
 ```bash
 # Terminal 1 — Backend
@@ -273,26 +439,51 @@ cd next-app
 npm run dev
 ```
 
-เปิดเบราว์เซอร์ที่ `http://localhost:3000`  
-Swagger API Docs ที่ `http://localhost:8000/swagger`
+| Service | URL |
+|---------|-----|
+| 🌐 Frontend | http://localhost:3000 |
+| ⚙️ Backend API | http://localhost:8000 |
+| 📖 Swagger Docs | http://localhost:8000/swagger |
 
 ---
 
-## Security
+## 🔒 Security Features
 
-- **Rate Limiting** — 100 requests/นาที/IP
-- **Firebase Auth** — Token verification ทุก protected endpoint
-- **CORS** — จำกัด origin เฉพาะ frontend URL
-- **Input Validation** — ตรวจสอบ input ทุก endpoint ผ่าน validators
+| Feature | Implementation |
+|---------|---------------|
+| **Authentication** | Firebase Auth — multi-provider (GitHub, Google, Email) |
+| **API Protection** | Bearer Token verification middleware ทุก protected route |
+| **Rate Limiting** | 100 req/min/IP ผ่าน @elysiajs/rate-limit |
+| **CORS** | จำกัด origin เฉพาะ `FRONTEND_URL` |
+| **Input Validation** | Custom validators ตรวจสอบ body/params ทุก endpoint |
+| **Token-based Endorsement** | ใช้ crypto random token สำหรับ endorsement link ป้องกันการ endorse ซ้ำ |
+| **OAuth2** | GitHub + Google OAuth2 flow ผ่าน Firebase |
+
+---
+
+## 📐 Design Patterns
+
+| Pattern | ที่ใช้ |
+|---------|------|
+| **MVC** | Backend — Controller → Service → Database (Firestore) |
+| **Service Layer** | Frontend — `lib/services/*.ts` เป็น API client layer แยกจาก UI |
+| **Custom Hooks** | `useAuth`, `useFetch`, `useProfileData`, `useLocalStorage`, `useNotification` |
+| **Component Composition** | Dashboard Tabs แยกเป็น Component อิสระ (OverviewTab, SkillsTab, ...) |
+| **Middleware Pattern** | Backend auth middleware inject `userId` เข้า request context |
+
+---
+
+## 🎨 UI/UX Design
+
+- **Dark Theme** — พื้นหลัง Dark (#090d14) + Glassmorphism panels
+- **Responsive** — ทำงานได้ทุกขนาดหน้าจอ (Desktop + Mobile)
+- **Micro-Animations** — Hover effects, transition, scale on click
+- **Custom Scrollbar** — สไตล์เข้ากับ Dark theme
+- **Print Styles** — แยก CSS สำหรับ Print/PDF export
+- **Color System** — Purple primary (#7c3aed), Green verified (#3fb950), Blue accent (#3b82f6)
 
 ---
 
 ## License
 
 MIT
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
