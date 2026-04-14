@@ -83,18 +83,6 @@ export default function LoginPage() {
 
       {/* --- MAIN LOGIN CARD --- */}
       <div className="w-full max-w-[440px] px-6 relative z-10 my-10">
-
-        {/* Global Logo/Brand indicator at top */}
-        <div className="absolute -top-16 left-0 right-0 flex justify-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] text-[11px] font-bold tracking-widest uppercase text-gray-400">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 flex-shrink-0 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500 flex-shrink-0"></span>
-            </span>
-            SkillLab Pro Now Live
-          </div>
-        </div>
-
         <div className="bg-[var(--card)]/90 backdrop-blur-xl border border-[var(--border)] rounded-3xl p-8 sm:p-10 shadow-2xl relative">
 
           {/* Subtle top shimmer */}
@@ -104,7 +92,7 @@ export default function LoginPage() {
             {/* Logo Icon */}
             <div className="w-14 h-14 mx-auto bg-[#090d14] rounded-2xl flex items-center justify-center border border-[var(--border)] shadow-[0_4px_20px_rgba(0,0,0,0.3)] mb-6">
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-blue-400 to-purple-500 tracking-tight leading-none">
-                S.
+                S
               </span>
             </div>
             <h1 className="text-[28px] font-serif font-bold tracking-tight text-white mb-2">Welcome Back</h1>

@@ -95,7 +95,6 @@ export default function LandingPage() {
                             We analyze your GitHub repositories and generate personalized technical assessments to prove your actual coding skills.
                         </p>
                     </div>
-
                     <div className="bg-[#161b22]/50 border border-gray-800 p-8 rounded-3xl hover:border-purple-500/50 transition-colors">
                         <div className="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center mb-6 border border-purple-500/20">
                             <span className="text-2xl">🤝</span>

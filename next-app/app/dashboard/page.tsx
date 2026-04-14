@@ -42,7 +42,7 @@ export default function DashboardPage() {
         const data = res?.data || res?.user || res;
         if (data?.uid || data?.displayName) setProfile(data);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [user, authLoading]);
 
   return (
@@ -157,7 +157,7 @@ export default function DashboardPage() {
                     onClick={() => window.print()}
                     className="w-full bg-transparent border border-gray-700 hover:bg-gray-800 text-white py-3 rounded-xl font-medium transition-all"
                   >
-                    ↓ Export Portfolio
+                    Export Portfolio
                   </button>
                 </div>
               </div>
@@ -260,7 +260,7 @@ export default function DashboardPage() {
                 {activeTab === "Skills" && <SkillsTab onNavigateToEndorse={() => setActiveTab("Endorsements")} />}
                 {activeTab === "Endorsements" && <EndorsementsTab />}
                 {activeTab === "Gap Analysis" && <GapAnalysisTab skills={skills || []} />}
-                {activeTab === "Developer Widgets" && <WidgetExportTab userName={user?.displayName || "user"} />}
+                {activeTab === "Developer Widgets" && <WidgetExportTab userName={user?.displayName || "user"} skills={skills || []} />}
               </div>
             </div>
 

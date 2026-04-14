@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 
@@ -56,17 +57,18 @@ export default function SidebarLayout({
     }
   };
 
-  if (authLoading) {
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
+  if (authLoading || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#090d14]">
-        <div className="text-white">Loading...</div>
+        <div className="text-white font-mono text-sm tracking-widest uppercase animate-pulse">Loading...</div>
       </div>
     );
-  }
-
-  if (!user) {
-    router.push("/login");
-    return null;
   }
 
   return (

@@ -56,7 +56,7 @@ export const fetchAPI = async (endpoint: string, options: RequestInit = {}, retr
         });
         const retryData = await retryResponse.json().catch(() => ({}));
         if (!retryResponse.ok) {
-            throw new Error(retryData?.message || `API Error: ${retryResponse.status}`);
+            throw new Error(retryData?.error || retryData?.message || `API Error: ${retryResponse.status}`);
         }
         return retryData;
     }
@@ -64,7 +64,7 @@ export const fetchAPI = async (endpoint: string, options: RequestInit = {}, retr
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-        const message = data?.message || `API Error: ${response.status}`;
+        const message = data?.error || data?.message || `API Error: ${response.status}`;
         throw new Error(String(message));
     }
 
