@@ -94,9 +94,13 @@ export default function EndorsementsTab() {
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <h4 className="text-white font-semibold text-sm">{item.fromName || item.fromUserName || 'Anonymous'}</h4>
-                      {item.status === 'verified' && (
+                      {item.status === 'verified' ? (
                         <span className="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded flex items-center gap-1">
                           ✓ Verified
+                        </span>
+                      ) : (
+                        <span className="text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded flex items-center gap-1">
+                          ⏳ รอการยืนยัน
                         </span>
                       )}
                     </div>
@@ -105,6 +109,23 @@ export default function EndorsementsTab() {
                 </div>
                 <span className="text-gray-500 text-xs shrink-0 mt-1">{timeAgo(item.createdAt || item.verifiedAt)}</span>
               </div>
+
+              {item.status === 'pending' && item.link && (
+                <div className="mb-4 ml-14 bg-[#090d14] border border-gray-700/50 rounded-lg p-3 text-xs flex flex-col gap-2">
+                  <p className="text-gray-400 font-medium">ส่งลิงก์นี้ให้ผู้ยืนยันของคุณ:</p>
+                  <div className="flex items-center gap-2">
+                    <code className="bg-[#161b22] px-2 py-1.5 rounded text-gray-300 w-full overflow-hidden text-ellipsis whitespace-nowrap border border-gray-800">
+                      {item.link}
+                    </code>
+                    <button 
+                      onClick={() => { navigator.clipboard.writeText(item.link); alert('คัดลอกลิงก์แล้ว!'); }}
+                      className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded transition-colors whitespace-nowrap"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {item.message && (
                 <p className="text-gray-400 text-sm leading-relaxed mb-4 ml-14">"{item.message}"</p>

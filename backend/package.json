@@ -4,7 +4,8 @@
     "description": "Skill Wallet Backend API - Elysia + Bun",
     "scripts": {
         "dev": "bun run --watch src/index.ts",
-        "start": "bun run src/index.ts"
+        "start": "bun run src/index.ts",
+        "seed": "bun run src/scripts/seed.ts"
     },
     "dependencies": {
         "@elysiajs/cors": "^1.2.0",
