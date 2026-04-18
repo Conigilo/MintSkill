@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function LandingPage() {
@@ -21,9 +22,9 @@ export default function LandingPage() {
             {/* 1. Navbar */}
             <nav className="border-b border-gray-800/50 bg-[#090d14]/80 backdrop-blur-md sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                    <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 tracking-tight">
+                    <Link href="/" className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 tracking-tight cursor-pointer hover:opacity-80 transition-opacity">
                         SKILL WALLET
-                    </span>
+                    </Link>
 
                     {loading ? (
                         <div className="w-24 h-9 bg-gray-800 animate-pulse rounded-full"></div>

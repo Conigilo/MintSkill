@@ -86,28 +86,34 @@ export const useMyEndorsements = () => {
 
   const userId = user?.uid
 
-  const fetchEndorsements = useCallback(async () => {
+  const fetchEndorsements = useCallback(async (background = false) => {
     if (!userId) {
-      setIsLoading(false)
+      if (!background) setIsLoading(false)
       return
     }
 
-    setIsLoading(true)
+    if (!background) setIsLoading(true)
     try {
       // fetchAPI handles the token automatically
       const data = await fetchEndorsementsFromAPI()
       setEndorsements(data || [])
       setError(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch endorsements')
+      if (!background) setError(err instanceof Error ? err.message : 'Failed to fetch endorsements')
     } finally {
-      setIsLoading(false)
+      if (!background) setIsLoading(false)
     }
   }, [userId])
 
   useEffect(() => {
     fetchEndorsements()
+    // 🔔 Real-time Background Polling every 5 seconds
+    const interval = setInterval(() => {
+      fetchEndorsements(true)
+    }, 5000)
+    
+    return () => clearInterval(interval)
   }, [fetchEndorsements])
 
-  return { endorsements, isLoading, error, refetch: fetchEndorsements }
+  return { endorsements, isLoading, error, refetch: () => fetchEndorsements(false) }
 }

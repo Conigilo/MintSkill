@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/lib/hooks/useAuth";
 
 const NAV_ITEMS = [
@@ -76,9 +77,9 @@ export default function SidebarLayout({
       {/* Sidebar */}
       <aside className="w-64 border-r border-gray-800/50 bg-[#0d1117] hidden md:flex flex-col p-6 sticky top-0 h-screen z-50">
         <div className="mb-10 pl-2">
-          <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 tracking-tight">
+          <Link href="/" className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 tracking-tight cursor-pointer hover:opacity-80 transition-opacity block">
             SKILL WALLET
-          </span>
+          </Link>
         </div>
         <nav className="flex-1 space-y-2 mt-4">
           {NAV_ITEMS.map((item) => {
@@ -114,7 +115,7 @@ export default function SidebarLayout({
 
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 border-b border-gray-800/50 p-4 flex justify-between items-center bg-[#090d14]/80 backdrop-blur-md z-50">
-        <span className="font-bold text-white">skillwallet.</span>
+        <Link href="/" className="font-bold text-white hover:text-gray-300 transition-colors">skillwallet.</Link>
         <div className="flex gap-2">
           {NAV_ITEMS.map((item) => (
             <button

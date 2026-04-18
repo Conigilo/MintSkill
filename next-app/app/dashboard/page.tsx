@@ -14,6 +14,9 @@ import SidebarLayout from "@/components/dashboard/SidebarLayout";
 import { useUserSkills, useMyEndorsements } from "@/hooks/useProfileData";
 import CVTemplate from "@/components/dashboard/CVTemplate";
 import Image from "next/image";
+import { auth } from "@/lib/utils/firebase";
+import { BASE_URL } from "@/lib/constants/api-endpoints";
+import { DEFAULT_RESUME, generateResumeHtml } from "@/lib/utils/resume";
 
 const TABS = ["Overview", "Skills", "Endorsements", "Gap Analysis", "Developer Widgets"] as const;
 
@@ -21,6 +24,7 @@ export default function DashboardPage() {
   const { user, loading: authLoading, linkGithubAccount } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("Overview");
   const [showInbox, setShowInbox] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [profile, setProfile] = useState<{
     displayName?: string;
     title?: string;
@@ -30,7 +34,7 @@ export default function DashboardPage() {
 
   const { skills } = useUserSkills(user?.uid);
   const { endorsements: myEndorsements } = useMyEndorsements();
-  type EndorsementWithStatus = { id: string; fromUserName?: string; skill: string; createdAt?: string; status?: string };
+  type EndorsementWithStatus = { id: string; fromUserName?: string; fromName?: string; skill?: string; createdAt?: string; status?: string; link?: string };
   const pendingEndorsements = (myEndorsements as EndorsementWithStatus[]).filter((e) => e.status === "pending");
   const inboxCount = pendingEndorsements.length;
 
@@ -44,6 +48,56 @@ export default function DashboardPage() {
       })
       .catch(() => { });
   }, [user, authLoading]);
+
+  const handleExportPDF = async () => {
+    setIsExporting(true);
+    try {
+      let resume = DEFAULT_RESUME;
+      let template = 'classic';
+      
+      try {
+        const data = localStorage.getItem('skill-wallet-resume');
+        if (data) {
+          const parsed = JSON.parse(data);
+          if (parsed.resume) resume = parsed.resume;
+          if (parsed.template) template = parsed.template;
+        } else {
+          resume = {
+             ...DEFAULT_RESUME,
+             fullName: profile?.displayName || user?.displayName || '',
+             username: profile?.github?.login || user?.displayName || '',
+             title: profile?.title || 'Software Developer',
+          };
+        }
+      } catch (e) {
+        resume = {
+           ...DEFAULT_RESUME,
+           fullName: profile?.displayName || user?.displayName || '',
+           username: profile?.github?.login || user?.displayName || '',
+           title: profile?.title || 'Software Developer',
+        };
+      }
+
+      const verifiedSkills = skills.filter(s => s.verified).map(s => s.name);
+      const allSkillNames = skills.map(s => s.name);
+
+      const html = generateResumeHtml(template, resume, allSkillNames, verifiedSkills);
+      const w = window.open('', '_blank', 'width=800,height=1100');
+      if (!w) {
+        window.print();
+        return;
+      }
+      w.document.write(html);
+      w.document.close();
+      w.onload = () => w.print();
+
+    } catch (e) {
+      console.error(e);
+      window.print();
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <>
@@ -80,13 +134,24 @@ export default function DashboardPage() {
                         <div key={req.id} className="p-4 border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
                           <div className="flex gap-3">
                             <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-xs shrink-0">
-                              {req.fromUserName?.[0] ?? "?"}
+                              {(req.fromUserName || req.fromName || "?")[0].toUpperCase()}
                             </div>
-                            <div>
+                            <div className="flex-1">
                               <p className="text-sm text-gray-300">
-                                Pending endorsement for <span className="text-blue-400 font-semibold">{req.skill}</span>
+                                Waiting for <span className="text-blue-400 font-semibold">{req.fromUserName || req.fromName || "someone"}</span>
                               </p>
-                              <p className="text-[10px] text-gray-500 mt-1">
+                              {req.link && (
+                                <button 
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(req.link!);
+                                    alert('คัดลอกลิงก์แล้ว! นำไปส่งให้ผู้ประเมินได้เลย');
+                                  }}
+                                  className="mt-2 text-[10px] uppercase font-bold bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg transition-colors border border-gray-700"
+                                >
+                                  🔗 Copy Link
+                                </button>
+                              )}
+                              <p className="text-[10px] text-gray-500 mt-2">
                                 {req.createdAt ? new Date(req.createdAt).toLocaleDateString() : "Pending"}
                               </p>
                             </div>
@@ -95,6 +160,16 @@ export default function DashboardPage() {
                       ))
                     )}
                   </div>
+                  {pendingEndorsements.length > 0 && (
+                    <div className="p-2 bg-[#0d1117] border-t border-gray-800">
+                      <button 
+                        onClick={() => { setActiveTab("Endorsements"); setShowInbox(false); }}
+                        className="w-full text-xs text-blue-400 hover:text-blue-300 py-2 font-medium"
+                      >
+                        View All in Endorsements Tab →
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -154,10 +229,11 @@ export default function DashboardPage() {
                     Sync GitHub
                   </button>
                   <button
-                    onClick={() => window.print()}
-                    className="w-full bg-transparent border border-gray-700 hover:bg-gray-800 text-white py-3 rounded-xl font-medium transition-all"
+                    onClick={handleExportPDF}
+                    disabled={isExporting}
+                    className="w-full bg-transparent border border-gray-700 hover:bg-gray-800 text-white py-3 rounded-xl font-medium transition-all disabled:opacity-50"
                   >
-                    Export Portfolio
+                    {isExporting ? "Generating PDF..." : "Export Portfolio PDF"}
                   </button>
                 </div>
               </div>

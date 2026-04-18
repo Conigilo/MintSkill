@@ -56,6 +56,19 @@ export default function JobsPage() {
   const [skillsLoading, setSkillsLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "high" | "medium" | "low">("all");
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [appliedJobs, setAppliedJobs] = useState<Record<string, boolean>>({});
+  const [showPopup, setShowPopup] = useState(false);
+
+  const handleApply = (e: React.MouseEvent, jobId: string) => {
+    e.stopPropagation();
+    setAppliedJobs(prev => ({ ...prev, [jobId]: true }));
+    setShowPopup(true);
+    
+    // Auto complete popup after 3 seconds
+    setTimeout(() => {
+        setShowPopup(false);
+    }, 3000);
+  };
 
   // Fetch user skills on mount
   useEffect(() => {
@@ -291,9 +304,18 @@ export default function JobsPage() {
                   )}
 
                   {/* Apply CTA */}
-                  <button className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-900/30">
-                    สมัครงานนี้ →
-                  </button>
+                  {appliedJobs[selectedJob.id] ? (
+                    <button disabled className="w-full bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 mt-6">
+                      <span className="text-lg">✅</span> สมัครงานนี้เรียบร้อยแล้ว
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={(e) => handleApply(e, selectedJob.id)}
+                      className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-900/30 mt-6"
+                    >
+                      สมัครงานนี้ →
+                    </button>
+                  )}
                 </div>
               );
             })()}
@@ -301,6 +323,29 @@ export default function JobsPage() {
 
         </div>
       </div>
+
+      {/* Success Popup Modal */}
+      {showPopup && (
+        <div className="fixed flex items-center justify-center z-[200] inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+           <div className="bg-[#161b22] border border-gray-700/50 p-8 rounded-3xl shadow-2xl w-full max-w-sm text-center transform scale-100 animate-in zoom-in-95 duration-200">
+              <div className="w-16 h-16 mx-auto bg-green-500/20 text-green-400 rounded-full flex items-center justify-center text-3xl mb-4 shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+                 <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                 </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-2">สมัครงานสำเร็จ!</h3>
+              <p className="text-gray-400 text-sm mb-6">
+                 ส่งข้อมูลโปรไฟล์และเรซูเม่ของคุณให้บริษัทเรียบร้อยแล้ว หากโปรไฟล์ของคุณตอบโจทย์ ทางบริษัทจะติดต่อกลับไปทางอีเมลครับ
+              </p>
+              <button 
+                 onClick={() => setShowPopup(false)}
+                 className="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition-colors"
+              >
+                 เข้าใจแล้ว
+              </button>
+           </div>
+        </div>
+      )}
     </SidebarLayout>
   );
 }

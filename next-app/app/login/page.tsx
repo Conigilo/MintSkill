@@ -11,11 +11,31 @@ import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { user, loading, loginWithGithub, loginWithGoogle, signInWithEmail } = useAuth()
+  const { user, loading, loginWithGithub, loginWithGoogle, signInWithEmail, resetPassword } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [successMsg, setSuccessMsg] = useState<string | null>(null)
+
+  const handleForgotPassword = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    setError(null)
+    setSuccessMsg(null)
+    
+    if (!email) {
+      setError("Please put your email address first to reset password.")
+      return
+    }
+
+    try {
+      await resetPassword(email)
+      setSuccessMsg("Password reset email sent! Check your inbox.")
+    } catch (err: any) {
+      console.error(err)
+      setError(err.message || "Failed to send reset email.")
+    }
+  }
 
   useEffect(() => {
     if (user && !loading) {
@@ -100,6 +120,7 @@ export default function LoginPage() {
           </div>
 
           {error && <div className="mb-6"><Alert type="error" message={error} onClose={() => setError(null)} /></div>}
+          {successMsg && <div className="mb-6 p-4 rounded-xl border border-green-500/30 bg-green-500/10 text-green-400 text-sm flex justify-between">{successMsg} <button onClick={() => setSuccessMsg(null)}>✕</button></div>}
 
           <form onSubmit={handleEmailLogin} className="space-y-5">
             {/* Email Input */}
@@ -123,7 +144,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between pl-1">
                 <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Password</label>
-                <Link href="#" className="text-[11px] font-bold text-[var(--primary)] hover:text-purple-300 transition-colors">Forgot?</Link>
+                <button type="button" onClick={handleForgotPassword} className="text-[11px] font-bold text-[var(--primary)] hover:text-purple-300 transition-colors">Forgot?</button>
               </div>
               <div className="relative rounded-2xl bg-[var(--background)] border border-[var(--border)] focus-within:border-[var(--primary)] focus-within:ring-1 focus-within:ring-[var(--primary)] transition-all overflow-hidden flex items-center px-4 py-3.5">
                 <svg width="20" height="20" className="flex-shrink-0 text-gray-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -10,7 +10,8 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     updateProfile,
-    getAuth
+    getAuth,
+    sendPasswordResetEmail
 } from 'firebase/auth';
 import { auth } from '@/lib/utils/firebase'; 
 import { userService } from '../services/user.service';
@@ -139,6 +140,15 @@ export const useAuth = () => {
         await signOut(auth);
     };
 
+    const resetPassword = async (email: string) => {
+        try {
+            await sendPasswordResetEmail(auth, email);
+        } catch (error) {
+            console.error("Reset Password Error:", error);
+            throw error;
+        }
+    };
+
     return { 
         user, 
         loading, 
@@ -147,6 +157,7 @@ export const useAuth = () => {
         loginWithGoogle, 
         signUpWithEmail, 
         signInWithEmail, 
+        resetPassword,
         logout 
     };
 };
