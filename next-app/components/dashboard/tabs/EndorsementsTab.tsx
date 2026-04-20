@@ -162,17 +162,52 @@ export default function EndorsementsTab() {
               {submitResult && (
                 <div className={`p-4 rounded-xl border text-sm ${submitResult.success ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
                   {submitResult.success ? (
-                    <div>
-                      <p className="font-bold mb-2">✅ สร้าง Endorsement Link สำเร็จ!</p>
+                    <div className="space-y-4">
+                      <p className="font-bold flex items-center gap-2">
+                        <span className="text-lg">✅</span> สร้างลิงก์สำเร็จ!
+                      </p>
+                      
                       {submitResult.link && (
-                        <div className="bg-[#090d14] border border-gray-700 rounded-lg p-3 text-xs font-mono break-all text-gray-300 cursor-pointer" onClick={() => { navigator.clipboard.writeText(submitResult.link!); alert('Copied!') }}>
-                          {submitResult.link}
-                          <span className="ml-2 text-blue-400">(คลิกเพื่อคัดลอก)</span>
+                        <div className="space-y-3">
+                          <div className="bg-[#090d14] border border-gray-700 rounded-lg p-3 text-xs font-mono break-all text-gray-300 group relative">
+                            {submitResult.link}
+                            <button 
+                              onClick={() => { navigator.clipboard.writeText(submitResult.link!); alert('คัดลอกลิงก์แล้ว!') }}
+                              className="absolute right-2 top-2 bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-2 py-1 rounded text-[10px] transition-colors"
+                            >
+                              Copy Link
+                            </button>
+                          </div>
+
+                          <div className="border-t border-gray-800 pt-3">
+                            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">เลือกข้อความคำเชิญ (Templates)</label>
+                            <div className="space-y-2">
+                              {[
+                                { title: 'เป็นกันเอง (Casual)', text: `เฮ้ [ชื่อเพื่อน] รบกวนช่วยเข้าไปกดรับรองสกิลให้เราหน่อยได้มั้ย ใช้เวลาแค่ 30 วินาทีเอง: ${submitResult.link}` },
+                                { title: 'มืออาชีพ (Professional)', text: `สวัสดีครับ [ชื่อผู้รับ] รบกวนคุณช่วยตรวจสอบและรับรองทักษะเทคนิคในพอร์ตโฟลิโอของผมหน่อยนะครับ: ${submitResult.link}` },
+                                { title: 'เพื่อนร่วมงาน (Colleague)', text: `ได้ร่วมงานกันในโปรเจคก่อนหน้านี้แล้วประทับใจมากครับ รบกวนช่วยยืนยันทักษะให้ผมหน่อยนะครับ: ${submitResult.link}` }
+                              ].map((tmp, tIdx) => (
+                                <div key={tIdx} className="bg-[#090d14] border border-gray-800 p-2 rounded-lg relative group">
+                                  <div className="text-[10px] text-gray-500 mb-1 font-bold">{tmp.title}</div>
+                                  <p className="text-[11px] text-gray-400 pr-12 line-clamp-2 italic">"{tmp.text}"</p>
+                                  <button 
+                                    onClick={() => { navigator.clipboard.writeText(tmp.text); alert('คัดลอกข้อความเชิญแล้ว!') }}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-400 hover:text-blue-300 p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    title="Copy Message"
+                                  >
+                                    <svg className="w-4 h-4 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <p>❌ {submitResult.error}</p>
+                    <p className="flex items-center gap-2">
+                      <span className="text-lg">❌</span> {submitResult.error}
+                    </p>
                   )}
                 </div>
               )}

@@ -125,11 +125,10 @@ export async function syncGitHub(uid: string) {
 export async function getRepos(uid: string) {
     const querySnapshot = await db.collection(Collections.GITHUB_REPOS)
         .where('userId', '==', uid)
-        .orderBy('stars', 'desc')
-        .limit(20)
         .get()
 
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    const repos = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }))
+    return repos.sort((a, b) => (b.stars || 0) - (a.stars || 0)).slice(0, 20)
 }
 
 /**
@@ -148,12 +147,9 @@ export async function getDashboard(uid: string) {
         db.collection(Collections.SKILLS).where('userId', '==', uid).get(),
         db.collection(Collections.ENDORSEMENTS)
             .where('toUserId', '==', uid)
-            .where('status', '==', 'verified')
             .get(),
         db.collection(Collections.GITHUB_REPOS)
             .where('userId', '==', uid)
-            .orderBy('stars', 'desc')
-            .limit(6)
             .get(),
     ])
 
@@ -165,10 +161,11 @@ export async function getDashboard(uid: string) {
 
     // Sort endorsements by most recent
     const recentEndorsements = endorsementsSnapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .map(doc => ({ id: doc.id, ...doc.data() as any }))
+        .filter(doc => doc.status === 'verified')
         .sort((a: any, b: any) =>
-            new Date(b.verifiedAt?.toDate?.() ?? b.verifiedAt).getTime() -
-            new Date(a.verifiedAt?.toDate?.() ?? a.verifiedAt).getTime()
+            new Date(b.verifiedAt?.toDate?.() ?? (b.verifiedAt || 0)).getTime() -
+            new Date(a.verifiedAt?.toDate?.() ?? (a.verifiedAt || 0)).getTime()
         )
         .slice(0, 3)
 
@@ -202,7 +199,10 @@ export async function getDashboard(uid: string) {
             .map(doc => ({ id: doc.id, ...doc.data() }))
             .sort((a: any, b: any) => b.endorsementCount - a.endorsementCount)
             .slice(0, 12),
-        recentRepos: reposSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+        recentRepos: reposSnapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() as any }))
+            .sort((a, b) => (b.stars || 0) - (a.stars || 0))
+            .slice(0, 6),
         recentEndorsements,
     }
 }
@@ -315,4 +315,29 @@ async function autoAddLanguageSkills(
     }
 
     return newSkills
+}
+
+/**
+ * Toggle a repository's spotlight status
+ */
+export async function toggleRepoSpotlight(uid: string, repoDocId: string) {
+    const repoRef = db.collection(Collections.GITHUB_REPOS).doc(repoDocId)
+    const repoDoc = await repoRef.get()
+
+    if (!repoDoc.exists) {
+        throw new Error('Repository not found')
+    }
+
+    const data = repoDoc.data()
+    if (data?.userId !== uid) {
+        throw new Error('Unauthorized')
+    }
+
+    const newStatus = !(data?.isSpotlight ?? false)
+    await repoRef.update({
+        isSpotlight: newStatus,
+        updatedAt: new Date()
+    })
+
+    return { id: repoDocId, isSpotlight: newStatus }
 }
