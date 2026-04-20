@@ -1,67 +1,127 @@
-// components/dashboard/CVTemplate.tsx
-export default function CVTemplate() {
-    return (
-        // คลาส `hidden print:block` คือหัวใจหลัก: ซ่อนในหน้าเว็บปกติ แต่โชว์ตอนสั่ง Print
-        <div className="hidden print:block bg-white text-black p-8 font-sans w-full max-w-[21cm] mx-auto min-h-[29.7cm]">
+'use client';
 
-            {/* Header */}
+import { useState, useEffect } from "react";
+
+interface CVTemplateProps {
+    user: any;
+    skills: any[] | undefined;
+}
+
+export default function CVTemplate({ user, skills }: CVTemplateProps) {
+    const [resumeData, setResumeData] = useState<any>(null);
+
+    // 1. ดึงข้อมูลจาก LocalStorage ทุกครั้งที่เริ่มการเรนเดอร์ (Mount)
+    useEffect(() => {
+        try {
+            const savedData = localStorage.getItem('skill-wallet-resume');
+            if (savedData) {
+                setResumeData(JSON.parse(savedData).resume);
+            }
+        } catch (e) {
+            console.error("Error loading resume data:", e);
+        }
+    }, [user]);
+
+    // 2. ดึง Skill ที่ Verified จากระบบ (ทักษะทางเทคนิคจะแยกจากข้อมูลแมนวลอื่นๆ)
+    const verifiedSkills = skills?.filter(s => s.verified).map(s => s.name) || [];
+
+    // 3. เตรียมข้อมูล ถ้ายังไม่มีให้ใส่ Placeholder กัน Error
+    const fullName = resumeData?.fullName || user?.displayName || "Sarit Sridit";
+    const jobTitle = resumeData?.title || "Developer";
+    const contactLine = [
+        resumeData?.phone && `Tel: ${resumeData.phone}`,
+        resumeData?.email && `Email: ${resumeData.email}`,
+    ].filter(Boolean).join(' • ');
+
+    const education = resumeData?.education || [];
+    const activities = resumeData?.activities || [];
+    const projects = resumeData?.projects || [];
+    const strengths = resumeData?.strengths || [];
+
+    return (
+        // สำคัญมาก: ต้องมีคลาส `print-visible` เพื่อให้ทะลุการซ่อน (visibility: hidden) ใน globals.css
+        <div className="hidden print:block print-visible bg-white text-black p-8 font-sans w-full max-w-[21cm] mx-auto min-h-[29.7cm]">
+
+            {/* Header: ข้อมูลส่วนตัว */}
             <div className="text-center border-b-2 border-black pb-4 mb-6">
-                <h1 className="text-4xl font-bold uppercase tracking-widest mb-2">Sarit Sridit</h1>
-                <p className="text-sm">
-                    Bangkok, Thailand • github.com/conigilo • linkedin.com/in/conigilo
-                </p>
-                <p className="text-sm mt-1">Full-Stack Developer & Applied Computer Science Student</p>
+                <h1 className="text-4xl font-bold uppercase tracking-widest mb-2">{fullName}</h1>
+                {contactLine && <p className="text-sm">{contactLine}</p>}
+                <p className="text-sm mt-1">{jobTitle}</p>
             </div>
 
             {/* Section: Education */}
-            <div className="mb-6">
+            {education.length > 0 && <div className="mb-6">
                 <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-3">Education</h2>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h3 className="font-bold">Faculty of Science, Applied Computer Science</h3>
-                        <p className="italic">2nd Year Undergraduate Student</p>
+                {education.map((edu: any, index: number) => (
+                    <div key={index} className="mb-3">
+                        <div className="flex justify-between items-start">
+                            <h3 className="font-bold">{edu.school || 'University Name'}</h3>
+                            <span className="font-bold">{edu.year}</span>
+                        </div>
+                        {edu.degree && <p className="text-sm mt-1">{edu.degree} {edu.gpax && `(GPAX: ${edu.gpax})`}</p>}
                     </div>
-                    <span className="font-bold">Expected 2028</span>
-                </div>
-            </div>
-            {/* Section: Projects */}
-            <div className="mb-6">
+                ))}
+            </div>}
+
+            {/* Section: Activity & Achievement */}
+            {activities.length > 0 && <div className="mb-6">
+                <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-3">Activity & Achievement</h2>
+                {activities.map((act: any, index: number) => (
+                    <div key={index} className="mb-4">
+                        <div className="flex justify-between items-baseline">
+                            <h3 className="font-bold">{act.title || 'Activity Title'}</h3>
+                            <span className="text-sm">{act.date}</span>
+                        </div>
+                        {act.details && act.details.length > 0 && (
+                            <ul className="list-disc list-inside text-sm mt-1">
+                                {act.details.map((detail: string, i: number) => (
+                                    <li key={i}>{detail}</li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                ))}
+            </div>}
+
+            {/* Section: Technical Projects */}
+            {projects.length > 0 && <div className="mb-6">
                 <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-3">Technical Projects</h2>
-
-                <div className="mb-4">
-                    <div className="flex justify-between items-baseline">
-                        <h3 className="font-bold">Skill Wallet Platform</h3>
-                        <span className="text-sm italic">Next.js, Tailwind, React</span>
+                {projects.map((proj: any, index: number) => (
+                    <div key={index} className="mb-4">
+                        <div className="flex justify-between items-baseline">
+                            <h3 className="font-bold">{proj.name || 'Project Name'}</h3>
+                            <span className="text-sm">{proj.date}</span>
+                        </div>
+                        {proj.details && proj.details.length > 0 && (
+                            <ul className="list-disc list-inside text-sm mt-1">
+                                {proj.details.map((detail: string, i: number) => (
+                                    <li key={i}>{detail}</li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
-                    <ul className="list-disc list-inside text-sm mt-1">
-                        <li>Developed a web application for developers to verify technical skills via AI assessments.</li>
-                        <li>Implemented a peer-to-peer endorsement system with real-time state management.</li>
-                        <li>Designed a responsive, production-ready Dashboard UI using Tailwind CSS.</li>
-                    </ul>
-                </div>
+                ))}
+            </div>}
 
-                <div className="mb-4">
-                    <div className="flex justify-between items-baseline">
-                        <h3 className="font-bold">LINE Beacon Mutual-Help Network</h3>
-                        <span className="text-sm italic">LINE Mini App, AI</span>
-                    </div>
-                    <ul className="list-disc list-inside text-sm mt-1">
-                        <li>Created a real-time, location-based network using LINE Beacon technology.</li>
-                    </ul>
-                </div>
-            </div>
-
-            {/* Section: Verified Skills (ดึงข้อมูลจำลองมาโชว์) */}
+            {/* Section: Technical Skills */}
             <div className="mb-6">
-                <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-3">Verified Skills (Skill Wallet)</h2>
-                <ul className="list-disc list-inside text-sm space-y-1">
-                    <li><strong>Languages:</strong> JavaScript, TypeScript, Python, C++, Java</li>
-                    <li><strong>Frontend & Web:</strong> React, Next.js, HTML/CSS (Vanilla & Tailwind)</li>
-                    <li><strong>Backend & DB:</strong> Node.js, SQL, Object-Oriented Programming (OOP)</li>
-                    <li><strong>Concepts:</strong> Data Structures & Algorithms, OS Concepts, Quantitative Finance</li>
-                </ul>
+                <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-3">Technical Skills & Strengths</h2>
+                
+                {verifiedSkills.length > 0 && (
+                    <div className="text-sm mb-3">
+                        <span className="font-bold">Verified Skills: </span>
+                        {verifiedSkills.join(', ')}
+                    </div>
+                )}
+                
+                {strengths.length > 0 && (
+                     <ul className="list-disc list-inside text-sm space-y-1">
+                        {strengths.map((str: string, index: number) => (
+                            <li key={index}>{str}</li>
+                        ))}
+                    </ul>
+                )}
             </div>
-
 
         </div>
     );

@@ -9,11 +9,18 @@ export const endorsementService = {
     return await fetchAPI(`/endorsements/${uid}`, { method: 'GET' });
   },
 
+  // ดึงประวัติว่าเราส่ง Endorse ให้ใครบ้าง
+  getSentEndorsements: async () => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('Not authenticated');
+    return await fetchAPI(`/endorsements/sent/${uid}`, { method: 'GET' });
+  },
+
   // ขอ Endorsement Link (ส่งให้คนอื่นมากด endorse เรา)
-  requestEndorsement: async (recipientName: string, recipientEmail?: string) => {
+  requestEndorsement: async (recipientName: string, recipientEmail?: string, message?: string) => {
     return await fetchAPI('/endorsements/request', {
       method: 'POST',
-      body: JSON.stringify({ recipientName, recipientEmail }),
+      body: JSON.stringify({ recipientName, recipientEmail, message }),
     });
   },
 
@@ -67,5 +74,10 @@ export interface Endorsement {
 // Named exports for hooks to ensure compatibility with Next.js SSR
 export async function fetchMyEndorsements(): Promise<Endorsement[]> {
   const res = await endorsementService.getMyEndorsements();
+  return res?.data || [];
+}
+
+export async function fetchMySentEndorsements(): Promise<Endorsement[]> {
+  const res = await endorsementService.getSentEndorsements();
   return res?.data || [];
 }

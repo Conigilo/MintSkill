@@ -1,23 +1,25 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useMyEndorsements } from '@/hooks/useProfileData'
-import { useUserSkills } from '@/hooks/useProfileData'
+import { useMyEndorsements, useSentEndorsements, useUserSkills } from '@/hooks/useProfileData'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { endorsementService } from '@/lib/services/endorsements.service'
 
 export default function EndorsementsTab() {
   const { user } = useAuth()
-  const { endorsements, isLoading, refetch } = useMyEndorsements()
+  const { endorsements: receivedEndorsements, isLoading: isReceivedLoading, refetch: refetchReceived } = useMyEndorsements()
+  const { endorsements: sentEndorsements, isLoading: isSentLoading, refetch: refetchSent } = useSentEndorsements()
   const { skills } = useUserSkills(user?.uid)
 
+  const [activeTab, setActiveTab] = useState<'received' | 'sent'>('received')
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false)
-  const [requestForm, setRequestForm] = useState({ skill: '', recipientName: '', recipientEmail: '' })
+  const [requestForm, setRequestForm] = useState({ skill: '', recipientName: '', recipientEmail: '', message: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitResult, setSubmitResult] = useState<{ success: boolean; link?: string; error?: string } | null>(null)
 
   const skillNames = skills?.map(s => s.name) || []
 
+  // เมื่อสร้าง Request สำเร็จ ให้ดึงประวัติ Sent หมวดใหม่
   const handleSendRequest = async () => {
     if (!requestForm.recipientName.trim()) {
       setSubmitResult({ success: false, error: 'กรุณาระบุชื่อผู้ที่ต้องการขอ Endorse' })
@@ -28,12 +30,14 @@ export default function EndorsementsTab() {
     try {
       const res = await endorsementService.requestEndorsement(
         requestForm.recipientName,
-        requestForm.recipientEmail
+        requestForm.recipientEmail,
+        requestForm.message
       )
       const link = res?.data?.link || res?.link
       setSubmitResult({ success: true, link })
-      setRequestForm({ skill: '', recipientName: '', recipientEmail: '' })
-      refetch()
+      setRequestForm({ skill: '', recipientName: '', recipientEmail: '', message: '' })
+      refetchSent() // อัปเดตฝั่งที่ส่งออกไป
+      refetchReceived()
     } catch (error: any) {
       setSubmitResult({ success: false, error: error.message || 'เกิดข้อผิดพลาด' })
     } finally {
@@ -41,27 +45,80 @@ export default function EndorsementsTab() {
     }
   }
 
-  // Helper: กี่วันที่แล้ว
+  //รูปแบบวันเวลาที่อ่านง่าย
   const timeAgo = (dateVal: any): string => {
-    if (!dateVal) return ''
-    const date = dateVal?.toDate ? dateVal.toDate() : new Date(dateVal)
+    if (!dateVal) return 'ไม่ระบุเวลา'
+
+    let date: Date
+
+    if (dateVal instanceof Date) {
+      date = dateVal
+    } else if (dateVal?.toDate) {
+      date = dateVal.toDate()
+    } else if (typeof dateVal === 'number') {
+      date = new Date(dateVal)
+    } else if (dateVal?._seconds) {
+      // Handle Firebase timestamp object from API
+      date = new Date(dateVal._seconds * 1000)
+    } else if (dateVal?.seconds) {
+      date = new Date(dateVal.seconds * 1000)
+    } else {
+      date = new Date(dateVal)
+    }
+
+    if (isNaN(date.getTime())) return 'วันที่ไม่ถูกต้อง'
+
     const diff = Math.floor((Date.now() - date.getTime()) / 1000)
     if (diff < 60) return 'เมื่อกี้'
     if (diff < 3600) return `${Math.floor(diff / 60)} นาทีที่แล้ว`
     if (diff < 86400) return `${Math.floor(diff / 3600)} ชั่วโมงที่แล้ว`
-    return `${Math.floor(diff / 86400)} วันที่แล้ว`
+    if (diff < 2592000) return `${Math.floor(diff / 86400)} วันที่แล้ว`
+
+    return date.toLocaleDateString('th-TH', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
   }
 
   const colors = ['bg-blue-500', 'bg-purple-500', 'bg-green-500', 'bg-yellow-500', 'bg-pink-500', 'bg-indigo-500']
+
+  // แยกข้อมูลให้ตรงกับ Tab
+  // Received: คือที่คนอื่นกดให้เราและ Verified แล้ว
+  const receivedDisplayList = receivedEndorsements.filter(e => e.status === 'verified')
+
+  // Sent Requests: คือสิ่งที่เรา "ส่งคำขอ" ไป (Pending) + สิ่งที่เรารับรองให้คนอื่น (Sent)
+  const pendingRequests = receivedEndorsements.filter(e => e.status === 'pending')
+  const sentDisplayList = [...pendingRequests, ...sentEndorsements].sort((a: any, b: any) => {
+    const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime()
+    const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime()
+    return timeB - timeA
+  })
+
+  const displayList = activeTab === 'received' ? receivedDisplayList : sentDisplayList
+  const isLoading = activeTab === 'received' ? isReceivedLoading : (isReceivedLoading || isSentLoading)
 
   return (
     <div className="glass-panel p-8 rounded-3xl animate-in fade-in duration-500 relative">
 
       {/* Header & Request Button */}
-      <div className="flex justify-between items-center mb-8 border-b border-gray-800/50 pb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-gray-800/50 pb-6 gap-4">
         <div>
           <h3 className="text-xl font-bold text-white">Endorsements</h3>
-          <p className="text-xs text-gray-500 mt-1">{endorsements.length} endorsements received</p>
+          <div className="flex gap-4 mt-2">
+            <button
+              onClick={() => setActiveTab('received')}
+              className={`text-xs font-bold uppercase tracking-wider transition-colors pb-1 border-b-2 ${activeTab === 'received' ? 'text-blue-400 border-blue-400' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+            >
+              Received ({receivedDisplayList.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('sent')}
+              className={`text-xs font-bold uppercase tracking-wider transition-colors pb-1 border-b-2 ${activeTab === 'sent' ? 'text-purple-400 border-purple-400' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+            >
+              Sent Requests ({sentDisplayList.length})
+            </button>
+          </div>
         </div>
         <button
           onClick={() => { setIsRequestModalOpen(true); setSubmitResult(null) }}
@@ -71,49 +128,64 @@ export default function EndorsementsTab() {
         </button>
       </div>
 
-      {/* Endorsements List */}
+      {/* List */}
       <div className="space-y-5">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : endorsements.length === 0 ? (
+        ) : displayList.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-4xl mb-3">🤝</p>
-            <p className="text-gray-400 font-medium">ยังไม่มี Endorsements</p>
-            <p className="text-gray-600 text-sm mt-1">ลองส่ง Request ไปหาเพื่อนก่อน!</p>
+            <p className="text-4xl mb-3">{activeTab === 'received' ? '🤝' : '📩'}</p>
+            <p className="text-gray-400 font-medium">
+              {activeTab === 'received' ? 'ยังไม่มี Endorsements ที่ได้รับ' : 'ยังไม่เคยส่ง Request หาใครเลย'}
+            </p>
+            <p className="text-gray-600 text-sm mt-1">
+              {activeTab === 'received' ? 'ลองส่ง Request ไปหาเพื่อนก่อน!' : 'กดปุ่ม + Request New เพื่อเริ่มขอการรับรองจากเพื่อนเลย!'}
+            </p>
           </div>
         ) : (
-          endorsements.map((item: any, index) => (
-            <div key={item.id || index} className="bg-[#161b22] border border-gray-800/80 rounded-2xl p-6 hover:border-gray-700 transition-colors">
+          displayList.map((item: any, index) => (
+            <div key={item.id || index} className={`bg-[#161b22] border rounded-2xl p-6 transition-all border-gray-800/80 hover:border-gray-700`}>
               <div className="flex items-start justify-between mb-3">
                 <div className="flex gap-4 items-start">
                   <div className={`w-10 h-10 rounded-full ${colors[index % colors.length]} flex items-center justify-center text-white font-bold shrink-0`}>
-                    {(item.fromName || item.fromUserName || '?')[0].toUpperCase()}
+                    {(item.fromName || item.fromUserName || item.toUserName || '?')[0].toUpperCase()}
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="text-white font-semibold text-sm">{item.fromName || item.fromUserName || 'Anonymous'}</h4>
-                      {item.status === 'verified' && (
-                        <span className="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded flex items-center gap-1">
-                          ✓ Verified
+                      <h4 className="text-white font-semibold text-sm">
+                        {activeTab === 'received'
+                          ? (item.fromName || item.fromUserName || 'Anonymous')
+                          : `Sent to: ${item.fromName || 'Recipient'}`}
+                      </h4>
+                      {item.status === 'verified' ? (
+                        <span className="text-[10px] bg-green-500/10 text-green-400 border border-green-500/30 px-1.5 py-0.5 rounded flex items-center gap-1">
+                          ✓ Completed
+                        </span>
+                      ) : (
+                        <span className="text-[10px] bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 px-1.5 py-0.5 rounded flex items-center gap-1">
+                          ● Pending
                         </span>
                       )}
                     </div>
                     {item.fromRole && <p className="text-xs text-gray-500 mt-0.5">{item.fromRole}</p>}
                   </div>
                 </div>
-                <span className="text-gray-500 text-xs shrink-0 mt-1">{timeAgo(item.createdAt || item.verifiedAt)}</span>
+                <div className="text-right">
+                  <p className="text-gray-500 text-[10px] uppercase font-bold tracking-wider">{activeTab === 'received' ? 'Received' : 'Requested'}</p>
+                  <span className="text-gray-500 text-[11px] block mt-0.5">{timeAgo(item.createdAt || item.verifiedAt)}</span>
+                </div>
               </div>
 
               {item.message && (
-                <p className="text-gray-400 text-sm leading-relaxed mb-4 ml-14">"{item.message}"</p>
+                <p className="text-gray-400 text-sm leading-relaxed mb-4 ml-14 italic">"{item.message}"</p>
               )}
 
               {item.skills?.length > 0 && (
                 <div className="flex flex-wrap gap-2 ml-14">
                   {item.skills.map((skill: string, idx: number) => (
-                    <span key={idx} className="text-[10px] bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-1 rounded">
+                    <span key={idx} className="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-1 rounded">
                       {skill}
                     </span>
                   ))}
@@ -126,102 +198,106 @@ export default function EndorsementsTab() {
 
       {/* ================= Request Endorsement Modal ================= */}
       {isRequestModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-[#0d1117] border border-gray-700 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[200] flex items-start justify-center bg-black/60 backdrop-blur-sm p-4 pt-[12vh]">
+          <div className="bg-[#0d1117] border border-gray-700 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-top-10 duration-300">
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-[#161b22]">
               <h3 className="font-bold text-white">Request Endorsement</h3>
               <button onClick={() => { setIsRequestModalOpen(false); setSubmitResult(null) }} className="text-gray-500 hover:text-white transition-colors">✕</button>
             </div>
 
             <div className="p-6 space-y-5">
-              {/* ชื่อผู้ขอ */}
-              <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">ชื่อผู้ที่จะ Endorse คุณ *</label>
-                <input
-                  type="text"
-                  placeholder="เช่น Nadech Kugimiya"
-                  className="w-full bg-[#090d14] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                  value={requestForm.recipientName}
-                  onChange={(e) => setRequestForm({ ...requestForm, recipientName: e.target.value })}
-                />
-              </div>
-
-              {/* Email (optional) */}
-              <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Email (ถ้าต้องการส่งลิงก์)</label>
-                <input
-                  type="email"
-                  placeholder="เช่น friend@example.com"
-                  className="w-full bg-[#090d14] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                  value={requestForm.recipientEmail}
-                  onChange={(e) => setRequestForm({ ...requestForm, recipientEmail: e.target.value })}
-                />
-              </div>
-
-              {/* Error / Success */}
-              {submitResult && (
-                <div className={`p-4 rounded-xl border text-sm ${submitResult.success ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
-                  {submitResult.success ? (
-                    <div className="space-y-4">
-                      <p className="font-bold flex items-center gap-2">
-                        <span className="text-lg">✅</span> สร้างลิงก์สำเร็จ!
-                      </p>
-                      
-                      {submitResult.link && (
-                        <div className="space-y-3">
-                          <div className="bg-[#090d14] border border-gray-700 rounded-lg p-3 text-xs font-mono break-all text-gray-300 group relative">
-                            {submitResult.link}
-                            <button 
-                              onClick={() => { navigator.clipboard.writeText(submitResult.link!); alert('คัดลอกลิงก์แล้ว!') }}
-                              className="absolute right-2 top-2 bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-2 py-1 rounded text-[10px] transition-colors"
-                            >
-                              Copy Link
-                            </button>
-                          </div>
-
-                          <div className="border-t border-gray-800 pt-3">
-                            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">เลือกข้อความคำเชิญ (Templates)</label>
-                            <div className="space-y-2">
-                              {[
-                                { title: 'เป็นกันเอง (Casual)', text: `เฮ้ [ชื่อเพื่อน] รบกวนช่วยเข้าไปกดรับรองสกิลให้เราหน่อยได้มั้ย ใช้เวลาแค่ 30 วินาทีเอง: ${submitResult.link}` },
-                                { title: 'มืออาชีพ (Professional)', text: `สวัสดีครับ [ชื่อผู้รับ] รบกวนคุณช่วยตรวจสอบและรับรองทักษะเทคนิคในพอร์ตโฟลิโอของผมหน่อยนะครับ: ${submitResult.link}` },
-                                { title: 'เพื่อนร่วมงาน (Colleague)', text: `ได้ร่วมงานกันในโปรเจคก่อนหน้านี้แล้วประทับใจมากครับ รบกวนช่วยยืนยันทักษะให้ผมหน่อยนะครับ: ${submitResult.link}` }
-                              ].map((tmp, tIdx) => (
-                                <div key={tIdx} className="bg-[#090d14] border border-gray-800 p-2 rounded-lg relative group">
-                                  <div className="text-[10px] text-gray-500 mb-1 font-bold">{tmp.title}</div>
-                                  <p className="text-[11px] text-gray-400 pr-12 line-clamp-2 italic">"{tmp.text}"</p>
-                                  <button 
-                                    onClick={() => { navigator.clipboard.writeText(tmp.text); alert('คัดลอกข้อความเชิญแล้ว!') }}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-400 hover:text-blue-300 p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    title="Copy Message"
-                                  >
-                                    <svg className="w-4 h-4 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
+              {submitResult?.success ? (
+                /* ── SUCCESS VIEW ── */
+                <div className="animate-in fade-in zoom-in-95 duration-300">
+                  <div className="text-center mb-6">
+                    <div className="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border border-green-500/30">
+                      ✓
                     </div>
-                  ) : (
-                    <p className="flex items-center gap-2">
-                      <span className="text-lg">❌</span> {submitResult.error}
-                    </p>
-                  )}
-                </div>
-              )}
+                    <h4 className="text-xl font-bold text-white mb-2">สร้างลิงก์สำเร็จ!</h4>
+                    <p className="text-sm text-gray-400">คัดลอกลิงก์ด้านล่างส่งให้เพื่อนของคุณเพื่อขอการรับรอง</p>
+                  </div>
 
-              {/* ปุ่ม Submit */}
-              <div className="pt-2">
-                <button
-                  onClick={handleSendRequest}
-                  disabled={isSubmitting}
-                  className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)]"
-                >
-                  {isSubmitting ? 'กำลังสร้าง Link...' : 'สร้าง Endorsement Link 🔗'}
-                </button>
-              </div>
+                  <div className="space-y-4">
+                    {submitResult.link && (
+                      <div className="space-y-3">
+                        <div className="bg-[#090d14] border border-gray-700 rounded-xl p-4 text-xs font-mono break-all text-blue-400 group relative">
+                          {submitResult.link}
+                          <button
+                            onClick={() => { navigator.clipboard.writeText(submitResult.link!); alert('คัดลอกลิงก์แล้ว!') }}
+                            className="absolute right-2 top-2 bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors border border-blue-500/30"
+                          >
+                            Copy Link
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => { setIsRequestModalOpen(false); setSubmitResult(null) }}
+                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 mt-8 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)]"
+                  >
+                    ปิดหน้าต่าง
+                  </button>
+                </div>
+              ) : (
+                /* ── FORM VIEW ── */
+                <>
+                  {/* ชื่อผู้ขอ */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">ชื่อผู้ที่จะ Endorse คุณ *</label>
+                    <input
+                      type="text"
+                      placeholder="เช่น Nadech Kugimiya"
+                      className="w-full bg-[#090d14] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                      value={requestForm.recipientName}
+                      onChange={(e) => setRequestForm({ ...requestForm, recipientName: e.target.value })}
+                    />
+                  </div>
+
+                  {/* Email (optional) */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Email (ถ้าต้องการส่งลิงก์)</label>
+                    <input
+                      type="email"
+                      placeholder="เช่น friend@example.com"
+                      className="w-full bg-[#090d14] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                      value={requestForm.recipientEmail}
+                      onChange={(e) => setRequestForm({ ...requestForm, recipientEmail: e.target.value })}
+                    />
+                  </div>
+
+                  {/* Message */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">ข้อความถึงเพื่อน (Personal Message)</label>
+                    <textarea
+                      placeholder="เช่น ช่วยรีวิวทักษะ React จากโปรเจกต์เว็บล่าสุดให้หน่อยนะ..."
+                      rows={3}
+                      className="w-full bg-[#090d14] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors resize-none text-sm"
+                      value={requestForm.message}
+                      onChange={(e) => setRequestForm({ ...requestForm, message: e.target.value })}
+                    />
+                  </div>
+
+                  {/* Error Display */}
+                  {submitResult?.error && (
+                    <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl">
+                      ❌ {submitResult.error}
+                    </div>
+                  )}
+
+                  {/* ปุ่ม Submit */}
+                  <div className="pt-2">
+                    <button
+                      onClick={handleSendRequest}
+                      disabled={isSubmitting}
+                      className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)]"
+                    >
+                      {isSubmitting ? 'กำลังสร้าง Link...' : 'สร้าง Endorsement Link 🔗'}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

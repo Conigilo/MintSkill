@@ -24,6 +24,7 @@ export const badgeService = {
 };
 
 export interface Badge {
+  [x: string]: string;
   id: string;
   name: string;
   description?: string;
