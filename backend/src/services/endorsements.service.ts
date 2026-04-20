@@ -11,7 +11,16 @@ async function updateSkillAndMintBadge(toUserId: string, skillName: string) {
         .limit(1)
         .get()
 
-    let endorsementScore = 6
+    // Count actual endorsements for this specific skill
+    const skillEndorsementsSnap = await db.collection(Collections.ENDORSEMENTS)
+        .where('toUserId', '==', toUserId)
+        .where('status', '==', 'verified')
+        .where('skills', 'array-contains', skillName)
+        .get()
+    
+    const endorsementCount = skillEndorsementsSnap.size
+    
+    let endorsementScore = Math.min(endorsementCount * 3, 6) // Max 6 points from endorsements (2 people)
     let quizScore = 0
     let verified = false
 
@@ -19,7 +28,6 @@ async function updateSkillAndMintBadge(toUserId: string, skillName: string) {
         const skillDoc = skillSnap.docs[0]
         const docData = skillDoc.data()
         quizScore = docData.quizScore || 0
-        endorsementScore = 6 // Full points for endorsement
         verified = (quizScore + endorsementScore) >= 8
 
         await skillDoc.ref.update({ 
@@ -32,9 +40,9 @@ async function updateSkillAndMintBadge(toUserId: string, skillName: string) {
             name: skillName,
             category: 'Other',
             level: 1,
-            endorsementScore: 6,
+            endorsementScore,
             quizScore: 0,
-            verified: false,
+            verified,
             createdAt: new Date(),
         })
     }
@@ -85,7 +93,7 @@ export async function getEndorsementsByUser(userId: string) {
     return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
-        token: undefined, // Don't expose token
+        link: doc.data().token ? `${process.env.FRONTEND_URL || 'http://localhost:3000'}/endorse/${doc.data().token}` : undefined,
     })).sort((a: any, b: any) => {
         const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime()
         const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime()

@@ -49,9 +49,7 @@ function MatchRing({ score }: { score: number }) {
   );
 }
 
-// ──────────────────────────────────────────────
 // Main Page
-// ──────────────────────────────────────────────
 export default function JobsPage() {
   const { user, loading: authLoading } = useAuth();
   const [userSkills, setUserSkills] = useState<string[]>([]);
