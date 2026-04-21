@@ -111,3 +111,40 @@ export const useMyEndorsements = () => {
 
   return { endorsements, isLoading, error, refetch: fetchEndorsements }
 }
+
+/**
+ * Hook to fetch endorsements sent by the user
+ */
+export const useSentEndorsements = () => {
+  const [endorsements, setEndorsements] = useState<Endorsement[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const { user } = useAuth()
+
+  const userId = user?.uid
+
+  const fetchSentEndorsements = useCallback(async () => {
+    if (!userId) {
+      setIsLoading(false)
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const { fetchMySentEndorsements } = await import('@/lib/services/endorsements.service');
+      const data = await fetchMySentEndorsements()
+      setEndorsements(data || [])
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch sent endorsements')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [userId])
+
+  useEffect(() => {
+    fetchSentEndorsements()
+  }, [fetchSentEndorsements])
+
+  return { endorsements, isLoading, error, refetch: fetchSentEndorsements }
+}

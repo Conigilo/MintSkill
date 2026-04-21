@@ -41,6 +41,15 @@ export const endorsementsRoute = new Elysia({ prefix: '/endorsements', tags: ['E
         }
     })
 
+    // GET /endorsements/sent/:userId
+    .get('/sent/:userId', EndorsementsController.getSentEndorsementsHandler, {
+        detail: {
+            summary: 'Get Sent Endorsements',
+            description: 'ดึงรายการ endorsements ที่เราส่งให้คนอื่น (ต้อง login)',
+            security: [{ bearerAuth: [] }],
+        }
+    })
+
     // GET /endorsements/:userId — ต้องอยู่สุดท้ายเสมอ (dynamic param)
     .get('/:userId', EndorsementsController.getEndorsementsHandler, {
         detail: {

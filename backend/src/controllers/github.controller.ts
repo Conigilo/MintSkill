@@ -1,7 +1,7 @@
 import * as GitHubService from '../services/github.service'
 import { verifyToken } from '../middleware/auth.middleware'
 import { validateRequiredString } from '../utils/validators'
-import { AuthenticationError, ValidationError } from '../utils/errors'
+import { ValidationError } from '../utils/errors'
 
 /**
  * Connect GitHub account by saving access token authenticated from frontend
@@ -111,6 +111,38 @@ export async function getDashboardHandler({ headers, set }: any) {
             data: dashboard 
         }
     } catch (error: any) {
+        set.status = 401
+        return { 
+            success: false,
+            error: error.message,
+            code: 'AUTH_ERROR'
+        }
+    }
+}
+
+/**
+ * Toggle spotlight status for a repository
+ */
+export async function toggleRepoSpotlightHandler({ headers, params, set }: any) {
+    try {
+        const decoded = await verifyToken(headers['authorization'] || null)
+        const repoDocId = validateRequiredString(params.repoDocId, 'Repository Document ID')
+        
+        const result = await GitHubService.toggleRepoSpotlight(decoded.uid, repoDocId)
+
+        return { 
+            success: true,
+            data: result 
+        }
+    } catch (error: any) {
+        if (error instanceof ValidationError) {
+            set.status = 400
+            return { success: false, error: error.message, code: error.code }
+        }
+        if (error.message === 'Repository not found' || error.message === 'Unauthorized') {
+            set.status = error.message === 'Unauthorized' ? 403 : 404
+            return { success: false, error: error.message }
+        }
         set.status = 401
         return { 
             success: false,

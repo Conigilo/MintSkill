@@ -46,6 +46,18 @@ const rolesData: Record<string, { desc: string; requirements: { name: string; re
   },
 }
 
+const skillResources: Record<string, string> = {
+  "JavaScript": "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+  "React": "https://react.dev",
+  "Node.js": "https://nodejs.org/en/learn",
+  "System Design": "https://github.com/donnemartin/system-design-primer",
+  "SQL": "https://sqlzoo.net/",
+  "Python": "https://roadmap.sh/python",
+  "Testing": "https://testing-library.com/docs/guiding-principles",
+  "Finance/Math": "https://www.khanacademy.org/math",
+  "C++": "https://learncpp.com",
+}
+
 export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
   const [targetRole, setTargetRole] = useState("Full-Stack Engineer")
 
@@ -104,6 +116,7 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
           {currentRole.requirements.map((req, idx) => {
             const myLevel = mySkills[req.name] || 0
             const gap = req.req - myLevel
+            const resourceUrl = skillResources[req.name]
             let statusText = ""
             let barColor = ""
             if (gap <= 0) {
@@ -114,11 +127,23 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
               statusText = "Major Gap"; barColor = "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]"
             }
             return (
-              <div key={idx} className="bg-[#161b22] p-4 rounded-xl border border-gray-800/50">
+              <div key={idx} className="bg-[#161b22] p-4 rounded-xl border border-gray-800/50 group transition-all hover:border-gray-700">
                 <div className="flex justify-between items-end mb-2">
-                  <div>
-                    <span className="text-white font-bold text-sm">{req.name}</span>
-                    <span className="text-gray-500 text-xs ml-2">Req: {req.req}%</span>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <span className="text-white font-bold text-sm">{req.name}</span>
+                      <span className="text-gray-500 text-xs">Req: {req.req}%</span>
+                    </div>
+                    {gap > 0 && resourceUrl && (
+                      <a 
+                        href={resourceUrl} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="text-[10px] text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-1 font-medium underline underline-offset-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        Learn {req.name} →
+                      </a>
+                    )}
                   </div>
                   <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${gap <= 0 ? "text-green-400 border-green-500/30 bg-green-500/10" : gap <= 15 ? "text-yellow-400 border-yellow-500/30 bg-yellow-500/10" : "text-red-400 border-red-500/30 bg-red-500/10"}`}>
                     {statusText} {gap > 0 && `(-${gap}%)`}
@@ -132,6 +157,7 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
             )
           })}
         </div>
+
 
         <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl flex gap-3 items-start">
           <span className="text-xl">??</span>

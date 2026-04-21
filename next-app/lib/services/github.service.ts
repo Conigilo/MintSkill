@@ -23,4 +23,9 @@ export const githubService = {
   getDashboard: async () => {
     return await fetchAPI('/github/dashboard', { method: 'GET' });
   },
+
+  // สลับสถานะ Spotlight ของ repo
+  toggleSpotlight: async (repoDocId: string) => {
+    return await fetchAPI(`/github/repos/${repoDocId}/spotlight`, { method: 'PUT' });
+  },
 };

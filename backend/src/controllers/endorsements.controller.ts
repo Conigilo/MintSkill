@@ -38,6 +38,40 @@ export async function getEndorsementsHandler({ headers, params, set }: any) {
 }
 
 /**
+ * Get endorsements SENT by authenticated user
+ */
+export async function getSentEndorsementsHandler({ headers, params, set }: any) {
+    try {
+        const user = await verifyToken(headers['authorization'] || null)
+        const userId = validateRequiredString(params.userId, 'User ID')
+
+        // Users can only view their own sent endorsements
+        if (user.uid !== userId) {
+            set.status = 403
+            return { 
+                success: false,
+                error: 'Can only view your own sent endorsements',
+                code: 'FORBIDDEN'
+            }
+        }
+
+        const endorsements = await EndorsementsService.getSentEndorsementsByUser(userId)
+        return { 
+            success: true,
+            data: endorsements,
+            meta: { count: endorsements.length }
+        }
+    } catch (error: any) {
+        set.status = 401
+        return { 
+            success: false,
+            error: error.message,
+            code: 'AUTH_ERROR'
+        }
+    }
+}
+
+/**
  * Request endorsement from another user
  */
 export async function requestEndorsementHandler({ headers, body, set }: any) {
@@ -45,11 +79,13 @@ export async function requestEndorsementHandler({ headers, body, set }: any) {
         const user = await verifyToken(headers['authorization'] || null)
         const recipientName = validateRequiredString(body.recipientName, 'Recipient name')
         const recipientEmail = validateRequiredString(body.recipientEmail, 'Recipient email')
+        const message = body.message || ''
 
         const result = await EndorsementsService.createEndorsementRequest(
             user.uid,
             recipientName,
-            recipientEmail
+            recipientEmail,
+            { message }
         )
 
         set.status = 201

@@ -102,13 +102,33 @@ export async function getEndorsementsByUser(userId: string) {
 }
 
 /**
+ * Get all endorsements sent by a user
+ */
+export async function getSentEndorsementsByUser(userId: string) {
+    const querySnapshot = await db.collection(Collections.ENDORSEMENTS)
+        .where('fromUserId', '==', userId)
+        .get()
+
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        token: undefined,
+    })).sort((a: any, b: any) => {
+        const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime()
+        const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime()
+        return timeB - timeA
+    })
+}
+
+/**
  * Create an endorsement request for a user
  * Generates a unique token and creates pending endorsement
  */
 export async function createEndorsementRequest(
     uid: string,
     recipientName: string,
-    recipientEmail?: string
+    recipientEmail: string | undefined,
+    body: { message?: string }
 ) {
     if (!recipientName) {
         throw new Error('EMPTY_NAME')
@@ -123,7 +143,7 @@ export async function createEndorsementRequest(
         fromName: recipientName,
         fromRole: '',
         fromAvatarUrl: '',
-        message: '',
+        message: body.message || '', // ข้อความจากผู้ขอก่อนเพื่อนกดให้
         skills: [],
         status: 'pending',
         token,
@@ -180,6 +200,7 @@ export async function verifyEndorsementToken(token: string) {
             avatarUrl: userData?.avatarUrl,
             username: userData?.username,
         },
+        requestMessage: endorsementData.message || '',
         availableSkills: skills,
     }
 }

@@ -23,7 +23,7 @@ export const skillsRoute = new Elysia({ prefix: '/skills', tags: ['Skills'] })
     // POST /skills 
     .post('/', SkillsController.addSkillHandler, {
         body: t.Object({
-            name: t.String(),
+            name: t.String(), 
             category: t.String(),
             level: t.Optional(t.Number({ minimum: 1, maximum: 5 })),
         }),

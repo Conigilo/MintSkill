@@ -41,3 +41,15 @@ export const githubRoute = new Elysia({ prefix: '/github', tags: ['GitHub'] })
             security: [{ bearerAuth: [] }],
         },
     })
+
+    // PUT /github/repos/:repoDocId/spotlight — Toggle spotlight status
+    .put('/repos/:repoDocId/spotlight', GitHubController.toggleRepoSpotlightHandler, {
+        params: t.Object({
+            repoDocId: t.String()
+        }),
+        detail: {
+            summary: 'Toggle Repo Spotlight',
+            description: 'สลับสถานะการไฮไลต์ (Spotlight) ของ repository',
+            security: [{ bearerAuth: [] }],
+        }
+    })
