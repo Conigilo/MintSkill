@@ -9,7 +9,7 @@ import { githubRoute } from './routes/github.route'
 import { badgesRoute } from './routes/badges.route'
 import { exportRoute } from './routes/export.route'
 import { jobsRoute } from './routes/jobs.route'
-import { challengesRoute } from './routes/challenges.route'
+import { aiRoute } from './routes/ai.route'
 
 const requiredEnvVars = ['GITHUB_CLIENT_ID', 'GITHUB_CLIENT_SECRET']
 for (const envVar of requiredEnvVars) {
@@ -34,7 +34,7 @@ const app = new Elysia()
         const ip = request.headers.get('x-forwarded-for') || 'unknown'
         const now = Date.now()
         const entry = rateLimitMap.get(ip)
-        
+
         if (!entry || now > entry.resetAt) {
             rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW })
         } else {
@@ -89,7 +89,7 @@ const app = new Elysia()
     .use(badgesRoute)
     .use(exportRoute)
     .use(jobsRoute)
-    .use(challengesRoute)
+    .use(aiRoute)
     .listen(process.env.PORT ?? 3000)
 
 console.log(`Skill Wallet API running at http://localhost:${app.server?.port}`)

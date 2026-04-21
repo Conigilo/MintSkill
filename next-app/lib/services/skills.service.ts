@@ -107,6 +107,25 @@ export const skillsService = {
       console.error('Error submitting quiz attempt:', error)
       return { success: false, error: error.message }
     }
+  },
+
+  /**
+   * Let AI (Gemini) create a quiz and send it directly from the Backend
+   */
+  generateAIQuiz: async (skillName: string, level: number): Promise<any[] | null> => {
+    try {
+      const data = await fetchAPI('/ai/genQuiz', {
+        method: 'POST',
+        body: JSON.stringify({ skillName, level })
+      })
+      if (data && data.success) {
+        return data.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error generating AI quiz:', error)
+      return null;
+    }
   }
 }
 

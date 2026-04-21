@@ -1,9 +1,4 @@
-/**
- * Refactored Auth Service
- * Handles all authentication operations with better error handling
- */
 
-import { initializeApp } from 'firebase/app'
 import {
   getAuth,
   Auth,

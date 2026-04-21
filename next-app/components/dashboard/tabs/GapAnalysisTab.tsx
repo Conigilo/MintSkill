@@ -62,7 +62,14 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
   const [targetRole, setTargetRole] = useState("Full-Stack Engineer")
 
   const mySkills: Record<string, number> = (skills || []).reduce(
-    (acc: Record<string, number>, s) => { acc[s.name] = (s.level || 0) * 20; return acc },
+    (acc: Record<string, number>, s) => { 
+      const quiz = Math.min(10, s.quizScore || 0);
+      const endorse = Math.min(5, s.endorsementScore || 0);
+      const testScorePercentage = Math.round(((quiz / 10) * 50) + ((endorse / 5) * 50));
+      
+      acc[s.name] = (quiz > 0 || endorse > 0) ? testScorePercentage : ((s.level || 0) * 20); 
+      return acc 
+    },
     {} as Record<string, number>
   )
 
@@ -132,7 +139,11 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                       <span className="text-white font-bold text-sm">{req.name}</span>
-                      <span className="text-gray-500 text-xs">Req: {req.req}%</span>
+                      <div className="flex items-center gap-1.5 bg-[#0d1117] px-2 py-0.5 rounded border border-gray-800">
+                        <span className="text-gray-500 text-[11px] font-medium">Target: {req.req}%</span>
+                        <span className="text-gray-600 text-[10px]">|</span>
+                        <span className="text-blue-400 text-[11px] font-bold">Current: {myLevel}%</span>
+                      </div>
                     </div>
                     {gap > 0 && resourceUrl && (
                       <a 

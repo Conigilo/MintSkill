@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { skillsService } from "@/lib/services/skills.service";
 import { useAuth } from "@/lib/hooks/useAuth";
 
@@ -49,40 +50,22 @@ export default function SkillsTab({ onNavigateToEndorse }: { onNavigateToEndorse
   const [quizCurrentScore, setQuizCurrentScore] = useState(0);
   const [quizStatus, setQuizStatus] = useState<"idle" | "correct" | "wrong" | "finished">("idle");
   const [badgeModal, setBadgeModal] = useState<{ isOpen: boolean; skillId: string | null }>({ isOpen: false, skillId: null });
-
-  // Mock quiz: 4 questions per skill (generic fallback used for simplicity)
-  const mockQuizzes: Record<string, any[]> = {
-    "Python": [
-      { q: "What is the output of print(2 ** 3)?", opts: ["6", "8", "9", "Error"], a: 1 },
-      { q: "Which of the following is mutable?", opts: ["Tuple", "String", "List", "Integer"], a: 2 },
-      { q: "What does len() do?", opts: ["Returns length", "Adds item", "Loops array", "Deletes item"], a: 0 },
-      { q: "How to define a function in Python?", opts: ["function", "def", "func", "=>"], a: 1 },
-    ],
-    "Node.js": [
-      { q: "Which core module is for filesystem?", opts: ["path", "fs", "http", "os"], a: 1 },
-      { q: "Node.js runs on which engine?", opts: ["V8", "SpiderMonkey", "Chakra", "WebKit"], a: 0 },
-      { q: "What is npm?", opts: ["Node Package Manager", "New Project Module", "Network Protocol", "None"], a: 0 },
-      { q: "Which method is used to read a file async?", opts: ["readFileSync", "read", "readFile", "getFile"], a: 2 },
-    ]
-  };
-
-  const getQuestions = (skillName: string) => {
-    return mockQuizzes[skillName] || [
-      { q: `What is the primary use case of ${skillName}?`, opts: ["Web Design", "Backend logic", "Data structure", "Depends on context"], a: 3 },
-      { q: `Is ${skillName} statically or dynamically typed (usually)?`, opts: ["Static", "Dynamic", "Both", "Neither"], a: 1 },
-      { q: `Which symbol usually represents a block in ${skillName}?`, opts: ["{ }", "[ ]", "( )", "< >"], a: 0 },
-      { q: `How do you output a log in ${skillName}?`, opts: ["print", "console.log", "echo", "Can be any"], a: 3 },
-    ];
+  const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
+  const [generatedQuestions, setGeneratedQuestions] = useState<any[]>([]);
+  const getCurrentLevel = (quiz: number, endorse: number) => {
+    if (endorse >= 5 && quiz >= 10) return { level: 3, name: "Senior", nextEndorse: null, nextQuiz: null };
+    if (endorse >= 3 && quiz >= 7) return { level: 2, name: "Mid", nextEndorse: 5, nextQuiz: 10 };
+    if (endorse >= 1 && quiz >= 4) return { level: 1, name: "Junior", nextEndorse: 3, nextQuiz: 7 };
+    return { level: 0, name: "Beginner", nextEndorse: 1, nextQuiz: 4 };
   };
 
   const categories = Array.from(new Set(skills.map(s => s.cat)));
 
   const handleAnswer = (optionIndex: number, skillId: string) => {
     const activeSkill = skills.find(s => s.id === skillId);
-    if (!activeSkill) return;
+    if (!activeSkill || generatedQuestions.length === 0) return;
 
-    const questions = getQuestions(activeSkill.name);
-    const correct = optionIndex === questions[quizQuestionIndex].a;
+    const correct = optionIndex === generatedQuestions[quizQuestionIndex].a;
 
     if (correct) {
       setQuizCurrentScore(prev => prev + 1);
@@ -92,13 +75,15 @@ export default function SkillsTab({ onNavigateToEndorse }: { onNavigateToEndorse
     }
 
     setTimeout(() => {
-      if (quizQuestionIndex + 1 < 4) {
+      if (quizQuestionIndex + 1 < 10) {
         setQuizQuestionIndex(prev => prev + 1);
         setQuizStatus("idle");
       } else {
-        // Finished all 4
+        // Finished all 10
         setQuizStatus("finished");
-        finishQuiz(skillId, quizCurrentScore + (correct ? 1 : 0));
+        // Save only if the score is higher than the previous best score
+        const newScore = quizCurrentScore + (correct ? 1 : 0);
+        finishQuiz(skillId, Math.max(newScore, activeSkill.quizScore));
       }
     }, 1000);
   };
@@ -187,17 +172,17 @@ export default function SkillsTab({ onNavigateToEndorse }: { onNavigateToEndorse
       )}
 
       {/* ================= Verify & Quiz Modal ================= */}
-      {verifyModal.isOpen && activeSkill && (
+      {verifyModal.isOpen && activeSkill && createPortal(
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6"
           onClick={() => { if (!quizMode) setVerifyModal({ isOpen: false, skillId: null }) }}
         >
           <div
-            className="bg-[#0d1117] border border-gray-700 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+            className="bg-[#0d1117] border border-gray-700 rounded-3xl w-full max-w-md shadow-2xl max-h-[85vh] flex flex-col animate-in slide-in-from-right-10 duration-300"
             onClick={e => e.stopPropagation()}
           >
-            {/* Header Bar */}
-            <div className="flex items-center justify-between px-6 py-4 bg-[#161b22] border-b border-gray-800">
+            {/* Header Bar — ล็อกไว้บนสุดเสมอ ไม่หายไป */}
+            <div className="flex items-center justify-between px-6 py-4 bg-[#161b22] border-b border-gray-800 rounded-t-3xl shrink-0">
               <div className="flex items-center gap-2">
                 <span className="text-xl">{quizMode ? "🧠" : "🛡️"}</span>
                 <h3 className="font-bold text-white">Verify {activeSkill.name}</h3>
@@ -217,27 +202,22 @@ export default function SkillsTab({ onNavigateToEndorse }: { onNavigateToEndorse
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-6">
-              {!quizMode ? (
+            {/* Modal Body — ส่วนนี้เท่านั้นที่ Scroll ได้ */}
+            <div className="p-6 overflow-y-auto no-scrollbar">
+              {!quizMode ? (() => {
+                 const currentLvl = getCurrentLevel(activeSkill.quizScore, activeSkill.endorsementScore);
+                 return (
                 // --- VERIFICATION OVERVIEW ---
                 <>
-                  <p className="text-sm text-gray-400 mb-6">
-                    ต้องมีคะแนนอย่างน้อย <strong className="text-white">8 เต็ม 10</strong> ถึงจะได้รับการ Verify!
-                  </p>
-
-                  {/* Progress */}
-                  <div className="mb-8">
-                    <div className="flex justify-between items-end mb-2">
-                      <span className="text-xs font-bold text-gray-500 uppercase">Verification Progress</span>
-                      <span className="text-sm font-bold text-blue-400">{activeSkill.quizScore + activeSkill.endorsementScore} / 10</span>
-                    </div>
-                    <div className="w-full bg-gray-800 rounded-full h-2">
-                      <div
-                        className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${Math.min(100, ((activeSkill.quizScore + activeSkill.endorsementScore) / 10) * 100)}%` }}
-                      ></div>
-                    </div>
+                  <div className="flex justify-between items-center mb-6 bg-[#161b22] border border-gray-800 p-4 rounded-xl">
+                    <p className="text-sm text-gray-400">
+                      Level ปัจจุบัน: <strong className="text-white text-lg ml-2">{currentLvl.name} (Level {currentLvl.level})</strong>
+                    </p>
+                    {currentLvl.level < 3 && (
+                      <span className="text-[11px] text-blue-400 font-bold bg-blue-500/10 px-2.5 py-1.5 rounded-lg border border-blue-500/20">
+                        เป้าหมาย: Level {currentLvl.level + 1}
+                      </span>
+                    )}
                   </div>
 
                   <div className="space-y-4">
@@ -245,12 +225,13 @@ export default function SkillsTab({ onNavigateToEndorse }: { onNavigateToEndorse
                     <div className="bg-[#161b22] p-4 rounded-2xl border border-gray-800 flex justify-between items-center">
                       <div>
                         <h4 className="text-white font-semibold text-sm mb-1">Endorsement</h4>
-                        <p className="text-xs text-gray-500">ให้เพื่อน 2 คนช่วยรับรองสกิลนี้ของคุณ</p>
+                        <p className="text-xs text-gray-500">
+                          {currentLvl.level === 3 ? "ระดับสูงสุดแล้ว" : `ต้องการอีก ${Math.max(0, currentLvl.nextEndorse! - activeSkill.endorsementScore)} คนเพื่ออัปเลเวล`}
+                        </p>
                       </div>
                       <div className="text-right">
-                        <span className="block text-lg font-bold text-green-400 mb-1">{activeSkill.endorsementScore}/6</span>
-                        {activeSkill.endorsementScore === 0 && (
-                          <button
+                        <span className="block text-lg font-bold text-green-400 mb-1">{activeSkill.endorsementScore} / {currentLvl.level === 3 ? "5" : currentLvl.nextEndorse}</span>
+                         <button
                             className="bg-green-600/10 text-green-400 border border-green-500/20 px-3 py-1 rounded-lg text-xs hover:bg-green-600/20 transition"
                             onClick={() => {
                               setVerifyModal({ isOpen: false, skillId: null });
@@ -259,7 +240,6 @@ export default function SkillsTab({ onNavigateToEndorse }: { onNavigateToEndorse
                           >
                             ขอ Endorse
                           </button>
-                        )}
                       </div>
                     </div>
 
@@ -267,52 +247,70 @@ export default function SkillsTab({ onNavigateToEndorse }: { onNavigateToEndorse
                     <div className="bg-[#161b22] p-4 rounded-2xl border border-gray-800 flex justify-between items-center">
                       <div>
                         <h4 className="text-white font-semibold text-sm mb-1">Quiz</h4>
-                        <p className="text-xs text-gray-500">ตอบ 4 คำถามพื้นฐานสั้นๆ</p>
+                        <p className="text-xs text-gray-500">
+                          {currentLvl.level === 3 ? "ระดับสูงสุดแล้ว" : `ทำให้ได้ ${currentLvl.nextQuiz} ขึ้นไป`}
+                        </p>
                       </div>
                       <div className="text-right">
-                        <span className="block text-lg font-bold text-cyan-400 mb-1">{activeSkill.quizScore}/4</span>
-                        {activeSkill.quizScore < 4 && (
-                          <button
-                            className="bg-cyan-600/10 text-cyan-400 border border-cyan-500/20 px-3 py-1 rounded-lg text-xs hover:bg-cyan-600/20 transition"
-                            onClick={() => {
-                              setQuizQuestionIndex(0);
-                              setQuizCurrentScore(0);
-                              setQuizStatus("idle");
-                              setQuizMode(true);
+                        <span className="block text-lg font-bold text-cyan-400 mb-1">{activeSkill.quizScore} / {currentLvl.level === 3 ? "10" : currentLvl.nextQuiz}</span>
+                         <button
+                            className={`px-3 py-1 rounded-lg text-xs transition border flex items-center justify-center min-w-[90px] ${currentLvl.level === 3 || isGeneratingQuiz ? 'bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed' : 'bg-cyan-600/10 text-cyan-400 border-cyan-500/20 hover:bg-cyan-600/20'}`}
+                            disabled={currentLvl.level === 3 || isGeneratingQuiz}
+                            onClick={async () => {
+                              setIsGeneratingQuiz(true);
+                              const questions = await skillsService.generateAIQuiz(activeSkill.name, currentLvl.level);
+                              setIsGeneratingQuiz(false);
+                              if (questions && questions.length > 0) {
+                                setGeneratedQuestions(questions);
+                                setQuizQuestionIndex(0);
+                                setQuizCurrentScore(0);
+                                setQuizStatus("idle");
+                                setQuizMode(true);
+                              } else {
+                                alert("Failed to generate quiz. Please try again.");
+                              }
                             }}
                           >
-                            Take Quiz
+                            {isGeneratingQuiz ? (
+                              <svg className="animate-spin h-3.5 w-3.5 mr-1" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                            ) : null}
+                            {isGeneratingQuiz ? 'AI...' : 'เริ่มทำควิซ'}
                           </button>
-                        )}
                       </div>
                     </div>
                   </div>
 
-                  {(activeSkill.quizScore + activeSkill.endorsementScore) >= 8 && (
-                    <div className="mt-8 text-center p-4 bg-green-500/10 border border-green-500/30 rounded-2xl animate-pulse">
-                      <p className="text-green-400 font-bold mb-1">You passed the requirements!</p>
-                      <p className="text-green-500/80 text-xs text-center">รอเซิร์ฟเวอร์ระบบอัปเดตสักครู่ แล้วคุณจะได้รับ Badge</p>
+                  {currentLvl.level > 0 && (
+                    <div className="mt-8 text-center p-4 bg-green-500/10 border border-green-500/30 rounded-2xl animate-in zoom-in-95">
+                      <p className="text-green-400 font-bold mb-3">🔥 คุณผ่านเงื่อนไข Level {currentLvl.level} แล้ว!</p>
+                      <button
+                        onClick={() => {
+                          setVerifyModal({ isOpen: false, skillId: null });
+                          setBadgeModal({ isOpen: true, skillId: activeSkill.id });
+                        }}
+                        className="w-full py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(34,197,94,0.3)] flex items-center justify-center gap-2"
+                      >
+                        🏅 รับ Badge {currentLvl.name} ปัจจุบันของคุณ!
+                      </button>
                     </div>
                   )}
-                  {(activeSkill.quizScore + activeSkill.endorsementScore) < 8 && activeSkill.endorsementScore === 6 && activeSkill.quizScore > 0 && (
-                    <div className="mt-8 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-yellow-400 text-xs text-center font-medium">
-                      คะแนนยังไม่ถึง 8 ลองทำ Test ทวนซ้ำหรือขอ Endorse เพิ่มเติม!
-                    </div>
-                  )}
-
-                </>
-              ) : (
+                 </>
+                 );
+               })() : (
                 // --- QUIZ MODE ---
                 <div className="animate-in slide-in-from-right-4">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-xs text-gray-500 font-bold uppercase">Question {quizQuestionIndex + 1} of 4</span>
+                    <span className="text-xs text-gray-500 font-bold uppercase">Question {quizQuestionIndex + 1} of 10</span>
                     <span className="text-xs text-blue-400 font-bold">Score: {quizCurrentScore}</span>
                   </div>
 
-                  <p className="text-white font-medium mb-4 text-base">{getQuestions(activeSkill.name)[quizQuestionIndex].q}</p>
+                  <p className="text-white font-medium mb-4 text-base">{generatedQuestions[quizQuestionIndex]?.q}</p>
 
                   <div className="space-y-2.5">
-                    {getQuestions(activeSkill.name)[quizQuestionIndex].opts.map((option: string, index: number) => (
+                    {generatedQuestions[quizQuestionIndex]?.opts.map((option: string, index: number) => (
                       <button
                         key={index}
                         onClick={() => handleAnswer(index, activeSkill.id)}
@@ -338,7 +336,7 @@ export default function SkillsTab({ onNavigateToEndorse }: { onNavigateToEndorse
                     <div className="mt-6 p-6 bg-gradient-to-br from-blue-500/20 to-cyan-900/40 border border-blue-500/40 rounded-2xl text-center animate-in zoom-in-95 duration-300">
                       <h4 className="text-cyan-400 font-bold text-lg mb-1">Quiz Completed!</h4>
                       <p className="text-gray-300 text-sm mb-4">
-                        คุณทำได้ <span className="text-white font-bold">{quizCurrentScore} / 4</span> คะแนน
+                        คุณทำได้ <span className="text-white font-bold">{quizCurrentScore} / 10</span> คะแนน
                       </p>
                       <div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
                     </div>
@@ -348,16 +346,17 @@ export default function SkillsTab({ onNavigateToEndorse }: { onNavigateToEndorse
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* ================= Badge Certificate Modal ================= */}
       {badgeModal.isOpen && (() => {
         const activeBadge = skills.find(s => s.id === badgeModal.skillId);
         if (!activeBadge) return null;
+        const currentLvl = getCurrentLevel(activeBadge.quizScore, activeBadge.endorsementScore);
         const credId = `skw-${String(activeBadge.id).replace(/[^a-z0-9]/gi, '').substring(0, 8) || Math.random().toString(36).substring(2, 10)}`;
-        return (
+        return createPortal(
           <div
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6"
             onClick={() => setBadgeModal({ isOpen: false, skillId: null })}
           >
             <div
@@ -384,27 +383,47 @@ export default function SkillsTab({ onNavigateToEndorse }: { onNavigateToEndorse
                   </div>
                 </div>
                 <h3 className="text-2xl font-bold text-white tracking-tight">{activeBadge.name}</h3>
-                <p className="text-blue-400 text-sm font-medium mt-1">Verified Expert</p>
+                <p className="text-blue-400 text-sm font-medium mt-1">Level {currentLvl.level} ({currentLvl.name})</p>
               </div>
 
-              <div className="px-6 pb-6 space-y-3">
-                <div className="bg-[#090d14] rounded-2xl p-4 border border-gray-800 space-y-3 text-left">
-                  <div>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Score Report</p>
-                    <p className="text-sm text-green-400 font-medium">
-                      Total: {activeBadge.quizScore + activeBadge.endorsementScore}/10
-                    </p>
-                    <p className="text-[10px] text-gray-500 mt-1">Endorsements: {activeBadge.endorsementScore}/6 | Quiz: {activeBadge.quizScore}/4</p>
+              <div className="px-6 pb-6">
+                <div className="bg-[#090d14] rounded-2xl border border-gray-800 mb-4 overflow-hidden">
+                  <div className="flex bg-[#161b22] border-b border-gray-800/50">
+                    <div className="flex-1 text-center border-r border-gray-800/50 p-3">
+                       <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">Total</p>
+                       <p className="text-lg text-green-400 font-black">{Math.min(15, activeBadge.quizScore + activeBadge.endorsementScore)}<span className="text-xs text-gray-600">/15</span></p>
+                    </div>
+                    <div className="flex-1 text-center border-r border-gray-800/50 p-3">
+                       <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">Endorse</p>
+                       <p className="text-lg text-gray-200 font-bold">{Math.min(5, activeBadge.endorsementScore)}<span className="text-xs text-gray-600">/5</span></p>
+                    </div>
+                    <div className="flex-1 text-center p-3">
+                       <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">Quiz</p>
+                       <p className="text-lg text-gray-200 font-bold">{Math.min(10, activeBadge.quizScore)}<span className="text-xs text-gray-600">/10</span></p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Credential ID</p>
-                    <p className="text-xs text-gray-400 font-mono bg-[#161b22] px-2 py-1 rounded">{credId}</p>
+                  <div className="px-4 py-3 flex items-center justify-between bg-[#0d1117]">
+                     <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Credential ID</p>
+                     <p className="text-[11px] text-gray-400 font-mono bg-black border border-gray-800 px-2 py-0.5 rounded">{credId}</p>
                   </div>
                 </div>
+                
+                {currentLvl.level < 3 && (
+                  <button 
+                    onClick={() => {
+                        setBadgeModal({ isOpen: false, skillId: null });
+                        setVerifyModal({ isOpen: true, skillId: activeBadge.id, });
+                        setQuizMode(false);
+                    }}
+                    className="w-full mt-4 border border-blue-500/30 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-none"
+                  >
+                     🔼 ทำชาเลนจ์อัปเกรด Level
+                  </button>
+                )}
               </div>
             </div>
           </div>
-        );
+        , document.body);
       })()}
     </div>
   );
