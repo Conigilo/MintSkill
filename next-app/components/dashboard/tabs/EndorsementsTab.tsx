@@ -159,7 +159,8 @@ export default function EndorsementsTab() {
                         <span className="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded flex items-center gap-1">
                           ✓ Verified
                         </span>
-                      ) : (
+                      )}
+                      {item.status === 'pending' && (
                         <span className="text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded flex items-center gap-1">
                           ⏳ รอการยืนยัน
                         </span>
@@ -181,7 +182,7 @@ export default function EndorsementsTab() {
                     <code className="bg-[#161b22] px-2 py-1.5 rounded text-gray-300 w-full overflow-hidden text-ellipsis whitespace-nowrap border border-gray-800">
                       {item.link}
                     </code>
-                    <button 
+                    <button
                       onClick={() => { navigator.clipboard.writeText(item.link); alert('คัดลอกลิงก์แล้ว!'); }}
                       className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded transition-colors whitespace-nowrap"
                     >
