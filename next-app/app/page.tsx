@@ -12,24 +12,23 @@ export default function LandingPage() {
     // แต่เราจะเปลี่ยนปุ่ม Hero เป็น "Go to Dashboard" แทน
 
     return (
-        <div className="min-h-screen bg-[#090d14] text-white font-sans overflow-hidden relative">
+        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden relative">
 
             {/* Background Effects (แสง Glow แบบอนาคต) */}
             <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-blue-600/15 rounded-full blur-[150px] pointer-events-none"></div>
             <div className="absolute bottom-[10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[150px] pointer-events-none"></div>
 
             {/* 1. Navbar */}
-            <nav className="border-b border-gray-800/50 bg-[#090d14]/80 backdrop-blur-md sticky top-0 z-50">
+            <nav className="border-b border-slate-200/50 bg-slate-50/80 backdrop-blur-md sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                     <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 tracking-tight">
                         SKILL WALLET
                     </span>
 
                     {loading ? (
-                        <div className="w-24 h-9 bg-gray-800 animate-pulse rounded-full"></div>
+                        <div className="w-24 h-9 bg-slate-100 animate-pulse rounded-full"></div>
                     ) : user ? (
                         <div className="flex items-center gap-4">
-                            {user.photoURL && <Image src={user.photoURL} alt="Profile" width={32} height={32} className="w-8 h-8 rounded-full border border-gray-700" />}
                             <button onClick={logout} className="text-xs text-red-400 hover:text-red-300 transition-colors">Sign Out</button>
                         </div>
                     ) : (
@@ -57,14 +56,14 @@ export default function LandingPage() {
                             Not just your resume
                         </span>
                     </h1>
-                    <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-xl text-slate-500 mb-10 max-w-2xl mx-auto leading-relaxed">
                         Connect your GitHub, pass AI-powered assessments, and get endorsed by peers. Build a verified portfolio that actually lands you jobs.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                         {user ? (
                             <button
                                 onClick={() => router.push("/dashboard")}
-                                className="w-full sm:w-auto px-8 py-4 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold text-lg transition-all shadow-[0_0_20px_rgba(147,51,234,0.4)] hover:scale-105"
+                                className="w-full sm:w-auto px-8 py-4 bg-purple-600 hover:bg-purple-500 text-slate-900 rounded-xl font-bold text-lg transition-all shadow-[0_0_20px_rgba(147,51,234,0.4)] hover:scale-105"
                             >
                                 Go to Dashboard
                             </button>
@@ -77,7 +76,7 @@ export default function LandingPage() {
                                 Get Started with GitHub
                             </button>
                         )}
-                        <a href="#features" className="text-gray-400 hover:text-white font-medium px-6 py-4">
+                        <a href="#features" className="text-slate-500 hover:text-slate-900 font-medium px-6 py-4">
                             Learn more
                         </a>
                     </div>
@@ -86,31 +85,31 @@ export default function LandingPage() {
                 {/* 3. Features */}
                 <div id="features" className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-32">
 
-                    <div className="bg-[#161b22]/50 border border-gray-800 p-8 rounded-3xl hover:border-blue-500/50 transition-colors">
+                    <div className="bg-white/50 border border-slate-200 p-8 rounded-3xl hover:border-blue-500/50 transition-colors">
                         <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20">
                             <span className="text-2xl">🤖</span>
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-3">AI-Powered Verification</h3>
-                        <p className="text-gray-400 text-sm leading-relaxed">
+                        <h3 className="text-xl font-bold text-slate-900 mb-3">AI-Powered Verification</h3>
+                        <p className="text-slate-500 text-sm leading-relaxed">
                             We analyze your GitHub repositories and generate personalized technical assessments to prove your actual coding skills.
                         </p>
                     </div>
-                    <div className="bg-[#161b22]/50 border border-gray-800 p-8 rounded-3xl hover:border-purple-500/50 transition-colors">
+                    <div className="bg-white/50 border border-slate-200 p-8 rounded-3xl hover:border-purple-500/50 transition-colors">
                         <div className="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center mb-6 border border-purple-500/20">
                             <span className="text-2xl">🤝</span>
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-3">Peer Endorsements</h3>
-                        <p className="text-gray-400 text-sm leading-relaxed">
+                        <h3 className="text-xl font-bold text-slate-900 mb-3">Peer Endorsements</h3>
+                        <p className="text-slate-500 text-sm leading-relaxed">
                             Request and receive verifiable endorsements from colleagues, classmates, and mentors to build social proof.
                         </p>
                     </div>
 
-                    <div className="bg-[#161b22]/50 border border-gray-800 p-8 rounded-3xl hover:border-emerald-500/50 transition-colors">
+                    <div className="bg-white/50 border border-slate-200 p-8 rounded-3xl hover:border-emerald-500/50 transition-colors">
                         <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-6 border border-emerald-500/20">
                             <span className="text-2xl">⚡</span>
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-3">Shareable Widgets</h3>
-                        <p className="text-gray-400 text-sm leading-relaxed">
+                        <h3 className="text-xl font-bold text-slate-900 mb-3">Shareable Widgets</h3>
+                        <p className="text-slate-500 text-sm leading-relaxed">
                             Export your verified skills as a beautiful PDF resume or embed a dynamic widget directly onto your personal website.
                         </p>
                     </div>
@@ -119,7 +118,7 @@ export default function LandingPage() {
 
             </main>
 
-            <footer className="border-t border-gray-800/50 bg-[#090d14] py-8 text-center text-gray-500 text-sm">
+            <footer className="border-t border-slate-200/50 bg-slate-50 py-8 text-center text-slate-400 text-sm">
                 <p>Built with Next.js & Tailwind CSS. Designed for Developers.</p>
             </footer>
         </div>

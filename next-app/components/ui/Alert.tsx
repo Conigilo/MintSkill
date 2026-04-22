@@ -23,7 +23,7 @@ const styleMap: Record<AlertType, { bg: string; border: string; text: string; ic
     bg: 'bg-green-500/10',
     border: 'border-green-500/30',
     text: 'text-green-300',
-    icon: '✅',
+    icon: 'https://cdn-icons-png.flaticon.com/512/4436/4436481.png',
   },
   warning: {
     bg: 'bg-yellow-500/10',

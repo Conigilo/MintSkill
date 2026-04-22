@@ -14,6 +14,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '@/lib/utils/firebase'; 
 import { userService } from '../services/user.service';
+import { githubService } from '../services/github.service';
 
 export const useAuth = () => {
     const [user, setUser] = useState<User | null>(null);
@@ -53,11 +54,17 @@ export const useAuth = () => {
         return () => unsubscribe();
     }, []);
 
-    // 1. ฟังก์ชัน Login ด้วย GitHub
     const loginWithGithub = async () => {
         const provider = new GithubAuthProvider();
+        provider.addScope('repo'); // Request repo scope to count stars and commits
+        provider.addScope('read:user');
         try {
-            return await signInWithPopup(auth, provider);
+            const result = await signInWithPopup(auth, provider);
+            const credential = GithubAuthProvider.credentialFromResult(result);
+            if (credential?.accessToken) {
+                await githubService.connectAccount(credential.accessToken);
+            }
+            return result;
         } catch (error) {
             console.error("GitHub Login Error:", error);
             throw error;
@@ -70,9 +77,20 @@ export const useAuth = () => {
         }
 
         const provider = new GithubAuthProvider();
+        provider.addScope('repo'); // Request repo scope to count stars and commits
+        provider.addScope('read:user');
+        
         try {
-            return await linkWithPopup(auth.currentUser, provider);
-        } catch (error) {
+            const result = await linkWithPopup(auth.currentUser, provider);
+            const credential = GithubAuthProvider.credentialFromResult(result);
+            if (credential?.accessToken) {
+                await githubService.connectAccount(credential.accessToken);
+            }
+            return result;
+        } catch (error: any) {
+            if (error?.code === 'auth/credential-already-in-use') {
+                throw new Error("This GitHub account is already linked. Try logging out and signing in directly with GitHub.");
+            }
             console.error("GitHub Link Error:", error);
             throw error;
         }

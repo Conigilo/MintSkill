@@ -87,11 +87,11 @@ export default function JobsPage() {
 
   return (
     <SidebarLayout activePage="jobs">
-      <div className="text-white min-h-screen">
+      <div className="text-slate-900 min-h-screen">
 
         {/* Header */}
-        <div className="px-8 pt-8 pb-6 border-b border-white/5">
-          <h1 className="text-2xl font-bold text-white mb-1">Job Matching</h1>
+        <div className="px-8 pt-8 pb-6 border-b border-slate-200">
+          <h1 className="text-2xl font-bold text-slate-900 mb-1">Job Matching</h1>
 
         </div>
 
@@ -112,8 +112,8 @@ export default function JobsPage() {
                   key={f.key}
                   onClick={() => setFilter(f.key)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${filter === f.key
-                    ? "bg-blue-600 border-blue-500 text-white"
-                    : "bg-transparent border-white/10 text-gray-400 hover:text-white hover:border-white/20"
+                    ? "bg-blue-600 border-blue-500 text-slate-900"
+                    : "bg-transparent border-slate-300 text-slate-500 hover:text-slate-900 hover:border-slate-300"
                     }`}
                 >
                   {f.label}
@@ -126,18 +126,18 @@ export default function JobsPage() {
               const { score, matched, missing } = job.match;
               const isSelected = selectedJobId === job.id;
               const matchColor = score >= 75 ? "text-green-400" : score >= 40 ? "text-yellow-400" : "text-orange-400";
-              const matchBorder = score >= 75 ? "border-green-500/25 hover:border-green-500/50" : score >= 40 ? "border-yellow-500/15 hover:border-yellow-500/40" : "border-white/5 hover:border-white/10";
+              const matchBorder = score >= 75 ? "border-green-500/25 hover:border-green-500/50" : score >= 40 ? "border-yellow-500/15 hover:border-yellow-500/40" : "border-slate-200 hover:border-slate-300";
 
               return (
                 <div
                   key={job.id}
                   onClick={() => setSelectedJobId(isSelected ? null : job.id)}
-                  className={`relative bg-[#0e1420] border rounded-2xl p-5 cursor-pointer transition-all ${matchBorder} ${isSelected ? "ring-1 ring-blue-500/50" : ""}`}
+                  className={`relative bg-white border rounded-2xl p-5 cursor-pointer transition-all ${matchBorder} ${isSelected ? "ring-1 ring-blue-500/50" : ""}`}
                 >
                   <div className="flex items-start gap-4">
 
                     {/* Logo */}
-                    <div className="w-11 h-11 shrink-0 rounded-xl bg-[#1a2030] border border-white/5 flex items-center justify-center text-2xl">
+                    <div className="w-11 h-11 shrink-0 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-2xl">
                       {job.logo}
                     </div>
 
@@ -145,16 +145,16 @@ export default function JobsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <h3 className="font-bold text-white text-base leading-tight">{job.title}</h3>
-                          <p className="text-sm text-gray-500 mt-0.5">{job.company} · {job.location}</p>
+                          <h3 className="font-bold text-slate-900 text-base leading-tight">{job.title}</h3>
+                          <p className="text-sm text-slate-400 mt-0.5">{job.company} · {job.location}</p>
                         </div>
                         <MatchRing score={score} />
                       </div>
 
                       {/* Meta */}
                       <div className="flex flex-wrap gap-2 mt-3">
-                        <span className="text-[10px] px-2 py-1 rounded-md bg-[#1a2030] border border-white/5 text-gray-400 font-semibold uppercase">{job.type}</span>
-                        <span className="text-[10px] px-2 py-1 rounded-md bg-[#1a2030] border border-white/5 text-gray-400">{job.salary}</span>
+                        <span className="text-[10px] px-2 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-500 font-semibold uppercase">{job.type}</span>
+                        <span className="text-[10px] px-2 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-500">{job.salary}</span>
                       </div>
 
                       {/* Skills quick view */}
@@ -190,7 +190,7 @@ export default function JobsPage() {
 
           {/* ── Right: Job Detail Panel ── */}
           <div
-            className={`border-l border-white/5 bg-[#0a0d13] transition-all duration-300 overflow-y-auto ${selectedJob ? "w-[380px] shrink-0 px-6 py-6" : "w-0 overflow-hidden px-0"
+            className={`border-l border-slate-200 bg-slate-50 transition-all duration-300 overflow-y-auto ${selectedJob ? "w-[380px] shrink-0 px-6 py-6" : "w-0 overflow-hidden px-0"
               }`}
             style={{ maxHeight: "calc(100vh - 130px)" }}
           >
@@ -202,21 +202,21 @@ export default function JobsPage() {
                 <div className="space-y-6">
                   {/* Title */}
                   <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-[#1a2030] border border-white/5 flex items-center justify-center text-2xl shrink-0">
+                    <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-2xl shrink-0">
                       {selectedJob.logo}
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold text-white">{selectedJob.title}</h2>
-                      <p className="text-sm text-gray-400">{selectedJob.company}</p>
+                      <h2 className="text-xl font-bold text-slate-900">{selectedJob.title}</h2>
+                      <p className="text-sm text-slate-500">{selectedJob.company}</p>
                     </div>
                   </div>
 
                   {/* Match Score Big */}
-                  <div className={`bg-[#111827] border border-white/5 rounded-2xl p-5 flex items-center gap-5`}>
+                  <div className={`bg-white border border-slate-200 rounded-2xl p-5 flex items-center gap-5`}>
                     <MatchRing score={score} />
                     <div>
                       <p className={`text-xl font-black ${matchColor}`}>{matchLabel}</p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-slate-400 mt-1">
                         {matched.length}/{selectedJob.requiredSkills.length} required · {matchedPreferred.length}/{(selectedJob.preferredSkills || []).length} preferred
                       </p>
                     </div>
@@ -224,8 +224,8 @@ export default function JobsPage() {
 
                   {/* Description */}
                   <div>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Description</p>
-                    <p className="text-sm text-gray-300 leading-relaxed">{selectedJob.description}</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Description</p>
+                    <p className="text-sm text-slate-700 leading-relaxed">{selectedJob.description}</p>
                   </div>
 
                   {/* Meta */}
@@ -235,16 +235,16 @@ export default function JobsPage() {
                       { label: "Type", value: selectedJob.type },
                       { label: "Salary", value: selectedJob.salary },
                     ].map((m) => (
-                      <div key={m.label} className="bg-[#111827] border border-white/5 rounded-xl p-3">
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">{m.label}</p>
-                        <p className="text-sm text-white font-semibold mt-1">{m.value}</p>
+                      <div key={m.label} className="bg-white border border-slate-200 rounded-xl p-3">
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">{m.label}</p>
+                        <p className="text-sm text-slate-900 font-semibold mt-1">{m.value}</p>
                       </div>
                     ))}
                   </div>
 
                   {/* Required Skills */}
                   <div>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-3">Required Skills</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-3">Required Skills</p>
                     <div className="space-y-2">
                       {selectedJob.requiredSkills.map((s) => {
                         const has = userSkills.map((u) => u.toLowerCase()).includes(s.toLowerCase());
@@ -264,12 +264,12 @@ export default function JobsPage() {
                   {/* Preferred Skills */}
                   {selectedJob.preferredSkills && selectedJob.preferredSkills.length > 0 && (
                     <div>
-                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-3">Preferred Skills <span className="text-gray-700">(bonus)</span></p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-3">Preferred Skills <span className="text-gray-700">(bonus)</span></p>
                       <div className="flex flex-wrap gap-2">
                         {selectedJob.preferredSkills.map((s) => {
                           const has = userSkills.map((u) => u.toLowerCase()).includes(s.toLowerCase());
                           return (
-                            <span key={s} className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium ${has ? "bg-blue-500/10 border-blue-500/20 text-blue-300" : "bg-[#1a2030] border-white/5 text-gray-500"}`}>
+                            <span key={s} className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium ${has ? "bg-blue-500/10 border-blue-500/20 text-blue-300" : "bg-slate-50 border-slate-200 text-slate-400"}`}>
                               {has ? "✓ " : ""}{s}
                             </span>
                           );

@@ -40,7 +40,7 @@ const DEFAULT_RESUME: ResumeData = {
   strengths: [''],
 }
 
-export default function WidgetExportTab({ userName = 'user', skills = [] }: WidgetExportTabProps) {
+export default function ExportPortfolioTab({ userName = 'user', skills = [] }: WidgetExportTabProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>('classic')
   const [activeSection, setActiveSection] = useState<'template' | 'edit'>('template')
   const [saved, setSaved] = useState(false)
@@ -59,7 +59,7 @@ export default function WidgetExportTab({ userName = 'user', skills = [] }: Widg
         setResume(parsed.resume)
         if (parsed.template) setSelectedTemplate(parsed.template)
       }
-    } catch (e) { /* ignore parse errors */ }
+    } catch (e) { console.log(e); }
   }, [])
 
   const verifiedSkills = skills.filter(s => s.verified).map(s => s.name)
@@ -102,22 +102,22 @@ export default function WidgetExportTab({ userName = 'user', skills = [] }: Widg
   return (
     <div className="glass-panel p-8 rounded-3xl animate-in fade-in duration-500">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-b border-gray-800/50 pb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-b border-slate-200/50 pb-6">
         <div>
-          <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-1">
+          <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2 mb-1">
             <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             Portfolio Export
           </h3>
-          <p className="text-sm text-gray-400">Fill in your info, pick a template, and export as PDF</p>
+          <p className="text-sm text-slate-500">Fill in your info, pick a template, and export as PDF</p>
         </div>
         <div className="flex gap-2 mt-3 md:mt-0">
           <button
             onClick={handleSave}
             className={`flex items-center gap-2 font-bold px-5 py-2.5 rounded-xl transition-all text-sm border ${saved
               ? 'bg-green-600 border-green-500 text-white'
-              : 'bg-transparent border-gray-700 text-gray-300 hover:border-gray-500 hover:text-white'
+              : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:text-slate-900'
               }`}
           >
             {saved ? (
@@ -128,7 +128,7 @@ export default function WidgetExportTab({ userName = 'user', skills = [] }: Widg
           </button>
           <button
             onClick={handlePrint}
-            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-purple-900/30 hover:scale-105 active:scale-95 text-sm"
+            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-purple-900/20 hover:scale-105 active:scale-95 text-sm"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -139,15 +139,15 @@ export default function WidgetExportTab({ userName = 'user', skills = [] }: Widg
       </div>
 
       {/* Section Toggle */}
-      <div className="flex gap-1 bg-[#090d14] p-1 rounded-xl border border-gray-800 mb-6">
+      <div className="flex gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200 mb-6">
         {(['template', 'edit'] as const).map(s => (
           <button
             key={s}
             onClick={() => setActiveSection(s)}
-            className={`flex-1 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${activeSection === s ? 'bg-purple-600 text-white' : 'text-gray-500 hover:text-white'
+            className={`flex-1 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${activeSection === s ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
               }`}
           >
-            {s === 'template' ? '🎨 Choose Template' : '✏️ Edit Resume'}
+            {s === 'template' ? 'Choose Template' : 'Edit Resume'}
           </button>
         ))}
       </div>
@@ -161,19 +161,19 @@ export default function WidgetExportTab({ userName = 'user', skills = [] }: Widg
               onClick={() => setSelectedTemplate(t.id)}
               className={`group relative rounded-2xl overflow-hidden border-2 transition-all duration-200 ${selectedTemplate === t.id
                 ? 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)]'
-                : 'border-gray-800 hover:border-gray-600'
+                : 'border-slate-200 hover:border-slate-300'
                 }`}
             >
               <div className="aspect-[3/4] relative overflow-hidden bg-[#f8fafc]">
                 <TemplateMiniPreview id={t.id} accent={t.accent} />
               </div>
-              <div className="p-2.5 bg-[#161b22] text-left">
-                <p className="text-xs font-bold text-white">{t.name}</p>
-                <p className="text-[10px] text-gray-500">{t.desc}</p>
+              <div className="p-2.5 bg-white text-left">
+                <p className="text-xs font-bold text-slate-900">{t.name}</p>
+                <p className="text-[10px] text-slate-400">{t.desc}</p>
               </div>
               {selectedTemplate === t.id && (
                 <div className="absolute top-2 right-2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center shadow-lg">
-                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
@@ -186,7 +186,7 @@ export default function WidgetExportTab({ userName = 'user', skills = [] }: Widg
         <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
 
           {/* Personal Info */}
-          <FormSection title="👤 Personal Info">
+          <FormSection title="Personal Info">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Input label="Full Name" value={resume.fullName} onChange={v => updateField('fullName', v)} />
               <Input label="Job Title" value={resume.title} onChange={v => updateField('title', v)} />
@@ -196,9 +196,9 @@ export default function WidgetExportTab({ userName = 'user', skills = [] }: Widg
           </FormSection>
 
           {/* Education */}
-          <FormSection title="🎓 Education" onAdd={() => addItem('education')}>
+          <FormSection title="Education" onAdd={() => addItem('education')}>
             {resume.education.map((edu, i) => (
-              <div key={i} className="bg-[#0d1117] rounded-xl p-3 space-y-2 relative border border-gray-800/50">
+              <div key={i} className="bg-white rounded-xl p-3 space-y-2 relative border border-slate-200/50">
                 {resume.education.length > 1 && <RemoveBtn onClick={() => removeItem('education', i)} />}
                 <Input label="School / University" value={edu.school} onChange={v => { const arr = [...resume.education]; arr[i].school = v; updateField('education', arr) }} />
                 <div className="grid grid-cols-3 gap-2">
@@ -211,9 +211,9 @@ export default function WidgetExportTab({ userName = 'user', skills = [] }: Widg
           </FormSection>
 
           {/* Activities */}
-          <FormSection title="🏆 Activity & Achievement" onAdd={() => addItem('activities')}>
+          <FormSection title="Activity & Achievement" onAdd={() => addItem('activities')}>
             {resume.activities.map((act, i) => (
-              <div key={i} className="bg-[#0d1117] rounded-xl p-3 space-y-2 relative border border-gray-800/50">
+              <div key={i} className="bg-white rounded-xl p-3 space-y-2 relative border border-slate-200/50">
                 {resume.activities.length > 1 && <RemoveBtn onClick={() => removeItem('activities', i)} />}
                 <div className="grid grid-cols-3 gap-2">
                   <div className="col-span-2">
@@ -227,9 +227,9 @@ export default function WidgetExportTab({ userName = 'user', skills = [] }: Widg
           </FormSection>
 
           {/* Projects */}
-          <FormSection title="💻 Projects" onAdd={() => addItem('projects')}>
+          <FormSection title="Projects" onAdd={() => addItem('projects')}>
             {resume.projects.map((proj, i) => (
-              <div key={i} className="bg-[#0d1117] rounded-xl p-3 space-y-2 relative border border-gray-800/50">
+              <div key={i} className="bg-white rounded-xl p-3 space-y-2 relative border border-slate-200/50">
                 {resume.projects.length > 1 && <RemoveBtn onClick={() => removeItem('projects', i)} />}
                 <div className="grid grid-cols-3 gap-2">
                   <div className="col-span-2">
@@ -243,12 +243,12 @@ export default function WidgetExportTab({ userName = 'user', skills = [] }: Widg
           </FormSection>
 
           {/* Technical Skills (auto from system) */}
-          <FormSection title="🛠 Technical Skills (Auto-filled)">
+          <FormSection title="Technical Skills (Auto-filled)">
             <div className="flex flex-wrap gap-1.5">
               {allSkillNames.length === 0 ? (
-                <p className="text-xs text-gray-500 italic">No skills added yet. Go to Skills tab first.</p>
+                <p className="text-xs text-slate-400 italic">No skills added yet. Go to Skills tab first.</p>
               ) : allSkillNames.map(s => (
-                <span key={s} className={`text-[11px] px-2.5 py-1 rounded-md border ${verifiedSkills.includes(s) ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-gray-800 border-gray-700 text-gray-400'
+                <span key={s} className={`text-[11px] px-2.5 py-1 rounded-md border ${verifiedSkills.includes(s) ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-slate-100 border-slate-300 text-slate-500'
                   }`}>
                   {verifiedSkills.includes(s) ? '✓' : '○'} {s}
                 </span>
@@ -257,12 +257,12 @@ export default function WidgetExportTab({ userName = 'user', skills = [] }: Widg
           </FormSection>
 
           {/* Strengths */}
-          <FormSection title="⭐ Additional Strengths" onAdd={() => addItem('strengths')}>
+          <FormSection title="Additional Strengths" onAdd={() => addItem('strengths')}>
             {resume.strengths.map((s, i) => (
               <div key={i} className="flex gap-2 items-center">
-                <span className="text-gray-600 text-xs">•</span>
+                <span className="text-slate-400 text-xs">•</span>
                 <input
-                  className="flex-1 bg-[#0d1117] border border-gray-800 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 outline-none focus:border-purple-500 transition-colors"
+                  className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 placeholder-gray-600 outline-none focus:border-purple-500 transition-colors"
                   value={s}
                   onChange={e => { const arr = [...resume.strengths]; arr[i] = e.target.value; updateField('strengths', arr) }}
                   placeholder="e.g. Strong teamwork and collaboration skills"
@@ -285,7 +285,7 @@ function FormSection({ title, children, onAdd }: { title: string; children: Reac
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-bold text-white">{title}</h4>
+        <h4 className="text-sm font-bold text-slate-900">{title}</h4>
         {onAdd && (
           <button onClick={onAdd} className="text-[10px] bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2.5 py-1 rounded-lg hover:bg-purple-500/20 transition-colors font-bold">
             + Add
@@ -300,9 +300,9 @@ function FormSection({ title, children, onAdd }: { title: string; children: Reac
 function Input({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <div>
-      <label className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-1 block">{label}</label>
+      <label className="text-[10px] text-slate-400 uppercase tracking-wider font-bold mb-1 block">{label}</label>
       <input
-        className="w-full bg-[#090d14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 outline-none focus:border-purple-500 transition-colors"
+        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 placeholder-gray-600 outline-none focus:border-purple-500 transition-colors"
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder || label}
@@ -320,12 +320,12 @@ function RemoveBtn({ onClick }: { onClick: () => void }) {
 function BulletList({ items, onChange }: { items: string[]; onChange: (items: string[]) => void }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">Details (bullet points)</label>
+      <label className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Details (bullet points)</label>
       {items.map((item, i) => (
         <div key={i} className="flex gap-2 items-center">
-          <span className="text-gray-600 text-xs">•</span>
+          <span className="text-slate-400 text-xs">•</span>
           <input
-            className="flex-1 bg-[#090d14] border border-gray-800 rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-600 outline-none focus:border-purple-500 transition-colors"
+            className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 placeholder-gray-600 outline-none focus:border-purple-500 transition-colors"
             value={item}
             onChange={e => { const arr = [...items]; arr[i] = e.target.value; onChange(arr) }}
             placeholder="Describe what you did..."
@@ -370,7 +370,7 @@ function TemplateMiniPreview({ id, accent }: { id: string; accent: string }) {
   )
   if (id === 'minimal') return (
     <div className="absolute inset-0 bg-white p-2">
-      <div className="h-2 w-1/2 rounded bg-gray-800 mb-0.5" />
+      <div className="h-2 w-1/2 rounded bg-slate-100 mb-0.5" />
       <div className="h-1 w-1/3 rounded bg-gray-300 mb-2" />
       <div className="w-full h-px mb-2" style={{ background: accent }} />
       {[1, 2, 3, 4].map(i => <div key={i} className="h-1 w-full rounded bg-gray-100 mb-0.5" />)}
@@ -457,8 +457,8 @@ function generateResumeHtml(
     <div style="width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;margin-bottom:16px;">${(r.fullName || 'U')[0].toUpperCase()}</div>
     <h1 style="font-size:18px;color:white;margin-bottom:2px;">${r.fullName || r.username}</h1>
     <p style="font-size:11px;opacity:0.8;margin-bottom:4px;">${r.title}</p>
-    ${r.phone ? `<p style="font-size:10px;opacity:0.7;">📞 ${r.phone}</p>` : ''}
-    ${r.email ? `<p style="font-size:10px;opacity:0.7;">✉️ ${r.email}</p>` : ''}
+    ${r.phone ? `<p style="font-size:10px;opacity:0.7;">${r.phone}</p>` : ''}
+    ${r.email ? `<p style="font-size:10px;opacity:0.7;">${r.email}</p>` : ''}
     <h3 style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;border-bottom:1px solid rgba(255,255,255,0.3);padding-bottom:4px;margin:20px 0 8px;">Skills</h3>
     ${allSkills.map(s => `<p style="font-size:11px;margin-bottom:3px;">${verifiedSkills.includes(s) ? '✓' : '○'} ${s}</p>`).join('')}
     ${strengthsHtml ? `<h3 style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;border-bottom:1px solid rgba(255,255,255,0.3);padding-bottom:4px;margin:20px 0 8px;">Strengths</h3><ul style="padding-left:14px;font-size:11px;opacity:0.9;">${strengthsHtml}</ul>` : ''}

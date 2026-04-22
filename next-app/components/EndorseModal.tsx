@@ -24,7 +24,7 @@ export default function EndorseModal({ targetUserId, targetName, onClose, onSucc
     const loadSkills = async () => {
       try {
         const data = await endorsementService.getUserSkills(targetUserId);
-        setSkills(data.map((s) => s.name));
+        setSkills(Array.from(new Set(data.map((s) => s.name))));
       } catch {
         setSkills([]);
       } finally {
@@ -80,11 +80,11 @@ export default function EndorseModal({ targetUserId, targetName, onClose, onSucc
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-[#0d1117] border border-gray-700 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-white border border-slate-300 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-[#161b22]">
-          <h3 className="font-bold text-white">Endorse {targetName}</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">✕</button>
+        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white">
+          <h3 className="font-bold text-slate-900">Endorse {targetName}</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-900 transition-colors">✕</button>
         </div>
 
         <div className="p-6 space-y-5">
@@ -97,24 +97,23 @@ export default function EndorseModal({ targetUserId, targetName, onClose, onSucc
             <>
               {/* Skills */}
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                   Select Skills to Endorse
                 </label>
                 {isFetchingSkills ? (
-                  <p className="text-gray-500 text-sm">Loading skills...</p>
+                  <p className="text-slate-400 text-sm">Loading skills...</p>
                 ) : skills.length === 0 ? (
-                  <p className="text-gray-500 text-sm">This user has no skills listed.</p>
+                  <p className="text-slate-400 text-sm">This user has no skills listed.</p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {skills.map((skill) => (
                       <button
                         key={skill}
                         onClick={() => toggleSkill(skill)}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
-                          selectedSkills.includes(skill)
-                            ? "bg-blue-500/20 border-blue-500/60 text-blue-300"
-                            : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500"
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${selectedSkills.includes(skill)
+                          ? "bg-blue-500/20 border-blue-500/60 text-blue-300"
+                          : "bg-slate-100 border-slate-300 text-slate-500 hover:border-slate-400"
+                          }`}
                       >
                         {skill}
                       </button>
@@ -125,21 +124,21 @@ export default function EndorseModal({ targetUserId, targetName, onClose, onSucc
 
               {/* Your Role (optional) */}
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                  Your Role <span className="text-gray-600 normal-case font-normal">(optional)</span>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Your Role <span className="text-slate-400 normal-case font-normal">(optional)</span>
                 </label>
                 <input
                   type="text"
                   placeholder="e.g. Senior Engineer @ LINE"
                   value={fromRole}
                   onChange={(e) => setFromRole(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#161b22] border border-gray-700 text-white placeholder-gray-600 focus:border-blue-500 outline-none text-sm transition-colors"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-gray-600 focus:border-blue-500 outline-none text-sm transition-colors"
                 />
               </div>
 
               {/* Message */}
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                   Message
                 </label>
                 <textarea
@@ -147,7 +146,7 @@ export default function EndorseModal({ targetUserId, targetName, onClose, onSucc
                   placeholder={`Say something great about ${targetName}...`}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#161b22] border border-gray-700 text-white placeholder-gray-600 focus:border-blue-500 outline-none text-sm transition-colors resize-none"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-gray-600 focus:border-blue-500 outline-none text-sm transition-colors resize-none"
                 />
               </div>
 
@@ -160,14 +159,14 @@ export default function EndorseModal({ targetUserId, targetName, onClose, onSucc
               <div className="flex gap-3 pt-1">
                 <button
                   onClick={onClose}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 text-sm transition-colors"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-slate-500 hover:text-slate-900 hover:border-slate-400 text-sm transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={isLoading || isFetchingSkills || skills.length === 0}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 text-sm font-semibold transition-colors"
                 >
                   {isLoading ? "Sending..." : "Send Endorsement"}
                 </button>

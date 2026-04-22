@@ -41,7 +41,7 @@ export default function ExplorePage() {
 
     return (
         <SidebarLayout activePage="explore">
-        <div className="text-white p-10 relative">
+        <div className="text-slate-900 p-10 relative">
             <div className="absolute top-[-10%] left-[10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
 
@@ -53,7 +53,7 @@ export default function ExplorePage() {
                     placeholder="Search by name, skill, or role..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg bg-[#161b22] border border-gray-700 text-white placeholder-gray-500 focus:border-blue-500 outline-none transition-colors"
+                    className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-gray-500 focus:border-blue-500 outline-none transition-colors"
                 />
             </div>
 
@@ -65,11 +65,11 @@ export default function ExplorePage() {
 
             {isLoading ? (
                 <div className="flex items-center justify-center py-20">
-                    <div className="text-gray-400">Loading developers...</div>
+                    <div className="text-slate-500">Loading developers...</div>
                 </div>
             ) : developers.length === 0 ? (
                 <div className="text-center py-20">
-                    <p className="text-gray-400 mb-4">No developers found</p>
+                    <p className="text-slate-500 mb-4">No developers found</p>
                     <button
                         onClick={() => setSearchQuery("")}
                         className="text-blue-400 hover:text-blue-300 transition-colors"
@@ -82,7 +82,7 @@ export default function ExplorePage() {
                     {developers.map(dev => (
                         <div 
                             key={dev.id}
-                            className="bg-[#161b22] border border-gray-800 p-6 rounded-2xl hover:border-gray-600 transition-all hover:shadow-lg hover:shadow-blue-500/10 flex flex-col"
+                            className="bg-white border border-slate-200 p-6 rounded-2xl hover:border-slate-300 transition-all hover:shadow-lg hover:shadow-blue-500/10 flex flex-col"
                         >
                             <div
                                 onClick={() => router.push(`/profile/${getHandle(dev)}`)}
@@ -102,12 +102,12 @@ export default function ExplorePage() {
                                     )}
                                     <div>
                                         <h3 className="font-bold">{getName(dev)}</h3>
-                                        <p className="text-sm text-gray-400">{dev.title || 'Professional'}</p>
+                                        <p className="text-sm text-slate-500">{dev.title || 'Professional'}</p>
                                     </div>
                                 </div>
                                 
                                 {dev.bio && (
-                                    <p className="text-xs text-gray-400 mb-4 line-clamp-2">{dev.bio}</p>
+                                    <p className="text-xs text-slate-500 mb-4 line-clamp-2">{dev.bio}</p>
                                 )}
 
                                 {dev.matchScore && (
@@ -117,12 +117,12 @@ export default function ExplorePage() {
                                 {dev.topSkills && dev.topSkills.length > 0 && (
                                     <div className="flex gap-2 flex-wrap mb-4">
                                         {dev.topSkills.slice(0, 3).map((skill, i) => (
-                                            <span key={i} className="text-xs bg-gray-800 px-2 py-1 rounded">
+                                            <span key={i} className="text-xs bg-slate-100 px-2 py-1 rounded">
                                                 {skill.name}
                                             </span>
                                         ))}
                                         {dev.topSkills.length > 3 && (
-                                            <span className="text-xs bg-gray-800 px-2 py-1 rounded text-gray-400">
+                                            <span className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500">
                                                 +{dev.topSkills.length - 3}
                                             </span>
                                         )}

@@ -36,22 +36,22 @@ export default function PublicProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#090d14] flex flex-col justify-center items-center gap-4">
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center gap-4">
         <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(168,85,247,0.4)]" />
-        <p className="text-gray-400 font-medium animate-pulse">Loading Premium Portfolio...</p>
+        <p className="text-slate-500 font-medium animate-pulse">Loading Premium Portfolio...</p>
       </div>
     );
   }
 
   if (error || !portfolio) {
     return (
-      <div className="min-h-screen bg-[#090d14] flex flex-col justify-center items-center text-white px-4 text-center">
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center text-slate-900 px-4 text-center">
         <div className="text-6xl mb-6">🔍</div>
         <h2 className="text-2xl font-bold mb-2">Profile not found</h2>
-        <p className="text-gray-400 mb-8 max-w-md">We couldn't find the developer you're looking for. They might have changed their username or the link is incorrect.</p>
+        <p className="text-slate-500 mb-8 max-w-md">We couldn't find the developer you're looking for. They might have changed their username or the link is incorrect.</p>
         <button 
           onClick={() => router.push("/explore")} 
-          className="bg-gray-800 hover:bg-gray-700 text-white px-6 py-3 rounded-xl transition-all border border-gray-700"
+          className="bg-slate-100 hover:bg-slate-200 text-slate-900 px-6 py-3 rounded-xl transition-all border border-slate-300"
         >
           Back to Explore
         </button>
@@ -67,7 +67,7 @@ export default function PublicProfilePage() {
   const verifiedSkills = skills.filter((s: any) => s.verified);
 
   return (
-    <div className="min-h-screen bg-[#090d14] text-[#c9d1d9] font-sans selection:bg-purple-500/30">
+    <div className="min-h-screen bg-slate-50 text-[#c9d1d9] font-sans selection:bg-purple-500/30">
       {/* Dynamic Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/20 rounded-full blur-[120px]" />
@@ -75,11 +75,11 @@ export default function PublicProfilePage() {
       </div>
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 backdrop-blur-md bg-[#090d14]/80 border-b border-white/5">
+      <nav className="sticky top-0 z-50 backdrop-blur-md bg-slate-50/80 border-b border-white/5">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <button
             onClick={() => router.push("/explore")}
-            className="group text-gray-400 hover:text-white flex items-center gap-2 text-sm transition-all"
+            className="group text-slate-500 hover:text-slate-900 flex items-center gap-2 text-sm transition-all"
           >
             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
             <span>Back to Explorer</span>
@@ -88,7 +88,7 @@ export default function PublicProfilePage() {
           <div className="flex items-center gap-4">
             <button
               onClick={handleShare}
-              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white px-4 py-1.5 rounded-full border border-white/10 text-sm transition-all"
+              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-slate-900 px-4 py-1.5 rounded-full border border-white/10 text-sm transition-all"
             >
               <Share2 size={14} className={isCopied ? "text-green-400" : ""} />
               {isCopied ? "Link Copied!" : "Share Profile"}
@@ -105,11 +105,11 @@ export default function PublicProfilePage() {
             <div className="sticky top-28 space-y-8">
               <div className="relative group mx-auto lg:mx-0 w-64 lg:w-full aspect-square">
                 <div className="absolute -inset-1 bg-gradient-to-tr from-purple-500 to-blue-500 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-                <div className="relative w-full h-full rounded-3xl overflow-hidden border border-white/10 bg-[#0d1117]">
+                <div className="relative w-full h-full rounded-3xl overflow-hidden border border-white/10 bg-white">
                   {p.avatarUrl || p.photoURL ? (
                     <img src={p.avatarUrl || p.photoURL} alt={p.displayName} className="w-full h-full object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-500" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-7xl font-bold bg-gradient-to-br from-gray-800 to-gray-900 text-gray-600">
+                    <div className="w-full h-full flex items-center justify-center text-7xl font-bold bg-gradient-to-br from-gray-800 to-gray-900 text-slate-400">
                       {(p.displayName || p.username || "?")[0].toUpperCase()}
                     </div>
                   )}
@@ -117,27 +117,27 @@ export default function PublicProfilePage() {
               </div>
 
               <div className="text-center lg:text-left">
-                <h1 className="text-3xl font-bold text-white tracking-tight">{p.displayName || "Developer"}</h1>
+                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{p.displayName || "Developer"}</h1>
                 <p className="text-xl text-purple-400/80 font-medium mt-1">@{p.username || username}</p>
-                {p.title && <p className="text-gray-400 mt-4 font-medium italic mb-2">{p.title}</p>}
-                {p.bio && <p className="mt-4 text-gray-400 leading-relaxed text-sm">{p.bio}</p>}
+                {p.title && <p className="text-slate-500 mt-4 font-medium italic mb-2">{p.title}</p>}
+                {p.bio && <p className="mt-4 text-slate-500 leading-relaxed text-sm">{p.bio}</p>}
               </div>
 
               <div className="space-y-4 pt-4 border-t border-white/5">
                 {p.location && (
-                  <div className="flex items-center gap-3 text-gray-400 text-sm">
+                  <div className="flex items-center gap-3 text-slate-500 text-sm">
                     <MapPin size={16} className="text-purple-500" />
                     {p.location}
                   </div>
                 )}
                 {p.linkedinUrl && (
-                  <a href={p.linkedinUrl} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-gray-400 hover:text-white text-sm transition-all group">
+                  <a href={p.linkedinUrl} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-slate-500 hover:text-slate-900 text-sm transition-all group">
                     <Linkedin size={16} className="text-blue-500 group-hover:scale-110 transition-transform" />
                     LinkedIn Profile
                   </a>
                 )}
                 {p.githubUsername && (
-                  <a href={`https://github.com/${p.githubUsername}`} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-gray-400 hover:text-white text-sm transition-all group">
+                  <a href={`https://github.com/${p.githubUsername}`} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-slate-500 hover:text-slate-900 text-sm transition-all group">
                     <Github size={16} className="group-hover:scale-110 transition-transform" />
                     GitHub Activity
                   </a>
@@ -147,7 +147,7 @@ export default function PublicProfilePage() {
               {(!user || user.uid !== p.id) && (
                 <button
                   onClick={() => setEndorseOpen(true)}
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold py-3 rounded-2xl shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-all transform hover:-translate-y-1 active:translate-y-0"
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-slate-900 font-bold py-3 rounded-2xl shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-all transform hover:-translate-y-1 active:translate-y-0"
                 >
                   Endorse Skills
                 </button>
@@ -166,10 +166,10 @@ export default function PublicProfilePage() {
                 { label: "Endorsements", val: endorsements.length, icon: <MessageSquare size={18} />, color: "text-blue-400" },
                 { label: "Repositories", val: repos.length, icon: <Github size={18} />, color: "text-orange-400" },
               ].map((stat, i) => (
-                <div key={i} className="bg-white/5 border border-white/5 rounded-2xl p-6 backdrop-blur-sm">
-                  <div className={`p-2 w-fit rounded-xl bg-white/5 mb-4 ${stat.color}`}>{stat.icon}</div>
-                  <div className="text-3xl font-bold text-white mb-1">{stat.val}</div>
-                  <div className="text-xs text-gray-500 uppercase font-bold tracking-widest">{stat.label}</div>
+                <div key={i} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                  <div className={`p-2 w-fit rounded-xl bg-slate-50 mb-4 ${stat.color}`}>{stat.icon}</div>
+                  <div className="text-3xl font-bold text-slate-900 mb-1">{stat.val}</div>
+                  <div className="text-xs text-slate-400 uppercase font-bold tracking-widest">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -178,7 +178,7 @@ export default function PublicProfilePage() {
             {skills.length > 0 && (
               <section>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                  <h2 className="text-xl font-bold text-slate-900 flex items-center gap-3">
                     <div className="w-1.5 h-6 bg-purple-500 rounded-full" />
                     Verified Expertise
                   </h2>
@@ -189,8 +189,8 @@ export default function PublicProfilePage() {
                       key={i}
                       className={`group relative px-5 py-2.5 rounded-2xl text-sm font-medium border transition-all duration-300 ${
                         skill.verified
-                          ? "border-green-500/30 text-green-400 bg-green-500/5 hover:bg-green-500/10"
-                          : "border-white/5 text-gray-500 bg-white/5"
+                          ? "border-green-500/30 text-green-600 bg-green-50 text-slate-900 hover:bg-green-100"
+                          : "border-slate-200 text-slate-500 bg-white"
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -198,7 +198,7 @@ export default function PublicProfilePage() {
                         {skill.verified && <span className="flex items-center justify-center bg-green-400 text-[#090d14] rounded-full w-4 h-4 text-[10px] font-black">✓</span>}
                       </div>
                       {skill.level && (
-                        <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-xs px-1.5 rounded-md border border-gray-700">
+                        <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-100 text-xs px-1.5 rounded-md border border-slate-300">
                           Lvl {skill.level}
                         </div>
                       )}
@@ -211,13 +211,13 @@ export default function PublicProfilePage() {
             {/* Featured Badges */}
             {badges.length > 0 && (
               <section>
-                <h2 className="text-xl font-bold text-white flex items-center gap-3 mb-6">
+                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-3 mb-6">
                   <div className="w-1.5 h-6 bg-blue-500 rounded-full" />
                   Skill Badges
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {badges.map((badge: any, i: number) => (
-                    <div key={i} className="flex items-center gap-4 bg-gradient-to-br from-white/5 to-transparent border border-white/5 rounded-2xl p-5 hover:border-blue-500/30 transition-all group">
+                    <div key={i} className="flex items-center gap-4 bg-white border border-slate-200 rounded-2xl p-5 hover:border-blue-500/30 transition-all group shadow-sm">
                       <div className="relative">
                         <div className="absolute inset-0 bg-blue-500 blur-xl opacity-0 group-hover:opacity-20 transition-all"></div>
                         <img 
@@ -227,8 +227,8 @@ export default function PublicProfilePage() {
                         />
                       </div>
                       <div>
-                        <div className="font-bold text-white group-hover:text-blue-400 transition-colors">{badge.name}</div>
-                        <div className="text-xs text-gray-500">{badge.skillName} • Earned on {new Date(badge.earnedAt || badge.unlockedAt).toLocaleDateString()}</div>
+                        <div className="font-bold text-slate-900 group-hover:text-blue-400 transition-colors">{badge.name}</div>
+                        <div className="text-xs text-slate-400">{badge.skillName} • Earned on {new Date(badge.earnedAt || badge.unlockedAt).toLocaleDateString()}</div>
                       </div>
                     </div>
                   ))}
@@ -239,32 +239,32 @@ export default function PublicProfilePage() {
             {/* Testimonials / Endorsements */}
             {endorsements.length > 0 && (
               <section>
-                <h2 className="text-xl font-bold text-white flex items-center gap-3 mb-6">
+                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-3 mb-6">
                   <div className="w-1.5 h-6 bg-green-500 rounded-full" />
                   Peer Endorsements
                 </h2>
                 <div className="grid grid-cols-1 gap-6">
                   {endorsements.slice(0, 5).map((e: any, i: number) => (
-                    <div key={i} className="relative bg-white/2 px-8 py-6 rounded-3xl border border-white/5">
-                      <div className="absolute top-6 left-3 text-4xl text-white/5 font-serif">“</div>
+                    <div key={i} className="relative bg-white px-8 py-6 rounded-3xl border border-slate-200 shadow-sm">
+                      <div className="absolute top-6 left-3 text-4xl text-slate-900/5 font-serif">“</div>
                       <div className="relative">
-                        <p className="text-gray-300 italic mb-6 leading-relaxed">
+                        <p className="text-slate-700 italic mb-6 leading-relaxed">
                           {e.message || "Working together was a great experience. Highly recommended for technical expertise and collaboration."}
                         </p>
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-[10px] font-black text-white">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-[10px] font-black text-slate-900">
                               {(e.fromName || "A")[0].toUpperCase()}
                             </div>
                             <div>
-                              <div className="text-sm font-bold text-white">{e.fromName || "Anonymous Colleague"}</div>
-                              <div className="text-[10px] text-gray-500 uppercase tracking-tighter">{e.fromRole || "Developer"}</div>
+                              <div className="text-sm font-bold text-slate-900">{e.fromName || "Anonymous Colleague"}</div>
+                              <div className="text-[10px] text-slate-400 uppercase tracking-tighter">{e.fromRole || "Developer"}</div>
                             </div>
                           </div>
                           {e.skills?.length > 0 && (
                             <div className="flex gap-2">
                               {e.skills.slice(0, 2).map((s: string, j: number) => (
-                                <span key={j} className="text-[9px] bg-white/5 text-gray-400 px-2 py-0.5 rounded-full border border-white/5">
+                                <span key={j} className="text-[9px] bg-slate-50 text-slate-500 px-2 py-0.5 rounded-full border border-slate-200">
                                   {s}
                                 </span>
                               ))}
@@ -281,7 +281,7 @@ export default function PublicProfilePage() {
             {/* Pinned Repositories */}
             {repos.length > 0 && (
               <section>
-                <h2 className="text-xl font-bold text-white flex items-center gap-3 mb-6">
+                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-3 mb-6">
                   <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
                   Featured Projects
                 </h2>
@@ -292,27 +292,27 @@ export default function PublicProfilePage() {
                       href={repo.url} 
                       target="_blank" 
                       rel="noreferrer" 
-                      className="group flex flex-col justify-between h-full bg-white/5 border border-white/5 rounded-3xl p-6 hover:border-orange-500/30 transition-all hover:bg-white/8"
+                      className="group flex flex-col justify-between h-full bg-white border border-slate-200 rounded-3xl p-6 hover:border-orange-500/30 transition-all hover:bg-slate-50 shadow-sm"
                     >
                       <div>
                         <div className="flex items-center justify-between mb-4">
-                          <Github size={20} className="text-gray-500 group-hover:text-white transition-colors" />
-                          <ExternalLink size={16} className="text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <Github size={20} className="text-slate-400 group-hover:text-slate-900 transition-colors" />
+                          <ExternalLink size={16} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
-                        <h3 className="font-bold text-white group-hover:text-orange-400 transition-colors mb-2 truncate">
+                        <h3 className="font-bold text-slate-900 group-hover:text-orange-400 transition-colors mb-2 truncate">
                           {repo.name}
                         </h3>
-                        {repo.description && <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-4">{repo.description}</p>}
+                        {repo.description && <p className="text-xs text-slate-400 leading-relaxed line-clamp-2 mb-4">{repo.description}</p>}
                       </div>
                       <div className="flex items-center gap-6 mt-4">
                         {repo.language && (
-                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                             <div className="w-2 h-2 rounded-full bg-orange-500" />
                             {repo.language}
                           </div>
                         )}
                         {repo.stars > 0 && (
-                          <div className="flex items-center gap-1 text-[10px] text-gray-400 font-bold">
+                          <div className="flex items-center gap-1 text-[10px] text-slate-500 font-bold">
                             ★ {repo.stars}
                           </div>
                         )}

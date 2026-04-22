@@ -65,16 +65,16 @@ export default function SidebarLayout({
 
   if (authLoading || !user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#090d14]">
-        <div className="text-white font-mono text-sm tracking-widest uppercase animate-pulse">Loading...</div>
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="text-slate-900 font-mono text-sm tracking-widest uppercase animate-pulse">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-[#090d14] text-gray-200 font-sans">
+    <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-gray-800/50 bg-[#0d1117] hidden md:flex flex-col p-6 sticky top-0 h-screen z-50">
+      <aside className="w-64 border-r border-slate-200/50 bg-white hidden md:flex flex-col p-6 sticky top-0 h-screen z-50">
         <div className="mb-10 pl-2">
           <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 tracking-tight">
             SKILL WALLET
@@ -90,7 +90,7 @@ export default function SidebarLayout({
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium ${
                   isActive
                     ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
-                    : "text-gray-500 hover:text-white hover:bg-gray-800/30"
+                    : "text-slate-400 hover:text-slate-900 hover:bg-slate-100/30"
                 }`}
               >
                 {item.icon}
@@ -99,10 +99,10 @@ export default function SidebarLayout({
             );
           })}
         </nav>
-        <div className="border-t border-gray-800/50 pt-4 mt-auto">
+        <div className="border-t border-slate-200/50 pt-4 mt-auto">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 text-sm bg-[#161b22] hover:bg-gray-800 border border-gray-700 text-gray-300 px-5 py-2.5 rounded-xl transition-all"
+            className="w-full flex items-center justify-center gap-2 text-sm bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 px-5 py-2.5 rounded-xl transition-all"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -113,15 +113,15 @@ export default function SidebarLayout({
       </aside>
 
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 border-b border-gray-800/50 p-4 flex justify-between items-center bg-[#090d14]/80 backdrop-blur-md z-50">
-        <span className="font-bold text-white">skillwallet.</span>
+      <div className="md:hidden fixed top-0 left-0 right-0 border-b border-slate-200/50 p-4 flex justify-between items-center bg-slate-50/80 backdrop-blur-md z-50">
+        <span className="font-bold text-slate-900">skillwallet.</span>
         <div className="flex gap-2">
           {NAV_ITEMS.map((item) => (
             <button
               key={item.key}
               onClick={() => router.push(item.href)}
               className={`text-xs px-3 py-1.5 rounded-lg ${
-                item.key === activePage ? "bg-blue-500/20 text-blue-400" : "bg-gray-800 text-gray-400"
+                item.key === activePage ? "bg-blue-500/20 text-blue-400" : "bg-slate-100 text-slate-500"
               }`}
             >
               {item.label}

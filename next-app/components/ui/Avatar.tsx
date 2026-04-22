@@ -30,7 +30,7 @@ const Avatar = memo(
             src={src}
             alt={alt}
             fill
-            className="rounded-full object-cover border-2 border-gray-800"
+            className="rounded-full object-cover border-2 border-slate-200"
           />
           {status && (
             <div
@@ -49,7 +49,7 @@ const Avatar = memo(
 
     return (
       <div
-        className={`${sizeClass} flex items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold border-2 border-gray-800 flex-shrink-0`}
+        className={`${sizeClass} flex items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-slate-900 font-semibold border-2 border-slate-200 flex-shrink-0`}
       >
         {initials || alt.substring(0, 2).toUpperCase()}
       </div>

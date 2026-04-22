@@ -12,7 +12,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
     <nav className="bg-[var(--bg)]/80 border-b border-[var(--border)] px-6 py-3 flex items-center gap-6 sticky top-0 z-50 backdrop-blur-md">
       {/* Logo */}
       <div className="font-mono text-xl tracking-tight font-bold">
-        <span className="text-white">skill</span>
+        <span className="text-slate-900">skill</span>
         <span className="text-[var(--accent)]">wallet</span>
       </div>
 
@@ -31,7 +31,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
       <div className="flex gap-3 ml-auto">
         <Link 
           href="/login" 
-          className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors"
+          className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
         >
           Sign in
         </Link>

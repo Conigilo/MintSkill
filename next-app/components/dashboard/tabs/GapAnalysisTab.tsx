@@ -3,7 +3,7 @@
 import { useState } from 'react'
 
 interface GapAnalysisTabProps {
-  skills: Array<{ name: string; level?: number; [key: string]: any }>
+  skills: Array<{ name: string; level?: number;[key: string]: any }>
 }
 
 const rolesData: Record<string, { desc: string; requirements: { name: string; req: number }[] }> = {
@@ -62,13 +62,13 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
   const [targetRole, setTargetRole] = useState("Full-Stack Engineer")
 
   const mySkills: Record<string, number> = (skills || []).reduce(
-    (acc: Record<string, number>, s) => { 
+    (acc: Record<string, number>, s) => {
       const quiz = Math.min(10, s.quizScore || 0);
       const endorse = Math.min(5, s.endorsementScore || 0);
       const testScorePercentage = Math.round(((quiz / 10) * 50) + ((endorse / 5) * 50));
-      
-      acc[s.name] = (quiz > 0 || endorse > 0) ? testScorePercentage : ((s.level || 0) * 20); 
-      return acc 
+
+      acc[s.name] = (quiz > 0 || endorse > 0) ? testScorePercentage : ((s.level || 0) * 20);
+      return acc
     },
     {} as Record<string, number>
   )
@@ -86,15 +86,15 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
 
   return (
     <div className="glass-panel p-8 rounded-3xl animate-in fade-in duration-500 relative">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-gray-800/50 pb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-slate-200/50 pb-6">
         <div>
-          <h3 className="text-xl font-bold text-white">Skill Gap Analysis</h3>
-          <p className="text-sm text-gray-400 mt-1">Compare your skills against target role requirements</p>
+          <h3 className="text-xl font-bold text-slate-900">Skill Gap Analysis</h3>
+          <p className="text-sm text-slate-500 mt-1">Compare your skills against target role requirements</p>
         </div>
-        <div className="flex items-center gap-3 bg-[#090d14] border border-gray-700 p-1.5 rounded-xl">
-          <span className="text-xs text-gray-400 font-bold pl-3 uppercase tracking-wider">Target Role:</span>
+        <div className="flex items-center gap-3 bg-slate-50 border border-slate-300 p-1.5 rounded-xl">
+          <span className="text-xs text-slate-500 font-bold pl-3 uppercase tracking-wider">Target Role:</span>
           <select
-            className="bg-[#090d14] text-white text-sm font-bold focus:outline-none pr-4 py-1.5 cursor-pointer"
+            className="bg-slate-50 text-slate-900 text-sm font-bold focus:outline-none pr-4 py-1.5 cursor-pointer"
             value={targetRole}
             onChange={(e) => setTargetRole(e.target.value)}
           >
@@ -106,13 +106,13 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
       </div>
 
       <div className="space-y-6">
-        <div className="bg-[#161b22] border border-gray-800 rounded-2xl p-6 flex items-center justify-between">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 flex items-center justify-between">
           <div>
-            <h4 className="text-white font-bold mb-1">{targetRole}</h4>
-            <p className="text-sm text-gray-400">{currentRole.desc}</p>
+            <h4 className="text-slate-900 font-bold mb-1">{targetRole}</h4>
+            <p className="text-sm text-slate-500">{currentRole.desc}</p>
           </div>
           <div className="text-right">
-            <div className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">Overall Match</div>
+            <div className="text-xs text-slate-400 uppercase tracking-wider font-bold mb-1">Overall Match</div>
             <div className={`text-3xl font-black ${matchPercentage >= 80 ? 'text-green-400' : matchPercentage >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
               {matchPercentage}%
             </div>
@@ -134,21 +134,21 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
               statusText = "Major Gap"; barColor = "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]"
             }
             return (
-              <div key={idx} className="bg-[#161b22] p-4 rounded-xl border border-gray-800/50 group transition-all hover:border-gray-700">
+              <div key={idx} className="bg-white p-4 rounded-xl border border-slate-200/50 group transition-all hover:border-slate-300">
                 <div className="flex justify-between items-end mb-2">
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
-                      <span className="text-white font-bold text-sm">{req.name}</span>
-                      <div className="flex items-center gap-1.5 bg-[#0d1117] px-2 py-0.5 rounded border border-gray-800">
-                        <span className="text-gray-500 text-[11px] font-medium">Target: {req.req}%</span>
-                        <span className="text-gray-600 text-[10px]">|</span>
+                      <span className="text-slate-900 font-bold text-sm">{req.name}</span>
+                      <div className="flex items-center gap-1.5 bg-white px-2 py-0.5 rounded border border-slate-200">
+                        <span className="text-slate-400 text-[11px] font-medium">Target: {req.req}%</span>
+                        <span className="text-slate-400 text-[10px]">|</span>
                         <span className="text-blue-400 text-[11px] font-bold">Current: {myLevel}%</span>
                       </div>
                     </div>
                     {gap > 0 && resourceUrl && (
-                      <a 
-                        href={resourceUrl} 
-                        target="_blank" 
+                      <a
+                        href={resourceUrl}
+                        target="_blank"
                         rel="noreferrer"
                         className="text-[10px] text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-1 font-medium underline underline-offset-2 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
@@ -160,7 +160,7 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
                     {statusText} {gap > 0 && `(-${gap}%)`}
                   </span>
                 </div>
-                <div className="relative w-full h-2.5 bg-[#090d14] rounded-full overflow-hidden border border-gray-800">
+                <div className="relative w-full h-2.5 bg-slate-50 rounded-full overflow-hidden border border-slate-200">
                   <div className="absolute top-0 bottom-0 border-r-2 border-dashed border-gray-400/50 z-10" style={{ left: `${req.req}%` }}></div>
                   <div className={`absolute top-0 left-0 bottom-0 rounded-full transition-all duration-1000 ease-out ${barColor}`} style={{ width: `${myLevel}%` }}></div>
                 </div>
@@ -171,10 +171,10 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
 
 
         <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl flex gap-3 items-start">
-          <span className="text-xl">??</span>
-          <p className="text-sm text-blue-200 leading-relaxed">
-            <strong className="text-blue-400">AI Suggestion:</strong> Focus on projects related to{' '}
-            <strong className="text-white">
+
+          <p className="text-sm text-slate-900 leading-relaxed">
+            <strong className="text-blue-400">Suggestion:</strong> Focus on projects related to{' '}
+            <strong className="text-slate-900">
               {[...currentRole.requirements].sort((a, b) => (b.req - (mySkills[b.name] || 0)) - (a.req - (mySkills[a.name] || 0)))[0].name}
             </strong>{' '}
             to close your biggest skill gap for {targetRole}.

@@ -2,7 +2,7 @@ import * as React from "react"
 
 export function Card({ className = "", children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={`glass-panel rounded-2xl overflow-hidden transition-all hover:border-gray-700 ${className}`} {...props}>
+    <div className={`glass-panel rounded-2xl overflow-hidden transition-all hover:border-slate-300 ${className}`} {...props}>
       {children}
     </div>
   )

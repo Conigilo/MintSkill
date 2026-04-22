@@ -78,6 +78,7 @@ export const stringUtils = {
     })
   },
 
+  //use timestamp?
   formatRelativeTime: (date: Date | number): string => {
     const d = new Date(date)
     const now = new Date()
@@ -245,7 +246,7 @@ export const isAxiosError = (error: unknown): boolean => {
 
 export const getErrorMessage = (error: unknown): string => {
   if (typeof error === 'string') return error
-  
+
   const err = error as Record<string, unknown>
   if (err?.message) return err.message as string
   if ((err?.error as Record<string, unknown>)?.message) return (err.error as Record<string, unknown>).message as string

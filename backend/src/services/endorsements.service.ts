@@ -191,7 +191,7 @@ export async function verifyEndorsementToken(token: string) {
         .where('userId', '==', endorsementData.toUserId)
         .get()
 
-    const skills = skillsSnapshot.docs.map(doc => doc.data().name)
+    const skills = Array.from(new Set(skillsSnapshot.docs.map(doc => doc.data().name)))
 
     return {
         valid: true,
@@ -209,7 +209,7 @@ export async function verifyEndorsementToken(token: string) {
  * Submit endorsement and auto-mint badge if earned
  */
 export async function submitEndorsement(token: string, body: any) {
-    const { message, skills, fromName, fromRole, fromAvatarUrl } = body
+    const { message, skills, fromName, fromRole, fromAvatarUrl, fromUserId } = body
 
     // Validate required fields
     if (!message || !skills?.length || !fromName) {
@@ -229,8 +229,14 @@ export async function submitEndorsement(token: string, body: any) {
 
     const endorsementDoc = endorsementSnapshot.docs[0]
 
+    // Optional: Check if fromUserId == toUserId to prevent self-endorsement
+    if (fromUserId && fromUserId === endorsementDoc.data().toUserId) {
+        throw new Error('CANNOT_ENDORSE_SELF')
+    }
+
     // Update endorsement with submission details
     await endorsementDoc.ref.update({
+        fromUserId: fromUserId || null,
         fromName,
         fromRole: fromRole || '',
         fromAvatarUrl: fromAvatarUrl || '',

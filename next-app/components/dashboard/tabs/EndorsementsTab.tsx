@@ -102,19 +102,19 @@ export default function EndorsementsTab() {
     <div className="glass-panel p-8 rounded-3xl animate-in fade-in duration-500 relative">
 
       {/* Header & Request Button */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-gray-800/50 pb-6 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-slate-200/50 pb-6 gap-4">
         <div>
-          <h3 className="text-xl font-bold text-white">Endorsements</h3>
+          <h3 className="text-xl font-bold text-slate-900">Endorsements</h3>
           <div className="flex gap-4 mt-2">
             <button
               onClick={() => setActiveTab('received')}
-              className={`text-xs font-bold uppercase tracking-wider transition-colors pb-1 border-b-2 ${activeTab === 'received' ? 'text-blue-400 border-blue-400' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+              className={`text-xs font-bold uppercase tracking-wider transition-colors pb-1 border-b-2 ${activeTab === 'received' ? 'text-blue-400 border-blue-400' : 'text-slate-400 border-transparent hover:text-slate-700'}`}
             >
               Received ({receivedDisplayList.length})
             </button>
             <button
               onClick={() => setActiveTab('sent')}
-              className={`text-xs font-bold uppercase tracking-wider transition-colors pb-1 border-b-2 ${activeTab === 'sent' ? 'text-purple-400 border-purple-400' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+              className={`text-xs font-bold uppercase tracking-wider transition-colors pb-1 border-b-2 ${activeTab === 'sent' ? 'text-purple-400 border-purple-400' : 'text-slate-400 border-transparent hover:text-slate-700'}`}
             >
               Sent Requests ({sentDisplayList.length})
             </button>
@@ -136,55 +136,54 @@ export default function EndorsementsTab() {
           </div>
         ) : displayList.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-4xl mb-3">{activeTab === 'received' ? '🤝' : '📩'}</p>
-            <p className="text-gray-400 font-medium">
+            <p className="text-slate-500 font-medium">
               {activeTab === 'received' ? 'ยังไม่มี Endorsements ที่ได้รับ' : 'ยังไม่เคยส่ง Request หาใครเลย'}
             </p>
-            <p className="text-gray-600 text-sm mt-1">
+            <p className="text-slate-400 text-sm mt-1">
               {activeTab === 'received' ? 'ลองส่ง Request ไปหาเพื่อนก่อน!' : 'กดปุ่ม + Request New เพื่อเริ่มขอการรับรองจากเพื่อนเลย!'}
             </p>
           </div>
         ) : (
           displayList.map((item: any, index) => (
-            <div key={item.id || index} className={`bg-[#161b22] border rounded-2xl p-6 transition-all border-gray-800/80 hover:border-gray-700`}>
+            <div key={item.id || index} className={`bg-white border rounded-2xl p-6 transition-all border-slate-200/80 hover:border-slate-300`}>
               <div className="flex items-start justify-between mb-3">
                 <div className="flex gap-4 items-start">
-                  <div className={`w-10 h-10 rounded-full ${colors[index % colors.length]} flex items-center justify-center text-white font-bold shrink-0`}>
+                  <div className={`w-10 h-10 rounded-full ${colors[index % colors.length]} flex items-center justify-center text-slate-900 font-bold shrink-0`}>
                     {(item.fromName || item.fromUserName || item.toUserName || '?')[0].toUpperCase()}
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="text-white font-semibold text-sm">{item.fromName || item.fromUserName || 'Anonymous'}</h4>
+                      <h4 className="text-slate-900 font-semibold text-sm">{item.fromName || item.fromUserName || 'Anonymous'}</h4>
                       {item.status === 'verified' && (
                         <span className="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded flex items-center gap-1">
-                          ✓ Verified
+                          Verified
                         </span>
                       )}
                       {item.status === 'pending' && (
                         <span className="text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded flex items-center gap-1">
-                          ⏳ รอการยืนยัน
+                          Pending
                         </span>
                       )}
                     </div>
-                    {item.fromRole && <p className="text-xs text-gray-500 mt-0.5">{item.fromRole}</p>}
+                    {item.fromRole && <p className="text-xs text-slate-400 mt-0.5">{item.fromRole}</p>}
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-gray-500 text-[10px] uppercase font-bold tracking-wider">{activeTab === 'received' ? 'Received' : 'Requested'}</p>
-                  <span className="text-gray-500 text-[11px] block mt-0.5">{timeAgo(item.createdAt || item.verifiedAt)}</span>
+                  <p className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">{activeTab === 'received' ? 'Received' : 'Requested'}</p>
+                  <span className="text-slate-400 text-[11px] block mt-0.5">{timeAgo(item.createdAt || item.verifiedAt)}</span>
                 </div>
               </div>
 
               {item.status === 'pending' && item.link && (
-                <div className="mb-4 ml-14 bg-[#090d14] border border-gray-700/50 rounded-lg p-3 text-xs flex flex-col gap-2">
-                  <p className="text-gray-400 font-medium">ส่งลิงก์นี้ให้ผู้ยืนยันของคุณ:</p>
+                <div className="mb-4 ml-14 bg-slate-50 border border-slate-300/50 rounded-lg p-3 text-xs flex flex-col gap-2">
+                  <p className="text-slate-500 font-medium">ส่งลิงก์นี้ให้ผู้ยืนยันของคุณ:</p>
                   <div className="flex items-center gap-2">
-                    <code className="bg-[#161b22] px-2 py-1.5 rounded text-gray-300 w-full overflow-hidden text-ellipsis whitespace-nowrap border border-gray-800">
+                    <code className="bg-white px-2 py-1.5 rounded text-slate-700 w-full overflow-hidden text-ellipsis whitespace-nowrap border border-slate-200">
                       {item.link}
                     </code>
                     <button
                       onClick={() => { navigator.clipboard.writeText(item.link); alert('คัดลอกลิงก์แล้ว!'); }}
-                      className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded transition-colors whitespace-nowrap"
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-900 px-3 py-1.5 rounded transition-colors whitespace-nowrap"
                     >
                       Copy
                     </button>
@@ -193,7 +192,7 @@ export default function EndorsementsTab() {
               )}
 
               {item.message && (
-                <p className="text-gray-400 text-sm leading-relaxed mb-4 ml-14 italic">"{item.message}"</p>
+                <p className="text-slate-500 text-sm leading-relaxed mb-4 ml-14 italic">"{item.message}"</p>
               )}
 
               {item.skills?.length > 0 && (
@@ -213,10 +212,10 @@ export default function EndorsementsTab() {
       {/* ================= Request Endorsement Modal ================= */}
       {isRequestModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-start justify-center bg-black/60 backdrop-blur-sm p-4 pt-[12vh]">
-          <div className="bg-[#0d1117] border border-gray-700 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-top-10 duration-300">
-            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-[#161b22]">
-              <h3 className="font-bold text-white">Request Endorsement</h3>
-              <button onClick={() => { setIsRequestModalOpen(false); setSubmitResult(null) }} className="text-gray-500 hover:text-white transition-colors">✕</button>
+          <div className="bg-white border border-slate-300 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-top-10 duration-300">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white">
+              <h3 className="font-bold text-slate-900">Request Endorsement</h3>
+              <button onClick={() => { setIsRequestModalOpen(false); setSubmitResult(null) }} className="text-slate-400 hover:text-slate-900 transition-colors">✕</button>
             </div>
 
             <div className="p-6 space-y-5">
@@ -224,17 +223,14 @@ export default function EndorsementsTab() {
                 /* ── SUCCESS VIEW ── */
                 <div className="animate-in fade-in zoom-in-95 duration-300">
                   <div className="text-center mb-6">
-                    <div className="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border border-green-500/30">
-                      ✓
-                    </div>
-                    <h4 className="text-xl font-bold text-white mb-2">สร้างลิงก์สำเร็จ!</h4>
-                    <p className="text-sm text-gray-400">คัดลอกลิงก์ด้านล่างส่งให้เพื่อนของคุณเพื่อขอการรับรอง</p>
+                    <h4 className="text-xl font-bold text-slate-900 mb-2">สร้างลิงก์สำเร็จ</h4>
+                    <p className="text-sm text-slate-500">คัดลอกลิงก์ด้านล่างส่งให้เพื่อนของคุณเพื่อขอการรับรอง</p>
                   </div>
 
                   <div className="space-y-4">
                     {submitResult.link && (
                       <div className="space-y-3">
-                        <div className="bg-[#090d14] border border-gray-700 rounded-xl p-4 text-xs font-mono break-all text-blue-400 group relative">
+                        <div className="bg-slate-50 border border-slate-300 rounded-xl p-4 text-xs font-mono break-all text-blue-400 group relative">
                           {submitResult.link}
                           <button
                             onClick={() => { navigator.clipboard.writeText(submitResult.link!); alert('คัดลอกลิงก์แล้ว!') }}
@@ -259,11 +255,11 @@ export default function EndorsementsTab() {
                 <>
                   {/* ชื่อผู้ขอ */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">ชื่อผู้ที่จะ Endorse คุณ *</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">ชื่อผู้ที่จะ Endorse คุณ *</label>
                     <input
                       type="text"
                       placeholder="เช่น Nadech Kugimiya"
-                      className="w-full bg-[#090d14] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-blue-500 transition-colors"
                       value={requestForm.recipientName}
                       onChange={(e) => setRequestForm({ ...requestForm, recipientName: e.target.value })}
                     />
@@ -271,11 +267,11 @@ export default function EndorsementsTab() {
 
                   {/* Email (optional) */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Email (ถ้าต้องการส่งลิงก์)</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Email (ถ้าต้องการส่งลิงก์)</label>
                     <input
                       type="email"
                       placeholder="เช่น friend@example.com"
-                      className="w-full bg-[#090d14] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-blue-500 transition-colors"
                       value={requestForm.recipientEmail}
                       onChange={(e) => setRequestForm({ ...requestForm, recipientEmail: e.target.value })}
                     />
@@ -283,31 +279,23 @@ export default function EndorsementsTab() {
 
                   {/* Message */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">ข้อความถึงเพื่อน (Personal Message)</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">ข้อความถึงเพื่อน (Personal Message)</label>
                     <textarea
                       placeholder="เช่น ช่วยรีวิวทักษะ React จากโปรเจกต์เว็บล่าสุดให้หน่อยนะ..."
                       rows={3}
-                      className="w-full bg-[#090d14] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors resize-none text-sm"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-blue-500 transition-colors resize-none text-sm"
                       value={requestForm.message}
                       onChange={(e) => setRequestForm({ ...requestForm, message: e.target.value })}
                     />
                   </div>
-
-                  {/* Error Display */}
-                  {submitResult?.error && (
-                    <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl">
-                      ❌ {submitResult.error}
-                    </div>
-                  )}
-
                   {/* ปุ่ม Submit */}
                   <div className="pt-2">
                     <button
                       onClick={handleSendRequest}
                       disabled={isSubmitting}
-                      className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)]"
+                      className="w-full bg-white hover:bg-blue-300 disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 font-bold py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)]"
                     >
-                      {isSubmitting ? 'กำลังสร้าง Link...' : 'สร้าง Endorsement Link 🔗'}
+                      {isSubmitting ? 'กำลังสร้าง Link...' : 'สร้าง Endorsement Link'}
                     </button>
                   </div>
                 </>

@@ -9,14 +9,14 @@ import { AppError, AuthenticationError, NotFoundError, ValidationError } from '.
 export async function getSkillsHandler({ params, set }: any) {
     try {
         const skills = await SkillsService.getSkillsByUser(params.userId)
-        return { 
+        return {
             success: true,
-            data: skills 
+            data: skills
         }
     } catch (error: any) {
         console.error('Skills fetch error:', error.message)
         set.status = 500
-        return { 
+        return {
             success: false,
             error: error.message,
             code: 'INTERNAL_ERROR'
@@ -31,13 +31,13 @@ export async function getMySkillsHandler({ headers, set }: any) {
     try {
         const user = await verifyToken(headers['authorization'] || null)
         const skills = await SkillsService.getSkillsByUser(user.uid)
-        return { 
+        return {
             success: true,
-            data: skills 
+            data: skills
         }
     } catch (error: any) {
         set.status = 401
-        return { 
+        return {
             success: false,
             error: error.message,
             code: 'AUTH_ERROR'
@@ -58,14 +58,14 @@ export async function addSkillHandler({ headers, body, set }: any) {
             level: validatedInput.level ?? 1
         })
         set.status = 201
-        return { 
+        return {
             success: true,
-            data: skill 
+            data: skill
         }
     } catch (error: any) {
         if (error instanceof ValidationError) {
             set.status = 400
-            return { 
+            return {
                 success: false,
                 error: error.message,
                 code: error.code
@@ -73,14 +73,14 @@ export async function addSkillHandler({ headers, body, set }: any) {
         }
         if (error instanceof AuthenticationError) {
             set.status = 401
-            return { 
+            return {
                 success: false,
                 error: error.message,
                 code: error.code
             }
         }
         set.status = 500
-        return { 
+        return {
             success: false,
             error: error.message,
             code: 'INTERNAL_ERROR'
@@ -101,21 +101,21 @@ export async function updateSkillHandler({ headers, params, body, set }: any) {
 
         if (!result.ok) {
             set.status = result.status || 500
-            return { 
+            return {
                 success: false,
                 error: result.error,
                 code: 'UPDATE_FAILED'
             }
         }
 
-        return { 
+        return {
             success: true,
-            data: result.updated 
+            data: result.updated
         }
     } catch (error: any) {
         if (error instanceof ValidationError) {
             set.status = 400
-            return { 
+            return {
                 success: false,
                 error: error.message,
                 code: error.code
@@ -123,14 +123,14 @@ export async function updateSkillHandler({ headers, params, body, set }: any) {
         }
         if (error instanceof AuthenticationError) {
             set.status = 401
-            return { 
+            return {
                 success: false,
                 error: error.message,
                 code: error.code
             }
         }
         set.status = 500
-        return { 
+        return {
             success: false,
             error: error.message,
             code: 'INTERNAL_ERROR'
@@ -149,21 +149,21 @@ export async function deleteSkillHandler({ headers, params, set }: any) {
 
         if (!result.ok) {
             set.status = result.status || 500
-            return { 
+            return {
                 success: false,
                 error: result.error,
                 code: 'DELETE_FAILED'
             }
         }
 
-        return { 
+        return {
             success: true,
             data: { deleted: true }
         }
     } catch (error: any) {
         if (error instanceof ValidationError) {
             set.status = 400
-            return { 
+            return {
                 success: false,
                 error: error.message,
                 code: error.code
@@ -171,14 +171,14 @@ export async function deleteSkillHandler({ headers, params, set }: any) {
         }
         if (error instanceof AuthenticationError) {
             set.status = 401
-            return { 
+            return {
                 success: false,
                 error: error.message,
                 code: error.code
             }
         }
         set.status = 500
-        return { 
+        return {
             success: false,
             error: error.message,
             code: 'INTERNAL_ERROR'
@@ -195,29 +195,29 @@ export async function submitQuizHandler({ headers, params, body, set }: any) {
         const skillId = validateRequiredString(params.skillId, 'Skill ID')
         const { score } = body
 
-        if (typeof score !== 'number' || score < 0 || score > 4) {
+        if (typeof score !== 'number' || score < 0 || score > 15) {
             set.status = 400
-            return { success: false, error: 'Score must be between 0 and 4' }
+            return { success: false, error: 'Score must be between 0 and 15' }
         }
 
         const result = await SkillsService.submitSkillQuizAttempt(user.uid, skillId, score)
 
         if (!result.ok) {
             set.status = result.status || 500
-            return { 
+            return {
                 success: false,
                 error: result.error,
                 code: 'UPDATE_FAILED'
             }
         }
 
-        return { 
+        return {
             success: true,
-            data: result.updated 
+            data: result.updated
         }
     } catch (error: any) {
         set.status = 500
-        return { 
+        return {
             success: false,
             error: error.message,
             code: 'INTERNAL_ERROR'

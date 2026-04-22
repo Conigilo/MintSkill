@@ -12,10 +12,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     
     // รูปแบบสีต่างๆ
     const variants = {
-      primary: "bg-[#7c3aed] text-white hover:bg-[#6d28d9]",
-      outline: "border border-gray-700 bg-transparent text-gray-300 hover:bg-gray-800 hover:text-white",
-      ghost: "bg-transparent text-gray-400 hover:bg-gray-800 hover:text-white",
-      glow: "bg-[#7c3aed] text-white hover:bg-[#6d28d9] shadow-lg shadow-purple-500/40",
+      primary: "bg-[#7c3aed] text-slate-900 hover:bg-[#6d28d9]",
+      outline: "border border-slate-300 bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900",
+      ghost: "bg-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-900",
+      glow: "bg-[#7c3aed] text-slate-900 hover:bg-[#6d28d9] shadow-lg shadow-purple-500/40",
     };
     
     // ขนาดของปุ่ม

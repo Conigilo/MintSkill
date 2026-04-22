@@ -30,7 +30,7 @@ export const fetchAPI = async (endpoint: string, options: RequestInit = {}, retr
 
     const user = auth.currentUser;
     let token = "";
-    
+
     if (user) {
         token = await user.getIdToken();
     }
@@ -63,6 +63,8 @@ export const fetchAPI = async (endpoint: string, options: RequestInit = {}, retr
 
     const data = await response.json().catch(() => ({}));
 
+
+    console.log(response)
     if (!response.ok) {
         const message = data?.error || data?.message || `API Error: ${response.status}`;
         throw new Error(String(message));

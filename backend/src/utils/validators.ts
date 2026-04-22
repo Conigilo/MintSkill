@@ -143,11 +143,13 @@ export function validateEndorsementInput(body: any): {
   fromName: string
   fromRole?: string
   fromAvatarUrl?: string
+  fromUserId?: string
 } {
   const message = validateRequiredString(body.message, 'Endorsement message', 1, 500)
   const fromName = validateRequiredString(body.fromName, 'Your name', 1, 100)
   const fromRole = validateOptionalString(body.fromRole, 'Your role', 100)
   const fromAvatarUrl = validateOptionalString(body.fromAvatarUrl, 'Avatar URL', 500)
+  const fromUserId = validateOptionalString(body.fromUserId, 'From User ID', 100)
 
   if (!Array.isArray(body.skills) || body.skills.length === 0) {
     throw new ValidationError('At least one skill is required')
@@ -157,7 +159,7 @@ export function validateEndorsementInput(body: any): {
   }
   const skills = body.skills.map((s: any) => validateRequiredString(s, 'Skill name', 1, 100))
 
-  return { message, skills, fromName, fromRole, fromAvatarUrl }
+  return { message, skills, fromName, fromRole, fromAvatarUrl, fromUserId }
 }
 
 /**

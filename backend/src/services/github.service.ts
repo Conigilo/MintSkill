@@ -99,6 +99,7 @@ export async function syncGitHub(uid: string) {
 
     // Update user's GitHub stats
     await db.collection(Collections.USERS).doc(uid).update({
+        'github.login': githubUser.login,
         'github.repoCount': repositories.length,
         'github.totalStars': totalStars,
         'github.totalContributions': totalContributions,

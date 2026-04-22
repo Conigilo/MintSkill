@@ -60,7 +60,7 @@ export default function OverviewTab() {
         if (!prev) return prev
         return {
           ...prev,
-          recentRepos: prev.recentRepos?.map((r: any) => 
+          recentRepos: prev.recentRepos?.map((r: any) =>
             r.id === repoId ? { ...r, isSpotlight: !r.isSpotlight } : r
           )
         }
@@ -85,9 +85,9 @@ export default function OverviewTab() {
           { label: "CONTRIBUTIONS", value: stats.contributions.toString(), color: "text-yellow-400" },
           { label: "PROJECTS", value: stats.projects.toString(), color: "text-purple-400" },
         ].map((stat, i) => (
-          <div key={i} className="glass-panel p-5 rounded-2xl text-center hover:bg-gray-800/30 transition-colors">
+          <div key={i} className="glass-panel p-5 rounded-2xl text-center hover:bg-slate-100/30 transition-colors">
             <p className={`text-3xl font-bold mb-1 ${stat.color}`}>{skillsLoading || loading ? '...' : stat.value}</p>
-            <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase">{stat.label}</p>
+            <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">{stat.label}</p>
           </div>
         ))}
       </div>
@@ -96,30 +96,30 @@ export default function OverviewTab() {
         {/* 2. Top Skills Section */}
         <div className="glass-panel p-8 rounded-3xl">
           <div className="flex justify-between items-center mb-8">
-            <h3 className="text-xl font-bold text-white">Top Skills</h3>
-            <span className="text-xs border border-gray-700 bg-gray-800/50 px-3 py-1.5 rounded-full text-gray-400">
+            <h3 className="text-xl font-bold text-slate-900">Top Skills</h3>
+            <span className="text-xs border border-slate-300 bg-slate-100/50 px-3 py-1.5 rounded-full text-slate-500">
               {topSkills.length} verified
             </span>
           </div>
 
           <div className="space-y-6">
             {skillsLoading ? (
-              <p className="text-gray-400">Loading skills...</p>
+              <p className="text-slate-500">Loading skills...</p>
             ) : topSkills.length > 0 ? (
               <div>
-                <p className="text-xs text-gray-500 font-bold mb-3 uppercase tracking-wider">{topSkills[0]?.category}</p>
+                <p className="text-xs text-slate-400 font-bold mb-3 uppercase tracking-wider">{topSkills[0]?.category}</p>
                 <div className="flex flex-wrap gap-3">
                   {topSkills.map((skill, idx) => (
-                    <div key={idx} className="bg-[#161b22] border border-gray-700/50 px-4 py-2 rounded-full flex items-center gap-2 text-sm">
+                    <div key={idx} className="bg-white border border-slate-300/50 px-4 py-2 rounded-full flex items-center gap-2 text-sm">
                       <span className="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
                       {skill.name}
-                      {skill.level && <span className="text-gray-500 text-xs ml-1">★{skill.level}</span>}
+                      {skill.level && <span className="text-slate-400 text-xs ml-1">★{skill.level}</span>}
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
-              <p className="text-gray-400">No skills added yet. Add your first skill!</p>
+              <p className="text-slate-500">No skills added yet. Add your first skill!</p>
             )}
           </div>
         </div>
@@ -127,29 +127,29 @@ export default function OverviewTab() {
         {/* 3. Badges Section */}
         <div className="glass-panel p-8 rounded-3xl h-full">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-bold text-white">Earned Badges</h3>
-            <span className="text-xs border border-gray-700 bg-gray-800/50 px-3 py-1.5 rounded-full text-gray-400">
+            <h3 className="text-xl font-bold text-slate-900">Earned Badges</h3>
+            <span className="text-xs border border-slate-300 bg-slate-100/50 px-3 py-1.5 rounded-full text-slate-500">
               {topBadges.length} total
             </span>
           </div>
           {topBadges.length > 0 ? (
             <div className="grid grid-cols-2 gap-4">
               {topBadges.map((badge, idx) => (
-                <div 
-                  key={idx} 
+                <div
+                  key={idx}
                   onClick={() => setBadgeModal({ isOpen: true, badge })}
-                  className="bg-[#0d1117]/50 border border-gray-800 rounded-2xl p-4 text-center hover:border-blue-500/50 hover:bg-[#161b22] transition-all cursor-pointer shadow-sm shadow-blue-900/10"
+                  className="bg-white/50 border border-slate-200 rounded-2xl p-4 text-center hover:border-blue-500/50 hover:bg-white transition-all cursor-pointer shadow-sm shadow-blue-900/10"
                 >
                   <img src={badge.iconUrl || 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png'} className="w-8 h-8 object-contain mx-auto mb-2" alt="" />
-                  <h4 className="text-xs font-semibold text-white truncate">{badge.name}</h4>
+                  <h4 className="text-xs font-semibold text-slate-900 truncate">{badge.name}</h4>
                 </div>
               ))}
             </div>
           ) : (
-             <div className="flex flex-col items-center justify-center py-6 text-center">
-                <div className="text-3xl mb-2 grayscale opacity-30">🏆</div>
-                <p className="text-xs text-gray-500">Get endorsements to earn badges!</p>
-             </div>
+            <div className="flex flex-col items-center justify-center py-6 text-center">
+
+              <p className="text-xs text-slate-400">Get endorsements to earn badges!</p>
+            </div>
           )}
         </div>
       </div>
@@ -158,55 +158,53 @@ export default function OverviewTab() {
       <div className="glass-panel p-8 rounded-3xl">
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-3">
-            <h3 className="text-xl font-bold text-white">GitHub Spotlight</h3>
-            <button 
-              onClick={handleSync} 
+            <h3 className="text-xl font-bold text-slate-900">GitHub Spotlight</h3>
+            <button
+              onClick={handleSync}
               disabled={isSyncing}
-              className="p-1.5 rounded-full bg-gray-800 text-gray-400 hover:text-white transition-all disabled:opacity-50"
+              className="p-1.5 rounded-full bg-slate-100 text-slate-500 hover:text-slate-900 transition-all disabled:opacity-50"
             >
               <RefreshCw size={14} className={isSyncing ? "animate-spin" : ""} />
             </button>
           </div>
-          <span className="text-xs text-gray-500">
-             Pin your best works to show on profile
+          <span className="text-xs text-slate-400">
+            Pin your best works to show on profile
           </span>
         </div>
 
         {recentRepos.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {recentRepos.map((repo: any, idx: number) => (
-              <div 
-                key={idx} 
-                className={`p-5 rounded-2xl border transition-all relative group bg-[#0d1117]/50 ${
-                  repo.isSpotlight ? 'border-orange-500/40 bg-orange-500/[0.03]' : 'border-gray-800 hover:border-gray-700'
-                }`}
+              <div
+                key={idx}
+                className={`p-5 rounded-2xl border transition-all relative group bg-white/50 ${repo.isSpotlight ? 'border-orange-500/40 bg-orange-500/[0.03]' : 'border-slate-200 hover:border-slate-300'
+                  }`}
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-2">
-                    <Github size={16} className="text-gray-400" />
-                    <h4 className="font-bold text-white text-sm truncate max-w-[150px]">{repo.name}</h4>
+                    <Github size={16} className="text-slate-500" />
+                    <h4 className="font-bold text-slate-900 text-sm truncate max-w-[150px]">{repo.name}</h4>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button 
+                    <button
                       onClick={() => toggleSpotlight(repo.id)}
-                      className={`p-1.5 rounded-lg transition-all ${
-                        repo.isSpotlight 
-                          ? 'bg-orange-500/20 text-orange-400' 
-                          : 'bg-gray-800 text-gray-500 hover:text-gray-300 opacity-0 group-hover:opacity-100'
-                      }`}
+                      className={`p-1.5 rounded-lg transition-all ${repo.isSpotlight
+                        ? 'bg-orange-500/20 text-orange-400'
+                        : 'bg-slate-100 text-slate-400 hover:text-slate-700 opacity-0 group-hover:opacity-100'
+                        }`}
                       title={repo.isSpotlight ? "Remove from Spotlight" : "Add to Spotlight"}
                     >
                       <Star size={14} fill={repo.isSpotlight ? "currentColor" : "none"} />
                     </button>
-                    <a href={repo.url} target="_blank" rel="noreferrer" className="p-1.5 rounded-lg bg-gray-800 text-gray-500 hover:text-white">
+                    <a href={repo.url} target="_blank" rel="noreferrer" className="p-1.5 rounded-lg bg-slate-100 text-slate-400 hover:text-slate-900">
                       <ExternalLink size={14} />
                     </a>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 line-clamp-2 h-8 mb-4">
+                <p className="text-xs text-slate-400 line-clamp-2 h-8 mb-4">
                   {repo.description || "No description provided."}
                 </p>
-                <div className="flex items-center gap-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   {repo.language && (
                     <span className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-orange-500"></span>
@@ -219,9 +217,9 @@ export default function OverviewTab() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 bg-black/20 rounded-2xl border border-dashed border-gray-800">
-             <Github size={32} className="mx-auto mb-3 text-gray-700" />
-             <p className="text-sm text-gray-500">Connect GitHub to spotlight your projects</p>
+          <div className="text-center py-12 bg-black/20 rounded-2xl border border-dashed border-slate-200">
+            <Github size={32} className="mx-auto mb-3 text-gray-700" />
+            <p className="text-sm text-slate-400">Connect GitHub to spotlight your projects</p>
           </div>
         )}
       </div>
@@ -236,14 +234,14 @@ export default function OverviewTab() {
             onClick={() => setBadgeModal({ isOpen: false, badge: null })}
           >
             <div
-              className="bg-[#0d1117] border border-gray-700 rounded-3xl w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden"
+              className="bg-white border border-slate-300 rounded-3xl w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden"
               onClick={e => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between px-5 py-4 bg-[#161b22] border-b border-gray-800">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Skill Certificate</span>
+              <div className="flex items-center justify-between px-5 py-4 bg-white border-b border-slate-200">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Skill Certificate</span>
                 <button
                   onClick={() => setBadgeModal({ isOpen: false, badge: null })}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-all"
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition-all"
                 >
                   ✕
                 </button>
@@ -253,27 +251,27 @@ export default function OverviewTab() {
                 <div className={`w-20 h-20 rounded-full bg-blue-500 flex items-center justify-center shadow-lg relative mb-4`}>
                   <img src={activeBadge.iconUrl || 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png'} className="w-10 h-10 object-contain" alt="" />
                   <div className="absolute -bottom-1 -right-1 bg-green-500 border-2 border-[#0d1117] w-6 h-6 rounded-full flex items-center justify-center">
-                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-white tracking-tight">{activeBadge.name}</h3>
+                <h3 className="text-xl font-bold text-slate-900 tracking-tight">{activeBadge.name}</h3>
                 <p className="text-blue-400 text-sm font-medium mt-1">Verified Expert</p>
               </div>
 
               <div className="px-6 pb-6 space-y-3">
-                <div className="bg-[#090d14] rounded-2xl p-4 border border-gray-800 space-y-3 text-left">
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3 text-left">
                   <div>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Verification Details</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Verification Details</p>
                     <p className="text-sm text-green-400 font-medium">
                       {activeBadge.description || `Successfully verified by Endorsements and AI Quiz for ${activeBadge.skillName}`}
                     </p>
-                    <p className="text-[10px] text-gray-500 mt-1">Issued: {new Date(activeBadge.unlockedAt?.seconds ? activeBadge.unlockedAt.seconds * 1000 : activeBadge.unlockedAt || Date.now()).toLocaleDateString()}</p>
+                    <p className="text-[10px] text-slate-400 mt-1">Issued: {new Date(activeBadge.unlockedAt?.seconds ? activeBadge.unlockedAt.seconds * 1000 : activeBadge.unlockedAt || Date.now()).toLocaleDateString()}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Credential ID</p>
-                    <p className="text-xs text-gray-400 font-mono bg-[#161b22] px-2 py-1 rounded">{credId}</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Credential ID</p>
+                    <p className="text-xs text-slate-500 font-mono bg-white px-2 py-1 rounded">{credId}</p>
                   </div>
                 </div>
               </div>

@@ -17,8 +17,8 @@ const sizeMap = {
 const LoadingSpinner = memo(({ size = 'md', label }: LoadingSpinnerProps) => {
   return (
     <div className="flex flex-col items-center justify-center gap-3">
-      <div className={`animate-spin rounded-full border-2 border-gray-700 border-t-blue-500 ${sizeMap[size]}`} />
-      {label && <p className="text-sm text-gray-400">{label}</p>}
+      <div className={`animate-spin rounded-full border-2 border-slate-300 border-t-blue-500 ${sizeMap[size]}`} />
+      {label && <p className="text-sm text-slate-500">{label}</p>}
     </div>
   )
 })
