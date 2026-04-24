@@ -1,5 +1,4 @@
 import { aiService } from '../services/ai.service';
-import { AppError } from '../utils/errors';
 
 export async function generateQuizHandler({ body, set }: any) {
   try {

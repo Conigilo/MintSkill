@@ -46,5 +46,19 @@ export const userService = {
         }
       };
     }
+  },
+
+  // แก้ไขข้อมูลโปรไฟล์ (เรียก PUT /users/me)
+  updateProfile: async (data: {
+    displayName?: string;
+    title?: string;
+    bio?: string;
+    location?: string;
+    linkedinUrl?: string;
+  }) => {
+    return await fetchAPI('/users/me', {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
   }
 };

@@ -3,123 +3,172 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useEffect, useState } from "react";
 
 export default function LandingPage() {
     const router = useRouter();
     const { user, loading, logout } = useAuth();
+    const [imgSrc, setImgSrc] = useState("/logo.png");
 
-    // ถ้า Login แล้ว ก็ไม่ต้องเด้งไปทันที เพื่อให้เห็น Landing Page ก่อน
-    // แต่เราจะเปลี่ยนปุ่ม Hero เป็น "Go to Dashboard" แทน
+    // Force refresh logo if it's not updating
+    useEffect(() => {
+        setImgSrc(`/logo.png?t=${Date.now()}`);
+    }, []);
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden relative">
+        <div className="lp-root">
+            {/* Background Decorations */}
+            <div className="lp-blob lp-blob-1" />
+            <div className="lp-blob lp-blob-2" />
 
-            {/* Background Effects (แสง Glow แบบอนาคต) */}
-            <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-blue-600/15 rounded-full blur-[150px] pointer-events-none"></div>
-            <div className="absolute bottom-[10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[150px] pointer-events-none"></div>
-
-            {/* 1. Navbar */}
-            <nav className="border-b border-slate-200/50 bg-slate-50/80 backdrop-blur-md sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                    <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 tracking-tight">
-                        SKILL WALLET
-                    </span>
-
-                    {loading ? (
-                        <div className="w-24 h-9 bg-slate-100 animate-pulse rounded-full"></div>
-                    ) : user ? (
-                        <div className="flex items-center gap-4">
-                            <button onClick={logout} className="text-xs text-red-400 hover:text-red-300 transition-colors">Sign Out</button>
-                        </div>
-                    ) : (
-                        <button
-                            onClick={() => router.push("/login")}
-                            className="text-sm bg-white text-black hover:bg-gray-200 px-5 py-2.5 rounded-full font-bold transition-all"
-                        >
-                            Sign in
-                        </button>
-                    )}
-                </div>
-            </nav>
-
-            <main className="max-w-7xl mx-auto px-6 pt-20 pb-32 relative z-10">
-
-                {/* 2. Hero Section */}
-                <div className="text-center max-w-4xl mx-auto mb-24">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium mb-6 animate-fade-in">
-                        <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                        The Future of Developer Portfolios
+            {/* Navigation */}
+            <nav className="lp-nav">
+                <div className="lp-nav-inner">
+                    <div className="lp-logo-area" onClick={() => router.push("/")} style={{ cursor: 'pointer' }}>
+                        <img
+                            src={imgSrc}
+                            alt="Skill Wallet Logo"
+                            style={{ height: '150px', width: 'auto', objectFit: 'contain' }}
+                        />
                     </div>
-                    <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-tight">
-                        Prove your skills <br />
-                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-emerald-400">
-                            Not just your resume
-                        </span>
-                    </h1>
-                    <p className="text-xl text-slate-500 mb-10 max-w-2xl mx-auto leading-relaxed">
-                        Connect your GitHub, pass AI-powered assessments, and get endorsed by peers. Build a verified portfolio that actually lands you jobs.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                        {user ? (
-                            <button
-                                onClick={() => router.push("/dashboard")}
-                                className="w-full sm:w-auto px-8 py-4 bg-purple-600 hover:bg-purple-500 text-slate-900 rounded-xl font-bold text-lg transition-all shadow-[0_0_20px_rgba(147,51,234,0.4)] hover:scale-105"
-                            >
-                                Go to Dashboard
+
+                    <div className="lp-nav-right">
+                        {loading ? (
+                            <div className="lp-nav-skeleton" />
+                        ) : user ? (
+                            <button onClick={logout} className="lp-btn-nav-ghost">
+                                Sign Out
                             </button>
                         ) : (
                             <button
                                 onClick={() => router.push("/login")}
-                                className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-lg transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:scale-105 flex items-center justify-center gap-3"
+                                className="lp-btn-nav-ghost"
                             >
-                                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd"></path></svg>
-                                Get Started with GitHub
+                                Sign In
                             </button>
                         )}
-                        <a href="#features" className="text-slate-500 hover:text-slate-900 font-medium px-6 py-4">
-                            Learn more
+                    </div>
+                </div>
+            </nav>
+
+            {/* Hero Section */}
+            <main className="lp-hero">
+                <div className="lp-hero-content">
+                    <h1 className="lp-h1">
+                        Prove your skills <br />
+                        <span className="lp-h1-accent-static">Not just your resume</span>
+                    </h1>
+
+                    <p className="lp-subtext">
+                        Connect your GitHub, pass AI powered assessments, and get endorsed
+                        by peers. Build a verified portfolio that actually lands you jobs.
+                    </p>
+
+                    <div className="lp-cta-row">
+                        {user ? (
+                            <button
+                                onClick={() => router.push("/dashboard")}
+                                className="lp-btn-hero-primary"
+                            >
+                                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" className="mr-2">
+                                    <rect x="2" y="2" width="7" height="7" rx="2" fill="currentColor" opacity="0.7" />
+                                    <rect x="11" y="2" width="7" height="7" rx="2" fill="currentColor" />
+                                    <rect x="2" y="11" width="7" height="7" rx="2" fill="currentColor" />
+                                    <rect x="11" y="11" width="7" height="7" rx="2" fill="currentColor" opacity="0.7" />
+                                </svg>
+                                Open Dashboard
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => router.push("/login")}
+                                className="lp-btn-hero-primary"
+                            >
+                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24" className="mr-2">
+                                    <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+                                </svg>
+                                Start with GitHub
+                            </button>
+                        )}
+                        <a href="#features" className="lp-btn-hero-ghost">
+                            view more
                         </a>
                     </div>
+
+                    {/* Trust indicators */}
+                    <div className="lp-trust-bar">
+                        <div className="lp-trust-item">
+                            <span className="lp-trust-num">10k+</span>
+                            <span className="lp-trust-label">Developers</span>
+                        </div>
+                        <div className="lp-trust-sep" />
+                        <div className="lp-trust-item">
+                            <span className="lp-trust-num">50k+</span>
+                            <span className="lp-trust-label">Skills Verified</span>
+                        </div>
+                        <div className="lp-trust-sep" />
+                        <div className="lp-trust-item">
+                            <span className="lp-trust-num">98%</span>
+                            <span className="lp-trust-label">Accuracy</span>
+                        </div>
+                    </div>
                 </div>
-
-                {/* 3. Features */}
-                <div id="features" className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-32">
-
-                    <div className="bg-white/50 border border-slate-200 p-8 rounded-3xl hover:border-blue-500/50 transition-colors">
-                        <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20">
-                            <span className="text-2xl">🤖</span>
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-3">AI-Powered Verification</h3>
-                        <p className="text-slate-500 text-sm leading-relaxed">
-                            We analyze your GitHub repositories and generate personalized technical assessments to prove your actual coding skills.
-                        </p>
-                    </div>
-                    <div className="bg-white/50 border border-slate-200 p-8 rounded-3xl hover:border-purple-500/50 transition-colors">
-                        <div className="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center mb-6 border border-purple-500/20">
-                            <span className="text-2xl">🤝</span>
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-3">Peer Endorsements</h3>
-                        <p className="text-slate-500 text-sm leading-relaxed">
-                            Request and receive verifiable endorsements from colleagues, classmates, and mentors to build social proof.
-                        </p>
-                    </div>
-
-                    <div className="bg-white/50 border border-slate-200 p-8 rounded-3xl hover:border-emerald-500/50 transition-colors">
-                        <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-6 border border-emerald-500/20">
-                            <span className="text-2xl">⚡</span>
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-3">Shareable Widgets</h3>
-                        <p className="text-slate-500 text-sm leading-relaxed">
-                            Export your verified skills as a beautiful PDF resume or embed a dynamic widget directly onto your personal website.
-                        </p>
-                    </div>
-
-                </div>
-
             </main>
 
-            <footer className="border-t border-slate-200/50 bg-slate-50 py-8 text-center text-slate-400 text-sm">
-                <p>Built with Next.js & Tailwind CSS. Designed for Developers.</p>
+            {/* Features Section */}
+            <section id="features" className="lp-features">
+                <div className="lp-features-header">
+                    <p className="lp-eyebrow">Why Skill Wallet?</p>
+                    <h2 className="lp-h2">Everything you need to stand out</h2>
+                </div>
+
+                <div className="lp-features-grid">
+                    <div className="lp-card lp-card-blue">
+                        <h3 className="lp-card-title">AI-Powered Verification</h3>
+                        <p className="lp-card-desc">
+                            We analyze your GitHub repositories and generate personalized
+                            technical assessments to prove your actual coding skills.
+                        </p>
+                        <div className="lp-card-tags">
+                            <span className="lp-tag">GitHub Analysis</span>
+                            <span className="lp-tag">AI Quiz</span>
+                        </div>
+                    </div>
+
+                    <div className="lp-card lp-card-purple lp-card-featured">
+                        <div className="lp-featured-pill">Most Popular</div>
+                        <h3 className="lp-card-title">Peer Endorsements</h3>
+                        <p className="lp-card-desc">
+                            Request and receive verifiable endorsements from colleagues,
+                            classmates, and mentors to build real social proof.
+                        </p>
+                        <div className="lp-card-tags">
+                            <span className="lp-tag">Social Proof</span>
+                            <span className="lp-tag">Verified</span>
+                        </div>
+                    </div>
+
+                    <div className="lp-card lp-card-emerald">
+                        <h3 className="lp-card-title">Shareable Widgets</h3>
+                        <p className="lp-card-desc">
+                            Export your verified skills as a beautiful PDF resume or embed
+                            a dynamic widget directly onto your personal website.
+                        </p>
+                        <div className="lp-card-tags">
+                            <span className="lp-tag">PDF Export</span>
+                            <span className="lp-tag">Embeddable</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Footer */}
+            <footer className="lp-footer">
+                <div className="lp-footer-logo">
+                    <img src={imgSrc} alt="Logo" style={{ height: '100px', width: 'auto', objectFit: 'contain' }} />
+                </div>
+                <p className="lp-footer-copy">
+                    © 2026 MintSkll · Built with Next.js · Designed for Developers
+                </p>
             </footer>
         </div>
     );

@@ -2,11 +2,6 @@ import { Elysia } from 'elysia';
 import * as EndorsementsController from '../controllers/endorsements.controller';
 
 export const endorsementsRoute = new Elysia({ prefix: '/endorsements', tags: ['Endorsements'] })
-
-    // ⚠️  Static routes (/request, /verify/:token, /submit/:token)
-    // ต้องประกาศก่อน dynamic route (/:userId) เสมอ
-    // ไม่งั้น Elysia จะส่ง "request" / "verify" ไปชน /:userId แทน
-
     // POST /endorsements/request
     .post('/request', EndorsementsController.requestEndorsementHandler, {
         detail: {

@@ -14,6 +14,7 @@ import { useUserSkills, useMyEndorsements, useUserBadges } from "@/hooks/useProf
 import CVTemplate from "@/components/dashboard/CVTemplate";
 import Image from "next/image";
 import { GitHubCalendar } from "react-github-calendar";
+import EditProfileModal from "@/components/dashboard/EditProfileModal";
 
 const TABS = ["Overview", "Skills", "Endorsements", "Gap Analysis", "Export Portfolio"] as const;
 
@@ -24,22 +25,26 @@ export default function DashboardPage() {
     displayName?: string;
     title?: string;
     bio?: string;
+    location?: string;
+    linkedinUrl?: string;
     github?: { connected?: boolean; login?: string; repoCount?: number; totalContributions?: number; totalStars?: number };
   } | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const { skills } = useUserSkills(user?.uid);
   const { endorsements: myEndorsements } = useMyEndorsements();
   const { badges } = useUserBadges(user?.uid);
 
+  const refreshProfile = () => {
+    userService.getProfile().then((res) => {
+      const data = res?.data || res?.user || res;
+      if (data?.uid || data?.displayName) setProfile(data);
+    }).catch(() => { });
+  };
+
   useEffect(() => {
     if (authLoading || !user) return;
-    userService
-      .getProfile()
-      .then((res) => {
-        const data = res?.data || res?.user || res;
-        if (data?.uid || data?.displayName) setProfile(data);
-      })
-      .catch(() => { });
+    refreshProfile();
   }, [user, authLoading]);
 
   return (
@@ -76,31 +81,30 @@ export default function DashboardPage() {
                     </div>
                     <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-2 border-[#161b22] rounded-full" />
                   </div>
-                  <h2 className="text-2xl font-bold text-slate-900">{profile?.displayName || user?.displayName || "User"}</h2>
-                  <p className="text-slate-500 text-sm mb-1">{profile?.github?.login ? `@${profile.github.login}` : user?.email || "N/A"}</p>
-                  <p className="text-blue-400 font-medium text-sm mb-6">{profile?.title || "Developer"}</p>
-                  <p className="text-sm text-slate-500 text-left mb-6">{profile?.bio || "Welcome to your Skill Wallet portfolio."}</p>
-
-                  <div className="space-y-3">
+                  {/* ชื่อ + ปุ่มแก้ไข (spacer ซ้ายทำให้ชื่อ center จริงๆ) */}
+                  <div className="flex justify-center items-center gap-1 mb-1">
+                    <div className="w-5 h-5 flex-shrink-0" /> {/* spacer */}
+                    <h2 className="text-2xl font-bold text-slate-900">{profile?.displayName || user?.displayName || "User"}</h2>
                     <button
-                      onClick={async () => {
-                        try {
-                          if (linkGithubAccount) {
-                            await linkGithubAccount();
-                            window.location.reload();
-                          }
-                        } catch (e) {
-                          console.error(e);
-                        }
-                      }}
-                      className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-xl font-medium border border-slate-700 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                      onClick={() => setIsEditOpen(true)}
+                      className="w-5 h-5 flex-shrink-0 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+                      title="Edit Profile"
                     >
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+                      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                       </svg>
-                      Sync GitHub
                     </button>
                   </div>
+                  <p className="text-slate-500 text-sm mb-1">{profile?.github?.login ? `@${profile.github.login}` : user?.email || "N/A"}</p>
+                  <p className="text-blue-400 font-medium text-sm mb-3">{profile?.title || "Developer"}</p>
+                  {profile?.location && (
+                    <p className="text-xs text-slate-400 mb-2 flex items-center justify-center gap-1">
+                      <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                      {profile.location}
+                    </p>
+                  )}
+                  <p className="text-sm text-slate-500 text-left mb-6">{profile?.bio || "Welcome to your Skill Wallet portfolio."}</p>
+
                 </div>
 
                 {/* GitHub Status Card */}
@@ -220,6 +224,20 @@ export default function DashboardPage() {
       <div className="hidden print:block print-visible">
         <CVTemplate user={user} skills={skills} />
       </div>
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        onSaved={refreshProfile}
+        initialData={{
+          displayName: profile?.displayName || user?.displayName || '',
+          title: profile?.title || '',
+          bio: profile?.bio || '',
+          location: profile?.location || '',
+          linkedinUrl: profile?.linkedinUrl || '',
+        }}
+      />
     </>
   );
 }

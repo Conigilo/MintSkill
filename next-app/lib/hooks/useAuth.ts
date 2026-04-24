@@ -65,7 +65,11 @@ export const useAuth = () => {
                 await githubService.connectAccount(credential.accessToken);
             }
             return result;
-        } catch (error) {
+        } catch (error: any) {
+            // ผู้ใช้ปิด popup เอง หรือกดซ้ำ — ไม่ใช่ error จริง
+            if (error?.code === 'auth/cancelled-popup-request' || error?.code === 'auth/popup-closed-by-user') {
+                return null;
+            }
             console.error("GitHub Login Error:", error);
             throw error;
         }
@@ -101,7 +105,11 @@ export const useAuth = () => {
         const provider = new GoogleAuthProvider();
         try {
             return await signInWithPopup(auth, provider);
-        } catch (error) {
+        } catch (error: any) {
+            // ผู้ใช้ปิด popup เอง หรือกดซ้ำ — ไม่ใช่ error จริง
+            if (error?.code === 'auth/cancelled-popup-request' || error?.code === 'auth/popup-closed-by-user') {
+                return null;
+            }
             console.error("Google Login Error:", error);
             throw error;
         }

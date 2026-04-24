@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [isGithubLoading, setIsGithubLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -25,18 +26,21 @@ export default function LoginPage() {
 
   const handleGitHubLogin = async () => {
     try {
-      await loginWithGithub()
-      router.push(ROUTES.DASHBOARD)
+      setIsGithubLoading(true)
+      const result = await loginWithGithub()
+      if (result) router.push(ROUTES.DASHBOARD) // null = ผู้ใช้ปิด popup เอง
     } catch (err: any) {
       setError(err.message || "Failed to login with GitHub")
+    } finally {
+      setIsGithubLoading(false)
     }
   }
 
   const handleGoogleLogin = async () => {
     try {
       setIsGoogleLoading(true)
-      await loginWithGoogle()
-      router.push(ROUTES.DASHBOARD)
+      const result = await loginWithGoogle()
+      if (result) router.push(ROUTES.DASHBOARD) // null = ผู้ใช้ปิด popup เอง
     } catch (err: any) {
       console.error("Google login error", err)
       setError(err.message || "Failed to login with Google")
@@ -48,13 +52,26 @@ export default function LoginPage() {
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    // Validate ก่อนส่งไป Firebase
+    if (!email.trim()) {
+      setError("กรุณากรอกอีเมล")
+      return
+    }
+    if (!password.trim()) {
+      setError("กรุณากรอกรหัสผ่าน")
+      return
+    }
+
     try {
-      await signInWithEmail(email, password)
+      await signInWithEmail(email.trim(), password)
       router.push(ROUTES.DASHBOARD)
     } catch (err: any) {
       console.error(err)
-      if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
+      if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
         setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง")
+      } else if (err.code === "auth/invalid-email") {
+        setError("รูปแบบอีเมลไม่ถูกต้อง")
       } else if (err.code === "auth/operation-not-allowed") {
         setError("Email/Password login is temporarily unavailable. Please use Google or GitHub instead.")
       } else {
@@ -90,10 +107,8 @@ export default function LoginPage() {
 
           <div className="text-center mb-8">
             {/* Logo Icon */}
-            <div className="w-14 h-14 mx-auto bg-slate-50 rounded-2xl flex items-center justify-center border border-[var(--border)] shadow-[0_4px_20px_rgba(0,0,0,0.3)] mb-6">
-              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-blue-400 to-purple-500 tracking-tight leading-none">
-                S
-              </span>
+            <div className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center border border-[var(--border)] shadow-[0_4px_20px_rgba(0,0,0,0.3)] mb-6">
+              <img src="/logo.png" alt="MintSkill Logo" style={{ height: '400px', width: 'auto', objectFit: 'contain' }} />
             </div>
             <h1 className="text-[28px] font-serif font-bold tracking-tight text-slate-900 mb-2">Welcome Back</h1>
             <p className="text-[14px] text-slate-500">Sign in to access your digital portfolio.</p>

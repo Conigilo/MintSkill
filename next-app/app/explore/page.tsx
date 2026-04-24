@@ -92,14 +92,22 @@ export default function ExplorePage() {
                                     {dev.photoURL ? (
                                         <img 
                                             src={dev.photoURL}
-                                            alt={dev.name || 'Developer'}
+                                            alt={getName(dev)}
                                             className="w-12 h-12 rounded-full object-cover"
+                                            onError={(e) => {
+                                                const target = e.currentTarget;
+                                                target.style.display = 'none';
+                                                const fallback = target.nextElementSibling as HTMLElement;
+                                                if (fallback) fallback.style.display = 'flex';
+                                            }}
                                         />
-                                    ) : (
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center font-bold text-lg">
-                                            {getName(dev).charAt(0).toUpperCase()}
-                                        </div>
-                                    )}
+                                    ) : null}
+                                    <div
+                                        className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 items-center justify-center font-bold text-lg text-white"
+                                        style={{ display: dev.photoURL ? 'none' : 'flex' }}
+                                    >
+                                        {getName(dev).charAt(0).toUpperCase()}
+                                    </div>
                                     <div>
                                         <h3 className="font-bold">{getName(dev)}</h3>
                                         <p className="text-sm text-slate-500">{dev.title || 'Professional'}</p>

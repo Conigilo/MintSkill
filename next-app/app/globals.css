@@ -16,7 +16,8 @@
   /* เขียนด้วย Native CSS แทนการใช้ @apply เพื่อตัดปัญหา */
   body {
     background-color: var(--background);
-    color: #0f172a; /* slate-900 */
+    color: #0f172a;
+    /* slate-900 */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -72,19 +73,465 @@
 
 @layer utilities {
   .glow-primary {
-    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15); /* Soft Shadow */
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
+    /* Soft Shadow */
   }
 
   .glass-panel {
     background-color: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(16px);
     border: 1px solid var(--border);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); /* Soft Shadow */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    /* Soft Shadow */
   }
+}
+
+/* ════════════════════════════════════════
+   LANDING PAGE  — Light Theme
+   ════════════════════════════════════════ */
+
+/* ── Animations ── */
+@keyframes lp-fadeup {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes lp-pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.5); }
+  50%       { box-shadow: 0 0 0 5px rgba(99,102,241,0); }
+}
+@keyframes lp-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* ── Root ── */
+.lp-root {
+  min-height: 100vh;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ── Soft background blobs ── */
+.lp-blob {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(120px);
+}
+.lp-blob-1 {
+  width: 600px; height: 600px;
+  top: -180px; left: -120px;
+  background: rgba(99,102,241,0.08);
+}
+.lp-blob-2 {
+  width: 500px; height: 500px;
+  bottom: 0; right: -100px;
+  background: rgba(168,85,247,0.07);
+}
+
+/* ════════ NAVBAR ════════ */
+.lp-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(248,250,252,0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(226,232,240,0.8);
+}
+.lp-nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ── Logo Area ── */
+.lp-logo-area {
+  /*
+   * ─── วิธีใส่ Logo รูปภาพ ──────────────────────────────
+   * 1. วาง logo.png ใน /public/logo.png
+   * 2. ใน page.tsx แทนที่ <div className="lp-logo-wordmark">
+   *    ด้วย: <Image src="/logo.png" alt="Skill Wallet" width={130} height={36} priority />
+   * ─────────────────────────────────────────────────────
+   */
+  display: flex;
+  align-items: center;
+}
+.lp-logo-wordmark {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.lp-logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.lp-logo-text {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 60%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Nav Right ── */
+.lp-nav-right { display: flex; align-items: center; }
+.lp-nav-actions { display: flex; align-items: center; gap: 10px; }
+.lp-nav-skeleton {
+  width: 88px; height: 34px;
+  background: #e2e8f0;
+  border-radius: 8px;
+  animation: lp-fadeup 1.2s ease infinite alternate;
+}
+
+.lp-btn-nav-ghost {
+  padding: 7px 16px;
+  background: transparent;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.lp-btn-nav-ghost:hover {
+  border-color: #cbd5e1;
+  color: #0f172a;
+  background: #f1f5f9;
+}
+.lp-btn-nav-primary {
+  padding: 7px 18px;
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 12px rgba(99,102,241,0.25);
+}
+.lp-btn-nav-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(99,102,241,0.35);
+}
+
+/* ════════ HERO ════════ */
+.lp-hero {
+  position: relative;
+  z-index: 10;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 96px 24px 80px;
+  display: flex;
+  justify-content: center;
+}
+.lp-hero-content {
+  text-align: center;
+  max-width: 780px;
+  width: 100%;
+  animation: lp-fadeup 0.7s ease both;
+}
+
+/* Badge */
+.lp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  background: rgba(99,102,241,0.08);
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 9999px;
+  color: #6366f1;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+.lp-badge-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #6366f1;
+  animation: lp-pulse-dot 2s ease-in-out infinite;
+}
+
+/* H1 */
+.lp-h1 {
+  font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+.lp-h1-accent {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 45%, #06b6d4 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: lp-shimmer 6s linear infinite;
+}
+/* ไม่มี animation — สีนิ่ง */
+.lp-h1-accent-static {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 55%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Subtext */
+.lp-subtext {
+  font-size: 1.1rem;
+  color: #64748b;
+  max-width: 560px;
+  margin: 20px auto 36px;
+  line-height: 1.7;
+}
+
+/* CTA Row */
+.lp-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 52px;
+}
+.lp-btn-hero-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 26px;
+  background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.22s ease;
+  box-shadow: 0 4px 24px rgba(99,102,241,0.3);
+  text-decoration: none;
+}
+.lp-btn-hero-primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 32px rgba(99,102,241,0.4);
+}
+.lp-btn-hero-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 13px 22px;
+  background: white;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.lp-btn-hero-ghost:hover {
+  color: #0f172a;
+  border-color: #c7d2fe;
+  background: #f5f3ff;
+}
+
+/* Trust bar */
+.lp-trust-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 28px;
+  padding: 16px 32px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+}
+.lp-trust-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.lp-trust-num {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+.lp-trust-label {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.lp-trust-sep {
+  width: 1px;
+  height: 32px;
+  background: #e2e8f0;
+}
+
+/* ════════ FEATURES ════════ */
+.lp-features {
+  position: relative;
+  z-index: 10;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px 100px;
+}
+.lp-features-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.lp-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6366f1;
+  margin-bottom: 10px;
+}
+.lp-h2 {
+  font-size: clamp(1.7rem, 3.5vw, 2.4rem);
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.03em;
+}
+
+/* Grid */
+.lp-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 18px;
+}
+
+/* Cards */
+.lp-card {
+  position: relative;
+  padding: 28px;
+  background: white;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 22px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+.lp-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.08);
+}
+.lp-card-blue:hover  { border-color: #c7d2fe; box-shadow: 0 16px 40px rgba(99,102,241,0.1); }
+.lp-card-purple:hover { border-color: #ddd6fe; box-shadow: 0 16px 40px rgba(139,92,246,0.1); }
+.lp-card-emerald:hover { border-color: #a7f3d0; box-shadow: 0 16px 40px rgba(16,185,129,0.08); }
+
+/* Featured card */
+.lp-card-featured {
+  border-color: #ddd6fe;
+  background: linear-gradient(160deg, #faf5ff 0%, white 100%);
+}
+
+.lp-featured-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  border-radius: 9999px;
+  margin-bottom: 16px;
+}
+
+/* Icon */
+.lp-card-icon {
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  margin-bottom: 18px;
+}
+.lp-icon-blue    { background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.15); }
+.lp-icon-purple  { background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.15); }
+.lp-icon-emerald { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.15); }
+
+.lp-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+.lp-card-desc {
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.65;
+  margin-bottom: 18px;
+}
+
+/* Tags */
+.lp-card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.lp-tag {
+  padding: 3px 10px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* ════════ FOOTER ════════ */
+.lp-footer {
+  position: relative;
+  z-index: 10;
+  border-top: 1px solid #e2e8f0;
+  padding: 28px 24px;
+  text-align: center;
+  background: white;
+}
+.lp-footer-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.lp-footer-copy {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .lp-hero { padding: 64px 16px 48px; }
+  .lp-trust-bar { gap: 16px; padding: 14px 20px; flex-wrap: wrap; justify-content: center; }
+  .lp-features-grid { grid-template-columns: 1fr; }
 }
 
 /* ── Print Styles ── */
 @media print {
+
   /* Hide everything by default */
   body {
     background: white !important;
@@ -94,7 +541,7 @@
   }
 
   /* Hide the entire app shell */
-  body > * {
+  body>* {
     visibility: hidden !important;
   }
 
