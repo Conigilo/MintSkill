@@ -493,4 +493,4 @@ npm run dev
 
 ## License
 
-MIT
+**This porject develop by Sarit Sridit**
