@@ -1,6 +1,5 @@
 /**
  * Components index file - Export all reusable components
- * Note: ProtectedRoute and ErrorBoundary are imported directly to avoid re-export issues
  */
 
 // UI Components

@@ -10,7 +10,7 @@ import EndorsementsTab from "@/components/dashboard/tabs/EndorsementsTab";
 import GapAnalysisTab from "@/components/dashboard/tabs/GapAnalysisTab";
 import ExportPortfolioTab from "@/components/dashboard/tabs/exportPortfolioTab";
 import SidebarLayout from "@/components/dashboard/SidebarLayout";
-import { useUserSkills, useMyEndorsements, useUserBadges } from "@/hooks/useProfileData";
+import { useUserSkills, useMyEndorsements, useUserBadges } from "@/lib/hooks/useProfileData";
 import CVTemplate from "@/components/dashboard/CVTemplate";
 import Image from "next/image";
 import { GitHubCalendar } from "react-github-calendar";

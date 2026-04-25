@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useUserSkills, useUserBadges, useMyEndorsements } from '@/hooks/useProfileData'
+import { useUserSkills, useUserBadges, useMyEndorsements } from '@/lib/hooks/useProfileData'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { githubService } from '@/lib/services/github.service'
 import { Star, Github, ExternalLink, RefreshCw } from 'lucide-react'

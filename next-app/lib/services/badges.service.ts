@@ -24,13 +24,13 @@ export const badgeService = {
 };
 
 export interface Badge {
-  [x: string]: string;
   id: string;
   name: string;
   description?: string;
   icon?: string;
   image?: string;
   earnedAt?: string;
+  [x: string]: string | undefined;
 }
 
 // Named exports for hooks to ensure compatibility with Next.js SSR

@@ -1,7 +1,6 @@
 import { auth } from '../utils/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { BASE_URL } from '../constants/api-endpoints';
 
 /**
  * รอให้ Firebase auth state โหลดเสร็จก่อน
@@ -63,8 +62,6 @@ export const fetchAPI = async (endpoint: string, options: RequestInit = {}, retr
 
     const data = await response.json().catch(() => ({}));
 
-
-    console.log(response)
     if (!response.ok) {
         const message = data?.error || data?.message || `API Error: ${response.status}`;
         throw new Error(String(message));

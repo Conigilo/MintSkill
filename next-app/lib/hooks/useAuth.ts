@@ -43,7 +43,6 @@ export const useAuth = () => {
                         displayName: currentUser.displayName,
                         photoURL: currentUser.photoURL,
                     });
-                    console.log("ซิงค์ข้อมูลกับ Backend สำเร็จ!");
                 } catch (error) {
                     console.error("ซิงค์ข้อมูลล้มเหลว (ไม่บัง Auth):", error);
                 }
@@ -138,7 +137,6 @@ export const useAuth = () => {
                     displayName: name,
                     photoURL: result.user.photoURL,
                 });
-                console.log("ซิงค์ข้อมูลสำเร็จ!");
             } catch (syncError) {
                 console.error("Profile sync failed (non-critical):", syncError);
                 // Don't re-throw - let signup succeed even if sync fails

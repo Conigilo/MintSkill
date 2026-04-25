@@ -7,9 +7,7 @@ export class AiService {
     constructor() {
         const apiKey = (process.env.GEMINI_API_KEY || "") as string;
 
-        if (apiKey) {
-            console.log(`AI Service: API Key detected (Starts with: ${apiKey.substring(0, 5)}...)`);
-        } else {
+        if (!apiKey) {
             console.error("AI Service: GEMINI_API_KEY is EMPTY in .env!");
         }
         this.genAI = new GoogleGenerativeAI(apiKey);
@@ -20,7 +18,7 @@ export class AiService {
         let attempt = 0;
 
         const model = this.genAI.getGenerativeModel({
-            model: "gemini-2.5-flash",
+            model: "gemini-1.5-flash",
             generationConfig: {
                 responseMimeType: "application/json",
             }
@@ -45,7 +43,7 @@ export class AiService {
             {
                 "q": "ข้อความคำถาม?",
                 "opts": ["ตัวเลือก 1", "ตัวเลือก 2", "ตัวเลือก 3", "ตัวเลือก 4"],
-                "a": 0 // Index ของคำตอบที่ถูกต้อง (0-3)
+                "a": 0
             }
             ]`;
 
@@ -66,9 +64,8 @@ export class AiService {
                     throw new Error("Failed to generate quiz from AI after multiple attempts.");
                 }
 
-                // รอเวลาแบบ Exponential backoff: 1000ms, 2000ms, 4000ms...
+                // Wait with exponential backoff
                 const delayMs = Math.pow(2, attempt - 1) * 1000;
-                console.log(`Waiting ${delayMs}ms before retrying...`);
                 await new Promise(resolve => setTimeout(resolve, delayMs));
             }
         }

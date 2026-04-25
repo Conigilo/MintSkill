@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useMyEndorsements, useSentEndorsements, useUserSkills } from '@/hooks/useProfileData'
+import { useMyEndorsements, useSentEndorsements, useUserSkills } from '@/lib/hooks/useProfileData'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { endorsementService } from '@/lib/services/endorsements.service'
 

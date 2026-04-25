@@ -59,7 +59,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
         setResume(parsed.resume)
         if (parsed.template) setSelectedTemplate(parsed.template)
       }
-    } catch (e) { console.log(e); }
+    } catch (e) { console.warn('Failed to load saved resume:', e); }
   }, [])
 
   const verifiedSkills = skills.filter(s => s.verified).map(s => s.name)

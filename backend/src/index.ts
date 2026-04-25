@@ -28,6 +28,16 @@ const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
 const RATE_LIMIT_WINDOW = 60_000 // 1 minute
 const RATE_LIMIT_MAX = 100 // requests per window
 
+// Cleanup expired entries every 5 minutes to prevent memory leak
+setInterval(() => {
+    const now = Date.now()
+    for (const [ip, entry] of rateLimitMap) {
+        if (now > entry.resetAt) {
+            rateLimitMap.delete(ip)
+        }
+    }
+}, 5 * 60_000)
+
 const app = new Elysia()
     .use(cors({ origin: FRONTEND_URL ?? 'http://localhost:3000', credentials: true }))
     .onBeforeHandle(({ request, set }) => {
