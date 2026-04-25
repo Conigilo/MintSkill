@@ -5,72 +5,91 @@
 
 ## 1. Project Structure
 
-```
-skill-wallet/
-├── frontend/                        # React App
+```text
+skill-badge-platform/
+├── backend/                       # Elysia API Server (Bun Runtime)
+│   ├── ai-service/                # AI Microservice (แยก Service เฉพาะทาง)
+│   │   └── src/index.ts           # บริการสร้าง Quiz ด้วย Gemini API (Port 3001)
 │   ├── src/
-│   │   ├── components/
-│   │   │   ├── layout/
-│   │   │   │   ├── Navbar.tsx
-│   │   │   │   └── Sidebar.tsx
-│   │   │   ├── profile/
-│   │   │   │   ├── ProfileCard.tsx
-│   │   │   │   ├── ProfileStats.tsx
-│   │   │   │   └── AvatarUpload.tsx
-│   │   │   ├── skills/
-│   │   │   │   ├── SkillList.tsx
-│   │   │   │   ├── SkillTag.tsx
-│   │   │   │   └── SkillAddModal.tsx
-│   │   │   ├── endorsements/
-│   │   │   │   ├── EndorsementCard.tsx
-│   │   │   │   ├── EndorsementList.tsx
-│   │   │   │   └── RequestModal.tsx
-│   │   │   ├── github/
-│   │   │   │   ├── GitHubConnect.tsx
-│   │   │   │   ├── RepoCard.tsx
-│   │   │   │   └── ContribGrid.tsx
-│   │   │   ├── gap/
-│   │   │   │   ├── GapAnalysis.tsx
-│   │   │   │   └── ProgressBar.tsx
-│   │   │   └── widget/
-│   │   │       ├── SkillWidget.tsx
-│   │   │       └── ExportPanel.tsx
-│   │   ├── pages/
-│   │   │   ├── Home.tsx
-│   │   │   ├── Profile.tsx          # /u/:username
-│   │   │   ├── EditProfile.tsx
-│   │   │   ├── EndorseUser.tsx      # /endorse/:token
-│   │   │   └── Widget.tsx           # /widget/:username (public embed)
-│   │   ├── hooks/
-│   │   │   ├── useAuth.ts
-│   │   │   ├── useProfile.ts
-│   │   │   ├── useSkills.ts
-│   │   │   └── useEndorsements.ts
-│   │   ├── services/
-│   │   │   ├── api.ts               # Elysia API client
-│   │   │   └── firebase.ts          # Firebase init
-│   │   └── store/
-│   │       └── authStore.ts         # Zustand
+│   │   ├── index.ts               # Entry — Elysia app setup, CORS, Rate Limit, Swagger
+│   │   ├── controllers/           # Request Handlers
+│   │   │   ├── ai.controller.ts           # AI controller for quiz generation 
+│   │   │   ├── auth.controller.ts         # GitHub OAuth callback, verify token
+│   │   │   ├── badges.controller.ts       # Badge retrieval
+│   │   │   ├── export.controller.ts       # PDF export, public share link
+│   │   │   ├── github.controller.ts       # GitHub sync, repos, dashboard
+│   │   │   ├── jobs.controller.ts         # Job recommendations, apply
+│   │   │   ├── skills.controller.ts       # Skill CRUD + validation
+│   │   │   ├── users.controller.ts        # Profile CRUD, search, portfolio
+│   │   │   ├── endorsements.controller.ts # Endorsement request, verify, submit
+│   │   ├── services/              # Business Logic Layer
+│   │   │   ├── ai.service.ts              # AI service for quiz generation 
+│   │   │   ├── auth.service.ts            # Token creation, GitHub OAuth exchange
+│   │   │   ├── badges.service.ts          # Badge queries
+│   │   │   ├── endorsements.service.ts    # Endorsement logic, auto-mint badge
+│   │   │   ├── export.service.ts          # PDF generation
+│   │   │   ├── firebase.service.ts        # Firebase Admin SDK initialization
+│   │   │   ├── github.service.ts          # GitHub API integration
+│   │   │   ├── jobs.service.ts            # Job matching algorithm
+│   │   │   ├── pdf.service.ts             # PDF generation
+│   │   │   ├── skills.service.ts          # Skill CRUD, validation
+│   │   │   ├── endorsements.service.ts    # Endorsement logic, auto-mint badge
+│   │   │   ├── github.service.ts          # GitHub API integration
+│   │   │   ├── badges.service.ts          # Badge queries
+│   │   │   ├── jobs.service.ts            # Job matching algorithm
+│   │   │   └── pdf.service.ts             # PDF generation
+│   │   ├── middleware/            # Auth Middleware
+│   │   │   └── auth.middleware.ts         # Firebase token verification middleware
+│   │   ├── routes/                # Route Definitions
+│   │   │   ├── ai.routes.ts               # AI quiz generation routes
+│   │   │   ├── auth.routes.ts             # Authentication routes
+│   │   │   ├── badges.routes.ts           # Badge routes
+│   │   │   ├── export.routes.ts           # Export routes
+│   │   │   ├── github.routes.ts           # GitHub routes
+│   │   │   ├── jobs.routes.ts             # Job routes
+│   │   │   ├── skills.routes.ts           # Skill routes
+│   │   │   ├── endorsements.routes.ts     # Endorsement routes
+│   │   │   └── users.routes.ts            # User routes
+│   │   ├── scripts/               # Utility scripts (e.g., seed-jobs.ts)
+│   │   └── utils/                 # Validators, error handlers, cache helpers
+│   ├── config/                    # Firebase Service Account JSON
+│   └── package.json               # Backend Dependencies
 │
-└── backend/                         # Elysia (Bun)
-    ├── src/
-    │   ├── index.ts                 # Entry point
-    │   ├── routes/
-    │   │   ├── auth.route.ts        # GitHub OAuth
-    │   │   ├── users.route.ts
-    │   │   ├── skills.route.ts
-    │   │   ├── endorsements.route.ts
-    │   │   ├── github.route.ts
-    │   │   └── export.route.ts
-    │   ├── middleware/
-    │   │   └── auth.middleware.ts   # Verify Firebase token
-    │   ├── services/
-    │   │   ├── firebase.service.ts
-    │   │   ├── github.service.ts
-    │   │   └── pdf.service.ts
-    │   └── utils/
-    │       └── token.ts
-    └── .env
+├── next-app/                      # Next.js Frontend (App Router)
+│   ├── app/                       # App Router Pages
+│   │   ├── page.tsx                       # Landing Page
+│   │   ├── layout.tsx                     # Root Layout
+│   │   ├── globals.css                    # Global CSS + Print Styles
+│   │   ├── login/page.tsx                 # Login Page
+│   │   ├── signup/page.tsx                # Sign Up Page
+│   │   ├── dashboard/page.tsx             # Dashboard (Main Tabs)
+│   │   ├── explore/page.tsx               # Developer Search
+│   │   ├── jobs/page.tsx                  # Job Recommendations
+│   │   ├── profile/[username]/page.tsx    # Public Profile
+│   │   └── endorse/[token]/page.tsx       # Endorsement Submission
+│   ├── components/
+│   │   ├── dashboard/             # Dashboard Components
+│   │   │   ├── SidebarLayout.tsx          # Sidebar + Auth redirect layout
+│   │   │   ├── Sidebar.tsx                # Navigation sidebar
+│   │   │   ├── ProfileCard.tsx            # User avatar + info card
+│   │   │   ├── TabNavigation.tsx          # Tab switcher component
+│   │   │   ├── EditProfileModal.tsx       # Modal สำหรับแก้ไขโปรไฟล์
+│   │   │   └── tabs/                      # Tab Content Components
+│   │   │       ├── OverviewTab.tsx            # Stats + Top Skills
+│   │   │       ├── SkillsTab.tsx              # Skill Management
+│   │   │       ├── EndorsementsTab.tsx         # Endorsement list
+│   │   │       ├── GapAnalysisTab.tsx          # Skill gap analysis
+│   │   │       └── exportPortfolioTab.tsx      # Export functionality
+│   │   └── ui/                    # Reusable UI Components (Button, Card, Alert, etc.)
+│   ├── lib/
+│   │   ├── services/              # API Client Functions (api.ts, auth.service.ts, etc.)
+│   │   ├── context/               # React Context (Auth Context)
+│   │   ├── hooks/                 # Custom Hooks (useAuth, useProfileData)
+│   │   ├── types/                 # TypeScript type definitions
+│   │   └── utils/                 # Utility functions (firebase.ts, validators.ts)
+│   └── package.json               # Frontend Dependencies
+│
+└── ai/                             # (Optional) External AI Research/Services
 ```
 
 ---
@@ -203,48 +222,48 @@ service cloud.firestore {
 
 ## 3. API Endpoints (Elysia)
 
-### Auth Routes `/api/auth`
+### Auth Routes `/auth`
 ```
-POST  /api/auth/github/callback     # รับ code จาก GitHub OAuth → return Firebase token
-POST  /api/auth/verify              # verify Firebase ID token
-DELETE /api/auth/logout
-```
-
-### User Routes `/api/users`
-```
-GET   /api/users/:username          # public profile (no auth)
-PUT   /api/users/me                 # update profile (auth required)
-GET   /api/users/me                 # get own profile
+POST  /auth/github/callback     # รับ code จาก GitHub OAuth → return Firebase token
+POST  /auth/verify              # verify Firebase ID token
+DELETE /auth/logout
 ```
 
-### Skills Routes `/api/skills`
+### User Routes `/users`
 ```
-GET   /api/skills/:userId           # get all skills of user
-POST  /api/skills                   # add skill (auth)
-PUT   /api/skills/:skillId          # update skill (auth)
-DELETE /api/skills/:skillId         # delete skill (auth)
-```
-
-### Endorsement Routes `/api/endorsements`
-```
-GET   /api/endorsements/:userId     # list endorsements (auth = owner)
-POST  /api/endorsements/request     # ส่ง request link ไปหาคนที่จะ endorse
-GET   /api/endorsements/verify/:token  # verify token (public - ใช้ใน endorse page)
-POST  /api/endorsements/submit/:token  # submit endorsement (public)
+GET   /users/:username          # public profile (no auth)
+PUT   /users/me                 # update profile (auth required)
+GET   /users/me                 # get own profile
 ```
 
-### GitHub Routes `/api/github`
+### Skills Routes `/skills`
 ```
-POST  /api/github/connect           # connect GitHub account (auth)
-POST  /api/github/sync              # sync repos + contributions (auth)
-GET   /api/github/repos/:userId     # get synced repos (public)
+GET   /skills/:userId           # get all skills of user
+POST  /skills                   # add skill (auth)
+PUT   /skills/:skillId          # update skill (auth)
+DELETE /skills/:skillId         # delete skill (auth)
 ```
 
-### Export Routes `/api/export`
+### Endorsement Routes `/endorsements`
 ```
-GET   /api/export/pdf/:userId       # generate PDF (auth = owner)
-POST  /api/export/link              # create public link token (auth)
-GET   /api/export/public/:token     # access public portfolio (no auth)
+GET   /endorsements/:userId     # list endorsements (auth = owner)
+POST  /endorsements/request     # ส่ง request link ไปหาคนที่จะ endorse
+GET   /endorsements/verify/:token  # verify token (public - ใช้ใน endorse page)
+POST  /endorsements/submit/:token  # submit endorsement (public)
+```
+
+### GitHub Routes `/github`
+```
+POST  /github/sync              # sync repos + contributions (auth)
+GET   /github/repos             # get synced repos (auth)
+GET   /github/dashboard        # get github dashboard stats (auth)
+```
+
+### Export Routes `/export`
+```
+GET   /export/pdf               # generate PDF (auth = owner)
+POST  /export/link              # create public link token (auth)
+GET   /export/public/:token     # access public portfolio (no auth)
 ```
 
 ---
@@ -423,18 +442,16 @@ export const endorsementsRoute = new Elysia({ prefix: '/endorsements' })
 
 ### Frontend (`.env`)
 ```
-VITE_API_URL=http://localhost:3000/api
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
 ```
 
 ### Backend (`.env`)
 ```
-PORT=3000
+PORT=8000
 GITHUB_CLIENT_ID=...
 GITHUB_CLIENT_SECRET=...
-FIREBASE_PROJECT_ID=...
-FIREBASE_PRIVATE_KEY=...
-FIREBASE_CLIENT_EMAIL=...
+FRONTEND_URL=http://localhost:3000
 ```

@@ -1,76 +1,26 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
 export class AiService {
-
-    private genAI: GoogleGenerativeAI;
-
-    constructor() {
-        const apiKey = (process.env.GEMINI_API_KEY || "") as string;
-
-        if (!apiKey) {
-            console.error("AI Service: GEMINI_API_KEY is EMPTY in .env!");
-        }
-        this.genAI = new GoogleGenerativeAI(apiKey);
-    }
+    private MICROSERVICE_URL = "http://localhost:3001";
 
     async generateQuizForSkill(skillName: string, level: number): Promise<any[]> {
-        const maxRetries = 5;
-        let attempt = 0;
+        try {
+            console.log(`[Microservice Call] Requesting quiz from AI Service for: ${skillName}`);
+            
+            const response = await fetch(`${this.MICROSERVICE_URL}/generate-quiz`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ skillName, level })
+            });
 
-        const model = this.genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
-            generationConfig: {
-                responseMimeType: "application/json",
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error || "Failed to fetch from AI Microservice");
             }
-        });
 
-        let difficultyText = "Beginner (Level 1)";
-        if (level === 2) difficultyText = "Intermediate (Level 2)";
-        if (level === 3) difficultyText = "Advanced/Senior (Level 3)";
-
-        const prompt = `คุณคือผู้เชี่ยวชาญด้านการสัมภาษณ์งานสาย Technical (Expert Technical Interviewer)
-            จงสร้างแบบทดสอบปรนัย (Multiple-choice Quiz) เกี่ยวกับเรื่อง "${skillName}"
-            กลุ่มเป้าหมาย: นักพัฒนาซอฟต์แวร์ระดับ ${difficultyText}
-            จำนวนข้อ: ทั้งหมด 10 ข้อ
-            ภาษาที่ใช้: ภาษาไทย โดยทับศัพท์คำศัพท์เฉพาะทางด้าน Programming เป็นภาษาอังกฤษตามความเหมาะสม
-
-            ข้อกำหนดเนื้อหา:
-            - คำถามต้องมีความเป็นมืออาชีพ วัดความเข้าใจเชิงลึก (Conceptual & Practical) ไม่ใช่แค่การจำนิยาม
-            - ตัวเลือก (Options) ต้องมีความใกล้เคียงกันเพื่อทดสอบความแม่นยำ
-
-            จงส่งคืนผลลัพธ์ในรูปแบบ Array ของ JSON objects ตามโครงสร้างนี้เท่านั้น (ห้ามมีคำเกริ่นนำ):
-            [
-            {
-                "q": "ข้อความคำถาม?",
-                "opts": ["ตัวเลือก 1", "ตัวเลือก 2", "ตัวเลือก 3", "ตัวเลือก 4"],
-                "a": 0
-            }
-            ]`;
-
-        while (attempt < maxRetries) {
-            try {
-                const result = await model.generateContent(prompt);
-                const response = result.response;
-                const text = response.text();
-
-                // แปลง String โค้ด JSON ให้กกลายเป็น Object
-                return JSON.parse(text);
-
-            } catch (error: any) {
-                attempt++;
-                console.error(`AI Generation Error (Attempt ${attempt}/${maxRetries}):`, error?.message || error);
-
-                if (attempt >= maxRetries) {
-                    throw new Error("Failed to generate quiz from AI after multiple attempts.");
-                }
-
-                // Wait with exponential backoff
-                const delayMs = Math.pow(2, attempt - 1) * 1000;
-                await new Promise(resolve => setTimeout(resolve, delayMs));
-            }
+            return await response.json();
+        } catch (error: any) {
+            console.error("AI Service Error (via Microservice):", error.message);
+            throw new Error("ระบบ AI ขัดข้องชั่วคราว กรุณาลองใหม่อีกครั้ง");
         }
-
-        return [];
     }
 }
 
