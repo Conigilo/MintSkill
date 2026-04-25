@@ -1,11 +1,18 @@
 import { db, Collections } from './firebase.service'
+import { globalCache } from '../utils/cache'
 
 const GITHUB_API_URL = 'https://api.github.com'
+const CACHE_TTL = 10 * 60 * 1000 // 10 minutes
 
 /**
  * Make authenticated request to GitHub API
  */
 async function fetchFromGitHub(path: string, accessToken: string) {
+    // Try to get from cache first
+    const cacheKey = `gh_${accessToken.substring(0, 8)}_${path}`
+    const cachedData = globalCache.get(cacheKey)
+    if (cachedData) return cachedData
+
     const response = await fetch(`${GITHUB_API_URL}${path}`, {
         headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -17,7 +24,9 @@ async function fetchFromGitHub(path: string, accessToken: string) {
         throw new Error(`GitHub API error: ${response.status}`)
     }
 
-    return response.json()
+    const data = await response.json()
+    globalCache.set(cacheKey, data, CACHE_TTL)
+    return data
 }
 
 /**
@@ -191,10 +200,11 @@ export async function getDashboard(uid: string) {
             contributionGrid,
         } : null,
         stats: {
-            skillCount: skillsSnapshot.size,
-            endorsementCount: endorsementsSnapshot.size,
-            contributions: gitHubData?.totalContributions ?? 0,
-            projectCount: reposSnapshot.size,
+            skillCount: userData?.stats?.skillCount ?? skillsSnapshot.size,
+            verifiedSkills: userData?.stats?.verifiedSkills ?? skillsSnapshot.docs.filter(doc => doc.data().verified).length,
+            endorsementCount: userData?.stats?.endorsementCount ?? endorsementsSnapshot.size,
+            contributions: userData?.github?.totalContributions ?? 0,
+            projectCount: userData?.github?.repoCount ?? reposSnapshot.size,
         },
         skills: skillsSnapshot.docs
             .map(doc => ({ id: doc.id, ...doc.data() }))

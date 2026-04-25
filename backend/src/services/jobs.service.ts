@@ -37,7 +37,14 @@ export async function getRecommendations(userSkills: string[], limit = 5) {
         .limit(limit)
         .get()
 
-    return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
+    const recommended = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
+    
+    // Fallback if no specific matches found
+    if (recommended.length === 0) {
+        return await getAllJobs({ limit })
+    }
+    
+    return recommended;
 }
 
 /**

@@ -26,9 +26,9 @@ const DashboardHeader = memo(
         {/* Top Bar matching nav in index.html */}
         <div className="px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <div className="font-mono text-[18px] text-[var(--text)] tracking-tight">skill<span className="text-[var(--accent)]">wallet</span></div>
+            <img src="/logo.png" alt="Logo" className="h-40 w-auto object-contain" />
           </div>
-          
+
           <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
               <div className="text-[13px] font-semibold text-[var(--text)]">{user?.displayName || 'User'}</div>
@@ -58,8 +58,8 @@ const DashboardHeader = memo(
                 key={tab.key}
                 onClick={() => onTabChange(tab.key as TabKey)}
                 className={`px-5 py-2.5 text-[13px] cursor-pointer border-b-2 transition-all flex items-center gap-1.5 mb-[-1px] whitespace-nowrap
-                  ${isActive 
-                    ? 'text-[var(--text)] border-[var(--accent)]' 
+                  ${isActive
+                    ? 'text-[var(--text)] border-[var(--accent)]'
                     : 'text-[var(--muted)] border-transparent hover:text-[var(--text)]'}
                 `}
               >

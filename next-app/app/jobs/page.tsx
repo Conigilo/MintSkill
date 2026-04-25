@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { skillsService } from "@/lib/services/skills.service";
 import SidebarLayout from "@/components/dashboard/SidebarLayout";
-import MOCK_JOBS from "./mock";
 
 // Match calculation helper
-function calcMatch(userSkills: string[], job: typeof MOCK_JOBS[0]) {
+function calcMatch(userSkills: string[], job: any) {
   const normalizedUserSkills = userSkills.map((s) => s.toLowerCase());
 
   const matched = job.requiredSkills.filter((s) =>
@@ -27,25 +26,27 @@ function calcMatch(userSkills: string[], job: typeof MOCK_JOBS[0]) {
 }
 
 // Sub-component: Match ring
-
 function MatchRing({ score }: { score: number }) {
-  const color = score >= 80 ? "#22c55e" : score >= 55 ? "#eab308" : "#f97316";
+  const color = score >= 75 ? "#10b981" : "#94a3b8"; // Emerald for high, Slate for others
   const radius = 22;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;
   return (
-    <svg width="60" height="60" viewBox="0 0 60 60" className="shrink-0">
-      <circle cx="30" cy="30" r={radius} stroke="#1f2937" strokeWidth="5" fill="none" />
-      <circle
-        cx="30" cy="30" r={radius}
-        stroke={color} strokeWidth="5" fill="none"
-        strokeDasharray={circumference} strokeDashoffset={offset}
-        strokeLinecap="round"
-        transform="rotate(-90 30 30)"
-        style={{ transition: "stroke-dashoffset 0.8s ease" }}
-      />
-      <text x="30" y="35" textAnchor="middle" fill={color} fontSize="13" fontWeight="bold">{score}%</text>
-    </svg>
+    <div className="flex flex-col items-center justify-center">
+      <svg width="50" height="50" viewBox="0 0 60 60" className="shrink-0">
+        <circle cx="30" cy="30" r={radius} stroke="#f1f5f9" strokeWidth="3" fill="none" />
+        <circle
+          cx="30" cy="30" r={radius}
+          stroke={color} strokeWidth="3" fill="none"
+          strokeDasharray={circumference} strokeDashoffset={offset}
+          strokeLinecap="round"
+          transform="rotate(-90 30 30)"
+          style={{ transition: "stroke-dashoffset 0.8s ease" }}
+        />
+        <text x="30" y="36" textAnchor="middle" fill={color} fontSize="14" fontWeight="800">{score}%</text>
+      </svg>
+      <span className="text-[9px] uppercase tracking-widest font-bold text-slate-400 mt-1">Match</span>
+    </div>
   );
 }
 
@@ -53,27 +54,60 @@ function MatchRing({ score }: { score: number }) {
 export default function JobsPage() {
   const { user, loading: authLoading } = useAuth();
   const [userSkills, setUserSkills] = useState<string[]>([]);
-  const [skillsLoading, setSkillsLoading] = useState(true);
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "high" | "medium" | "low">("all");
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
-  // Fetch user skills on mount
+  // Fetch user skills & jobs
   useEffect(() => {
-    if (authLoading) return;
-    if (!user) { setSkillsLoading(false); return; }
-    skillsService.getMySkills()
-      .then((data) => {
-        if (data) setUserSkills(data.map((s: any) => s.name));
-      })
-      .finally(() => setSkillsLoading(false));
+    async function fetchData() {
+      if (authLoading) return;
+      setLoading(true);
+      try {
+        // 1. Get skills
+        let currentSkills: string[] = [];
+        if (user) {
+          const skillsData = await skillsService.getMySkills();
+          if (skillsData) {
+            currentSkills = skillsData.map((s: any) => s.name);
+            setUserSkills(currentSkills);
+          }
+        }
+
+        // 2. Get jobs from API
+        // If logged in, get recommendations, otherwise get all
+        const endpoint = user ? "/jobs/recommendations" : "/jobs";
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
+          headers: user ? { 'Authorization': `Bearer ${await user.getIdToken()}` } : {}
+        });
+        const jobsData = await response.json();
+        console.log("DEBUG: Jobs from API:", jobsData);
+
+        if (jobsData && Array.isArray(jobsData.data)) {
+          setJobs(jobsData.data);
+        } else if (Array.isArray(jobsData)) {
+          // Fallback if API changes to direct array
+          setJobs(jobsData);
+        } else {
+          console.warn("API did not return an array of jobs in .data:", jobsData);
+          setJobs([]);
+        }
+      } catch (error) {
+        console.error("Error fetching jobs:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
   }, [user, authLoading]);
 
-  // Enrich mock jobs with match data
-  const enrichedJobs = useMemo(() =>
-    MOCK_JOBS.map((job) => ({ ...job, match: calcMatch(userSkills, job) }))
-      .sort((a, b) => b.match.score - a.match.score),
-    [userSkills]
-  );
+  // Enrich jobs with match data
+  const enrichedJobs = useMemo(() => {
+    if (!Array.isArray(jobs)) return [];
+    return jobs.map((job) => ({ ...job, match: calcMatch(userSkills, job) }))
+      .sort((a, b) => b.match.score - a.match.score);
+  }, [userSkills, jobs]);
 
   // Filter
   const filteredJobs = useMemo(() => {
@@ -87,86 +121,104 @@ export default function JobsPage() {
 
   return (
     <SidebarLayout activePage="jobs">
-      <div className="text-slate-900 min-h-screen">
+      <div className="text-slate-900 h-screen flex flex-col bg-slate-50/50 overflow-hidden">
 
-        {/* Header */}
-        <div className="px-8 pt-8 pb-6 border-b border-slate-200">
-          <h1 className="text-2xl font-bold text-slate-900 mb-1">Job Matching</h1>
+        {/*  Fixed Header Section */}
+        <div className="px-10 pt-10 pb-6 shrink-0 bg-white/50 backdrop-blur-md border-b border-slate-100 z-20">
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Job Opportunities</h1>
+          <p className="text-slate-400 text-sm mt-1 mb-6">Discover roles that match your verified skill set.</p>
 
+          {/* Filters moved here to be sticky */}
+          <div className="flex gap-3">
+            {([
+              { key: "all", label: `All Jobs (${enrichedJobs.length})` },
+              { key: "high", label: `Best Match` },
+              { key: "medium", label: `Potential` },
+            ] as const).map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                className={`px-5 py-2 rounded-full text-xs font-bold transition-all border ${filter === f.key
+                  ? "bg-slate-900 border-slate-900 text-white shadow-lg shadow-slate-200"
+                  : "bg-white border-slate-200 text-slate-400 hover:border-slate-300"
+                  }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="flex h-full">
+        {/* 📜 Scrollable Content Area */}
+        <div className="flex flex-1 overflow-hidden px-10 gap-8 pt-6">
 
-          {/* ── Left: Job List ── */}
-          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4" style={{ maxHeight: "calc(100vh - 130px)" }}>
+          {/* ── Left: Job List (Scrollable) ── */}
+          <div className="flex-1 overflow-y-auto pb-10 space-y-4 no-scrollbar">
 
-            {/* Filters */}
-            <div className="flex gap-2 mb-2">
-              {([
-                { key: "all", label: `ทั้งหมด (${enrichedJobs.length})` },
-                { key: "high", label: `🟢 High Match (${enrichedJobs.filter((j) => j.match.score >= 75).length})` },
-                { key: "medium", label: `🟡 Medium (${enrichedJobs.filter((j) => j.match.score >= 40 && j.match.score < 75).length})` },
-                { key: "low", label: `🔴 Low (${enrichedJobs.filter((j) => j.match.score < 40).length})` },
-              ] as const).map((f) => (
-                <button
-                  key={f.key}
-                  onClick={() => setFilter(f.key)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${filter === f.key
-                    ? "bg-blue-600 border-blue-500 text-slate-900"
-                    : "bg-transparent border-slate-300 text-slate-500 hover:text-slate-900 hover:border-slate-300"
-                    }`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center h-64 text-slate-300">
+                <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-sm font-bold uppercase tracking-widest">Searching opportunities...</p>
+              </div>
+            ) : filteredJobs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-64 text-slate-300">
+                <p className="text-sm font-bold uppercase tracking-widest">No jobs found matching your criteria</p>
+              </div>
+            ) : (
+              filteredJobs.map((job) => {
+                const { score, matched, missing } = job.match;
+                const isSelected = selectedJobId === job.id;
 
-            {/* Job Cards */}
-            {filteredJobs.map((job) => {
-              const { score, matched, missing } = job.match;
-              const isSelected = selectedJobId === job.id;
-              const matchColor = score >= 75 ? "text-green-400" : score >= 40 ? "text-yellow-400" : "text-orange-400";
-              const matchBorder = score >= 75 ? "border-green-500/25 hover:border-green-500/50" : score >= 40 ? "border-yellow-500/15 hover:border-yellow-500/40" : "border-slate-200 hover:border-slate-300";
-
-              return (
-                <div
-                  key={job.id}
-                  onClick={() => setSelectedJobId(isSelected ? null : job.id)}
-                  className={`relative bg-white border rounded-2xl p-5 cursor-pointer transition-all ${matchBorder} ${isSelected ? "ring-1 ring-blue-500/50" : ""}`}
-                >
-                  <div className="flex items-start gap-4">
-
-                    {/* Logo */}
-                    <div className="w-11 h-11 shrink-0 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-2xl">
-                      {job.logo}
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <h3 className="font-bold text-slate-900 text-base leading-tight">{job.title}</h3>
-                          <p className="text-sm text-slate-400 mt-0.5">{job.company} · {job.location}</p>
-                        </div>
+                return (
+                  <div
+                    key={job.id}
+                    onClick={() => setSelectedJobId(isSelected ? null : job.id)}
+                    className={`relative bg-white border rounded-[1.5rem] p-6 cursor-pointer transition-all duration-300 ${isSelected
+                      ? "border-emerald-600 shadow-2xl shadow-emerald-100 ring-1 ring-emerald-600/20"
+                      : "border-slate-200/60 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-100"
+                      }`}
+                  >
+                    {/* Top Row: Logo & Company */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 shrink-0 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl">
+                        {job.logo}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-bold text-slate-500 truncate">{job.company}</p>
+                        <p className="text-[11px] text-slate-400 font-medium">{job.location}</p>
+                      </div>
+                      <div className="ml-auto">
                         <MatchRing score={score} />
                       </div>
+                    </div>
 
-                      {/* Meta */}
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        <span className="text-[10px] px-2 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-500 font-semibold uppercase">{job.type}</span>
-                        <span className="text-[10px] px-2 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-500">{job.salary}</span>
-                      </div>
+                    {/* Title */}
+                    <h3 className="text-lg font-bold text-slate-900 tracking-tight mb-4 group-hover:text-emerald-600 transition-colors">
+                      {job.title}
+                    </h3>
 
-                      {/* Skills quick view */}
-                      <div className="flex flex-wrap gap-1.5 mt-3">
+                    {/* Meta Tags (Like JobThai) */}
+                    <div className="flex flex-wrap gap-2 mb-5">
+                      <span className="text-[10px] px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-bold uppercase tracking-wider border border-emerald-100">
+                        {job.type}
+                      </span>
+                      <span className="text-[10px] px-2.5 py-1 rounded-lg bg-slate-50 text-slate-500 font-bold border border-slate-100">
+                        {job.salary}
+                      </span>
+                    </div>
+
+                    {/* Skills Matching Section */}
+                    <div className="pt-4 border-t border-slate-50">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-3">Required Skills Match</p>
+                      <div className="flex flex-wrap gap-1.5">
                         {job.requiredSkills.map((s) => {
                           const has = userSkills.map((u) => u.toLowerCase()).includes(s.toLowerCase());
                           return (
                             <span
                               key={s}
-                              className={`text-[11px] px-2 py-0.5 rounded-md border font-medium ${has
-                                ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-300"
-                                : "bg-red-500/5 border-red-500/15 text-red-400"
+                              className={`text-[10px] px-2.5 py-1 rounded-md border font-bold transition-colors ${has
+                                ? "bg-emerald-50 border-emerald-100 text-emerald-600"
+                                : "bg-slate-50 border-slate-100 text-slate-300"
                                 }`}
                             >
                               {has ? "✓" : "✗"} {s}
@@ -174,125 +226,87 @@ export default function JobsPage() {
                           );
                         })}
                       </div>
-
-                      {/* Match summary line */}
-                      <p className={`text-xs mt-3 font-semibold ${matchColor}`}>
-                        {score >= 75 ? "🟢 High Match" : score >= 40 ? "🟡 Medium Match" : "🔴 Low Match"} —{" "}
-                        {matched.length}/{job.requiredSkills.length} required skills matched
-                        {missing.length > 0 && `, ขาด: ${missing.slice(0, 2).join(", ")}${missing.length > 2 ? ` +${missing.length - 2}` : ""}`}
-                      </p>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
 
           {/* ── Right: Job Detail Panel ── */}
           <div
-            className={`border-l border-slate-200 bg-slate-50 transition-all duration-300 overflow-y-auto ${selectedJob ? "w-[380px] shrink-0 px-6 py-6" : "w-0 overflow-hidden px-0"
+            className={`bg-white h-full transition-all duration-500 overflow-y-auto no-scrollbar ${selectedJob ? "w-[420px] shrink-0 px-8 py-8 border-l border-slate-100 shadow-2xl" : "w-0 overflow-hidden px-0"
               }`}
-            style={{ maxHeight: "calc(100vh - 130px)" }}
           >
             {selectedJob && (() => {
               const { score, matched, matchedPreferred, missing } = selectedJob.match;
-              const matchLabel = score >= 75 ? "High Match ✅" : score >= 40 ? "Medium Match 🟡" : "Low Match 🔴";
-              const matchColor = score >= 75 ? "text-green-400" : score >= 40 ? "text-yellow-400" : "text-orange-400";
+              const matchLabel = score >= 75 ? "Excellent Match" : score >= 40 ? "Potential Role" : "Skill Gap Identified";
+              const matchColor = score >= 75 ? "text-indigo-600" : "text-slate-400";
               return (
-                <div className="space-y-6">
+                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                   {/* Title */}
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-2xl shrink-0">
+                  <div className="flex flex-col items-center text-center pb-6 border-b border-slate-50">
+                    <div className="w-20 h-20 rounded-[2rem] bg-slate-50 border border-slate-100 flex items-center justify-center text-4xl mb-4">
                       {selectedJob.logo}
                     </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-slate-900">{selectedJob.title}</h2>
-                      <p className="text-sm text-slate-500">{selectedJob.company}</p>
+                    <h2 className="text-2xl font-bold text-slate-900 leading-tight">{selectedJob.title}</h2>
+                    <p className="text-sm font-semibold text-slate-500 mt-2">{selectedJob.company} <span className="mx-1 text-slate-300">•</span> {selectedJob.location}</p>
+                  </div>
+
+                  {/* Match Score Summary */}
+                  <div className="text-center py-4">
+                    <div className="inline-flex flex-col items-center">
+                      <MatchRing score={score} />
+                      <p className={`text-lg font-bold mt-3 ${matchColor}`}>{matchLabel}</p>
                     </div>
                   </div>
 
-                  {/* Match Score Big */}
-                  <div className={`bg-white border border-slate-200 rounded-2xl p-5 flex items-center gap-5`}>
-                    <MatchRing score={score} />
-                    <div>
-                      <p className={`text-xl font-black ${matchColor}`}>{matchLabel}</p>
-                      <p className="text-xs text-slate-400 mt-1">
-                        {matched.length}/{selectedJob.requiredSkills.length} required · {matchedPreferred.length}/{(selectedJob.preferredSkills || []).length} preferred
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Description</p>
-                    <p className="text-sm text-slate-700 leading-relaxed">{selectedJob.description}</p>
-                  </div>
-
-                  {/* Meta */}
-                  <div className="grid grid-cols-2 gap-3">
+                  {/* Meta Grid */}
+                  <div className="grid grid-cols-2 gap-4">
                     {[
-                      { label: "Location", value: selectedJob.location },
-                      { label: "Type", value: selectedJob.type },
-                      { label: "Salary", value: selectedJob.salary },
+                      { label: "Contract", value: selectedJob.type },
+                      { label: "Compensation", value: selectedJob.salary },
                     ].map((m) => (
-                      <div key={m.label} className="bg-white border border-slate-200 rounded-xl p-3">
-                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">{m.label}</p>
-                        <p className="text-sm text-slate-900 font-semibold mt-1">{m.value}</p>
+                      <div key={m.label} className="bg-slate-50/50 rounded-2xl p-4">
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">{m.label}</p>
+                        <p className="text-xs text-slate-900 font-bold">{m.value}</p>
                       </div>
                     ))}
                   </div>
 
-                  {/* Required Skills */}
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-3">Required Skills</p>
-                    <div className="space-y-2">
-                      {selectedJob.requiredSkills.map((s) => {
-                        const has = userSkills.map((u) => u.toLowerCase()).includes(s.toLowerCase());
-                        return (
-                          <div key={s} className={`flex items-center justify-between px-3 py-2 rounded-lg border ${has ? "bg-emerald-500/5 border-emerald-500/20" : "bg-red-500/5 border-red-500/15"}`}>
-                            <span className={`text-sm font-medium ${has ? "text-emerald-300" : "text-red-400"}`}>{s}</span>
-                            {has
-                              ? <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded">✓ มีแล้ว</span>
-                              : <span className="text-[10px] text-red-400 font-bold bg-red-500/10 px-2 py-0.5 rounded">✗ ยังไม่มี</span>
-                            }
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Preferred Skills */}
-                  {selectedJob.preferredSkills && selectedJob.preferredSkills.length > 0 && (
+                  {/* Skills Section */}
+                  <div className="space-y-6">
                     <div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-3">Preferred Skills <span className="text-gray-700">(bonus)</span></p>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedJob.preferredSkills.map((s) => {
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-4">Core Competencies</p>
+                      <div className="space-y-2">
+                        {selectedJob.requiredSkills.map((s) => {
                           const has = userSkills.map((u) => u.toLowerCase()).includes(s.toLowerCase());
                           return (
-                            <span key={s} className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium ${has ? "bg-blue-500/10 border-blue-500/20 text-blue-300" : "bg-slate-50 border-slate-200 text-slate-400"}`}>
-                              {has ? "✓ " : ""}{s}
-                            </span>
+                            <div key={s} className="flex items-center justify-between group">
+                              <span className={`text-sm font-medium ${has ? "text-slate-900" : "text-slate-300"}`}>{s}</span>
+                              {has ? (
+                                <span className="w-5 h-5 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17L4 12" /></svg>
+                                </span>
+                              ) : (
+                                <span className="text-[10px] text-slate-200 font-bold uppercase">Missing</span>
+                              )}
+                            </div>
                           );
                         })}
                       </div>
                     </div>
-                  )}
+                  </div>
 
-                  {/* Missing Skills Advice */}
-                  {missing.length > 0 && (
-                    <div className="bg-yellow-500/5 border border-yellow-500/15 rounded-xl p-4">
-                      <p className="text-xs font-bold text-yellow-400 mb-2">💡 สกิลที่ควรเพิ่มเพื่อให้ได้งานนี้</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {missing.map((s) => (
-                          <span key={s} className="text-xs bg-yellow-500/10 text-yellow-300 border border-yellow-500/20 px-2 py-1 rounded-md font-semibold">{s}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  {/* Description */}
+                  <div className="pt-6 border-t border-slate-50">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-4">About the Role</p>
+                    <p className="text-sm text-slate-600 leading-relaxed font-medium">{selectedJob.description}</p>
+                  </div>
 
                   {/* Apply CTA */}
-                  <button className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-900/30">
-                    สมัครงานนี้ →
+                  <button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-5 rounded-2xl transition-all shadow-xl shadow-slate-200 active:scale-[0.98]">
+                    Submit Application
                   </button>
                 </div>
               );

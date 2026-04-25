@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import { 
-  fetchUserSkills as fetchSkillsFromAPI, 
-  type Skill 
+import {
+  fetchUserSkills as fetchSkillsFromAPI,
+  type Skill
 } from '@/lib/services/skills.service'
 import { type Badge, fetchUserBadges as fetchBadgesFromAPI } from '@/lib/services/badges.service';
 import { type Endorsement, fetchMyEndorsements as fetchEndorsementsFromAPI } from '@/lib/services/endorsements.service';

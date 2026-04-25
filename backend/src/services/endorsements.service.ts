@@ -28,43 +28,66 @@ async function updateSkillAndMintBadge(toUserId: string, skillName: string) {
         const skillDoc = skillSnap.docs[0]
         const docData = skillDoc.data()
         quizScore = docData.quizScore || 0
-        verified = (quizScore + endorsementScore) >= 8
+        
+        // Calculate Level Based on shared rules
+        let newLevel = 0;
+        if (endorsementScore >= 5 && quizScore >= 10) newLevel = 3;
+        else if (endorsementScore >= 3 && quizScore >= 7) newLevel = 2;
+        else if (endorsementScore >= 1 && quizScore >= 4) newLevel = 1;
 
-        await skillDoc.ref.update({ 
+        const updateData: any = { 
             endorsementScore,
-            verified
-        })
+            verified: newLevel > 0
+        }
+        
+        if (newLevel > 0) {
+            updateData.level = newLevel;
+            
+            // Auto-mint or update badge
+            const badgeSnap = await db.collection(Collections.BADGES)
+                .where('userId', '==', toUserId)
+                .where('skillName', '==', skillName)
+                .limit(1)
+                .get()
+
+            if (badgeSnap.empty) {
+                await db.collection(Collections.BADGES).add({
+                    userId: toUserId,
+                    skillName,
+                    level: newLevel,
+                    name: `${skillName} Certified Expert`,
+                    description: `Successfully verified by Endorsements and AI Quiz for ${skillName}`,
+                    type: 'skill_verification',
+                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png',
+                    unlockedAt: new Date(),
+                })
+            } else {
+                const badgeDoc = badgeSnap.docs[0];
+                if ((badgeDoc.data().level || 0) < newLevel) {
+                    await badgeDoc.ref.update({ level: newLevel, updatedAt: new Date() });
+                }
+            }
+        }
+
+        await skillDoc.ref.update(updateData)
+        
+        // After updating the skill, sync the user's aggregate stats
+        await updateUserEndorsementCount(toUserId)
     } else {
+        // Initial Level Calculation for new skill
+        let initialLevel = 0;
+        if (endorsementScore >= 1) initialLevel = 1; // Assuming 0 quiz score for new skill via endorsement
+
         await db.collection(Collections.SKILLS).add({
             userId: toUserId,
             name: skillName,
             category: 'Other',
-            level: 1,
+            level: initialLevel || 1,
             endorsementScore,
             quizScore: 0,
-            verified,
+            verified: initialLevel > 0,
             createdAt: new Date(),
         })
-    }
-
-    if (verified) {
-        const badgeSnap = await db.collection(Collections.BADGES)
-            .where('userId', '==', toUserId)
-            .where('skillName', '==', skillName)
-            .limit(1)
-            .get()
-
-        if (badgeSnap.empty) {
-            await db.collection(Collections.BADGES).add({
-                userId: toUserId,
-                skillName,
-                name: `${skillName} Certified Expert`,
-                description: `Successfully verified by Endorsements and AI Quiz for ${skillName}`,
-                type: 'skill_verification',
-                iconUrl: 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png',
-                unlockedAt: new Date(),
-            })
-        }
     }
 }
 

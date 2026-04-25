@@ -5,6 +5,8 @@
 import { fetchAPI } from './api'
 
 export interface Skill {
+  quizScore: number
+  endorsementScore?: number
   id?: string
   name: string
   category: string

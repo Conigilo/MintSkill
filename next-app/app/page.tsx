@@ -44,7 +44,7 @@ export default function LandingPage() {
                                 onClick={() => router.push("/login")}
                                 className="lp-btn-nav-ghost"
                             >
-                                Sign In
+                                Get Started
                             </button>
                         )}
                     </div>
@@ -54,61 +54,54 @@ export default function LandingPage() {
             {/* Hero Section */}
             <main className="lp-hero">
                 <div className="lp-hero-content">
-                    <h1 className="lp-h1">
+                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-slate-900 mb-6">
                         Prove your skills <br />
-                        <span className="lp-h1-accent-static">Not just your resume</span>
+                        <span className="text-indigo-600">
+                            Not just your resume
+                        </span>
                     </h1>
 
-                    <p className="lp-subtext">
-                        Connect your GitHub, pass AI powered assessments, and get endorsed
-                        by peers. Build a verified portfolio that actually lands you jobs.
+                    <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto mb-10 leading-relaxed">
+                        An AI Verified Professional Portfolio that turns your GitHub
+                        Contributions into Verifiable Badges and Certificates
                     </p>
 
-                    <div className="lp-cta-row">
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         {user ? (
                             <button
                                 onClick={() => router.push("/dashboard")}
-                                className="lp-btn-hero-primary"
+                                className="px-8 py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all active:scale-95"
                             >
-                                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" className="mr-2">
-                                    <rect x="2" y="2" width="7" height="7" rx="2" fill="currentColor" opacity="0.7" />
-                                    <rect x="11" y="2" width="7" height="7" rx="2" fill="currentColor" />
-                                    <rect x="2" y="11" width="7" height="7" rx="2" fill="currentColor" />
-                                    <rect x="11" y="11" width="7" height="7" rx="2" fill="currentColor" opacity="0.7" />
-                                </svg>
                                 Open Dashboard
                             </button>
                         ) : (
-                            <button
-                                onClick={() => router.push("/login")}
-                                className="lp-btn-hero-primary"
-                            >
-                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24" className="mr-2">
-                                    <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
-                                </svg>
-                                Start with GitHub
-                            </button>
+                            <>
+                                <button
+                                    onClick={() => router.push("/login")}
+                                    className="px-8 py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all active:scale-95"
+                                >
+                                    Get Started
+                                </button>
+                                <a href="#features" className="px-8 py-4 bg-white text-slate-600 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-all">
+                                    Learn More
+                                </a>
+                            </>
                         )}
-                        <a href="#features" className="lp-btn-hero-ghost">
-                            view more
-                        </a>
                     </div>
 
                     {/* Trust indicators */}
-                    <div className="lp-trust-bar">
-                        <div className="lp-trust-item">
-                            <span className="lp-trust-num">10k+</span>
-                            <span className="lp-trust-label">Developers</span>
+                    <div className="mt-24 pt-12 border-t border-slate-100 flex flex-wrap items-center justify-center gap-12 md:gap-24">
+                        <div className="text-center">
+                            <span className="block text-2xl font-bold text-slate-900">10k+</span>
+                            <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Developers</span>
                         </div>
-                        <div className="lp-trust-sep" />
-                        <div className="lp-trust-item">
-                            <span className="lp-trust-num">50k+</span>
-                            <span className="lp-trust-label">Skills Verified</span>
+                        <div className="text-center">
+                            <span className="block text-2xl font-bold text-slate-900">50k+</span>
+                            <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Skills Verified</span>
                         </div>
-                        <div className="lp-trust-sep" />
-                        <div className="lp-trust-item">
-                            <span className="lp-trust-num">98%</span>
-                            <span className="lp-trust-label">Accuracy</span>
+                        <div className="text-center">
+                            <span className="block text-2xl font-bold text-slate-900">98%</span>
+                            <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Accuracy</span>
                         </div>
                     </div>
                 </div>
@@ -117,8 +110,10 @@ export default function LandingPage() {
             {/* Features Section */}
             <section id="features" className="lp-features">
                 <div className="lp-features-header">
-                    <p className="lp-eyebrow">Why Skill Wallet?</p>
-                    <h2 className="lp-h2">Everything you need to stand out</h2>
+                    <div className="flex flex-col items-center gap-4">
+                        <img src="/logo.png" alt="Logo" className="h-10 w-auto" />
+                        <h2 className="lp-h2">Everything you need to stand out</h2>
+                    </div>
                 </div>
 
                 <div className="lp-features-grid">
@@ -164,10 +159,10 @@ export default function LandingPage() {
             {/* Footer */}
             <footer className="lp-footer">
                 <div className="lp-footer-logo">
-                    <img src={imgSrc} alt="Logo" style={{ height: '100px', width: 'auto', objectFit: 'contain' }} />
+                    <img src={imgSrc} alt="Logo" style={{ height: '80px', width: 'auto', objectFit: 'contain' }} />
                 </div>
                 <p className="lp-footer-copy">
-                    © 2026 MintSkll · Built with Next.js · Designed for Developers
+                    © 2026 Skill Wallet · Built with Next.js · Designed for Developers
                 </p>
             </footer>
         </div>

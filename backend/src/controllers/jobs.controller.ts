@@ -36,11 +36,10 @@ export async function getAllJobsHandler({ query, set }: any) {
 export async function getRecommendationsHandler({ headers, query, set }: any) {
     try {
         const decoded = await verifyToken(headers['authorization'] || null)
-        const limit = query.limit ? validateNumberRange(parseInt(query.limit), 'Limit', 1, 50) : 5
+        const limit = query.limit ? validateNumberRange(parseInt(query.limit), 'Limit', 1, 50) : 20
         
         // In a real app, we'd fetch user skills here
-        // For now, we'll use a placeholder or just return latest jobs
-        const jobs = await JobsService.getAllJobs({ limit })
+        const jobs = await JobsService.getRecommendations([], limit)
         
         return { 
             success: true,

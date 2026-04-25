@@ -1,213 +1,165 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/hooks/useAuth'
-import { LoadingSpinner, Alert } from '@/components/ui'
-import { ROUTES } from '@/lib/constants'
-import Link from 'next/link'
-
-// import { loginWithGoogle } from '@/lib/utils/firebase' // Google provider may need to be added to useAuth
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { LoadingSpinner, Alert } from "@/components/ui";
+import { ROUTES } from "@/lib/constants";
+import Link from "next/link";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const { user, loading, loginWithGithub, loginWithGoogle, signInWithEmail } = useAuth()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
-  const [isGithubLoading, setIsGithubLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter();
+  const { user, loading, loginWithGithub, loginWithGoogle, signInWithEmail } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isGithubLoading, setIsGithubLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user && !loading) {
-      router.push(ROUTES.DASHBOARD)
+      router.push(ROUTES.DASHBOARD);
     }
-  }, [user, loading, router])
+  }, [user, loading, router]);
 
   const handleGitHubLogin = async () => {
     try {
-      setIsGithubLoading(true)
-      const result = await loginWithGithub()
-      if (result) router.push(ROUTES.DASHBOARD) // null = ผู้ใช้ปิด popup เอง
+      setIsGithubLoading(true);
+      const result = await loginWithGithub();
+      if (result) router.push(ROUTES.DASHBOARD);
     } catch (err: any) {
-      setError(err.message || "Failed to login with GitHub")
+      setError(err.message || "Failed to login with GitHub");
     } finally {
-      setIsGithubLoading(false)
+      setIsGithubLoading(false);
     }
-  }
+  };
 
   const handleGoogleLogin = async () => {
     try {
-      setIsGoogleLoading(true)
-      const result = await loginWithGoogle()
-      if (result) router.push(ROUTES.DASHBOARD) // null = ผู้ใช้ปิด popup เอง
+      setIsGoogleLoading(true);
+      const result = await loginWithGoogle();
+      if (result) router.push(ROUTES.DASHBOARD);
     } catch (err: any) {
-      console.error("Google login error", err)
-      setError(err.message || "Failed to login with Google")
+      setError(err.message || "Failed to login with Google");
     } finally {
-      setIsGoogleLoading(false)
+      setIsGoogleLoading(false);
     }
-  }
+  };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-
-    // Validate ก่อนส่งไป Firebase
-    if (!email.trim()) {
-      setError("กรุณากรอกอีเมล")
-      return
-    }
-    if (!password.trim()) {
-      setError("กรุณากรอกรหัสผ่าน")
-      return
+    e.preventDefault();
+    setError(null);
+    if (!email.trim() || !password.trim()) {
+      setError("กรุณากรอกอีเมลและรหัสผ่าน");
+      return;
     }
 
     try {
-      await signInWithEmail(email.trim(), password)
-      router.push(ROUTES.DASHBOARD)
+      await signInWithEmail(email.trim(), password);
+      router.push(ROUTES.DASHBOARD);
     } catch (err: any) {
-      console.error(err)
-      if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
-        setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง")
-      } else if (err.code === "auth/invalid-email") {
-        setError("รูปแบบอีเมลไม่ถูกต้อง")
-      } else if (err.code === "auth/operation-not-allowed") {
-        setError("Email/Password login is temporarily unavailable. Please use Google or GitHub instead.")
-      } else {
-        setError(err.message || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ")
-      }
+      console.error(err);
+      setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
-        <LoadingSpinner label="Authenticating..." />
-      </div>
-    )
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-slate-900 flex items-center justify-center font-sans relative overflow-hidden selection:bg-purple-500/30">
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative selection:bg-purple-500/30">
+      {loading && <div className="top-loading-bar" />}
+      {/* 📍 Back to Home */}
+      <Link
+        href="/"
+        className="absolute top-8 left-8 text-[10px] text-slate-400 hover:text-slate-900 font-bold uppercase tracking-widest flex items-center gap-2 transition-colors z-50"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Back to Home
+      </Link>
 
-      {/* --- BACKGROUND GLOW --- */}
-      <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-[var(--primary)]/10 rounded-full blur-[150px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[150px] pointer-events-none" />
+      {/* Main Card */}
+      <div className="w-full max-w-md bg-white border border-slate-200/60 p-10 rounded-[2.5rem] shadow-2xl shadow-slate-200/50">
+        <div className="mb-10 flex justify-center items-center">
+          <img src="/logo.png" alt="Logo" className="h-32 w-auto object-contain" />
+        </div>
 
-      {/* Noise Overlay */}
-      <div className="absolute inset-0 opacity-[0.02] pointer-events-none mix-blend-screen" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.4) 1px, transparent 1px)', backgroundSize: '4px 4px' }} />
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">WELCOME BACK</h1>
+          <p className="text-slate-500 text-sm">Sign in to your digital portfolio.</p>
+        </div>
 
-      {/* --- MAIN LOGIN CARD --- */}
-      <div className="w-full max-w-[440px] px-6 relative z-10 my-10">
-        <div className="bg-[var(--card)]/90 backdrop-blur-xl border border-[var(--border)] rounded-3xl p-8 sm:p-10 shadow-2xl relative">
+        {error && <div className="mb-6"><Alert type="error" message={error} onClose={() => setError(null)} /></div>}
 
-          {/* Subtle top shimmer */}
-          <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[var(--primary)]/40 to-transparent" />
-
-          <div className="text-center mb-8">
-            {/* Logo Icon */}
-            <div className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center border border-[var(--border)] shadow-[0_4px_20px_rgba(0,0,0,0.3)] mb-6">
-              <img src="/logo.png" alt="MintSkill Logo" style={{ height: '400px', width: 'auto', objectFit: 'contain' }} />
-            </div>
-            <h1 className="text-[28px] font-serif font-bold tracking-tight text-slate-900 mb-2">Welcome Back</h1>
-            <p className="text-[14px] text-slate-500">Sign in to access your digital portfolio.</p>
+        <form onSubmit={handleEmailLogin} className="space-y-5">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Email Address</label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+              className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-slate-900 placeholder-slate-300 outline-none focus:border-[#b864ff] transition-all"
+            />
           </div>
 
-          {error && <div className="mb-6"><Alert type="error" message={error} onClose={() => setError(null)} /></div>}
-
-          <form onSubmit={handleEmailLogin} className="space-y-5">
-            {/* Email Input */}
-            <div className="space-y-2">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider pl-1">Email Address</label>
-              <div className="relative rounded-2xl bg-[var(--background)] border border-[var(--border)] focus-within:border-[var(--primary)] focus-within:ring-1 focus-within:ring-[var(--primary)] transition-all overflow-hidden flex items-center px-4 py-3.5">
-                <svg width="20" height="20" className="flex-shrink-0 text-slate-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
-                  className="w-full bg-transparent border-none text-[14px] text-slate-900 placeholder-gray-600 outline-none"
-                />
-              </div>
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-center px-1">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Password</label>
             </div>
-
-            {/* Password Input */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between pl-1">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Password</label>
-                <Link href="#" className="text-[11px] font-bold text-[var(--primary)] hover:text-purple-300 transition-colors">Forgot?</Link>
-              </div>
-              <div className="relative rounded-2xl bg-[var(--background)] border border-[var(--border)] focus-within:border-[var(--primary)] focus-within:ring-1 focus-within:ring-[var(--primary)] transition-all overflow-hidden flex items-center px-4 py-3.5">
-                <svg width="20" height="20" className="flex-shrink-0 text-slate-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-transparent border-none text-[14px] text-slate-900 placeholder-gray-600 outline-none tracking-[0.2em]"
-                />
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              className="w-full mt-6 py-3.5 rounded-2xl text-[14px] font-bold text-slate-900 transition-all transform active:scale-[0.98] bg-[var(--primary)] hover:bg-[#6d28d9] shadow-lg shadow-purple-500/20"
-            >
-              Sign In
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div className="flex items-center gap-4 my-8">
-            <div className="flex-1 h-px bg-[var(--border)]"></div>
-            <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Or continue with</span>
-            <div className="flex-1 h-px bg-[var(--border)]"></div>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-slate-900 placeholder-slate-300 outline-none focus:border-[#b864ff] transition-all"
+            />
           </div>
-          {/* 📍 ปุ่มย้อนกลับ (มุมซ้ายบน) */}
-          <Link
-            href="/"
-            className="absolute top-8 left-8 text-[10px] text-slate-400 hover:text-slate-900 font-bold uppercase tracking-widest flex items-center gap-2 transition-colors z-50"
+          <div className="flex justify-between">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest"><input type="checkbox" className="mr-2" />Remember me</p>
+            <Link href="#" className="text-[10px] font-bold text-[#b864ff] hover:text-purple-600 transition-colors uppercase tracking-widest">Forgot?</Link>
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-[#b864ff] hover:bg-[#a34df2] text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-purple-200 mt-4 active:scale-[0.98]"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Back to Home
+            Sign In
+          </button>
+        </form>
+
+        <div className="flex items-center my-8">
+          <div className="flex-1 border-t border-slate-100"></div>
+          <span className="px-4 text-[10px] text-slate-300 font-bold uppercase tracking-widest">Or</span>
+          <div className="flex-1 border-t border-slate-100"></div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <button
+            type="button"
+            onClick={handleGitHubLogin}
+            disabled={isGithubLoading}
+            className="flex items-center justify-center gap-2 bg-slate-50 border border-slate-100 hover:bg-slate-100 text-slate-600 font-bold py-3 rounded-xl transition-all active:scale-[0.95] disabled:opacity-50"
+          >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.699-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.03-2.682-.103-.253-.447-1.27.098-2.646 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.376.202 2.394.1 2.646.64.699 1.026 1.591 1.026 2.682 0 3.841-2.337 4.687-4.565 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.418 22 12c0-5.523-4.477-10-10-10z"></path></svg>
+            GitHub
+          </button>
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={isGoogleLoading}
+            className="flex items-center justify-center gap-2 bg-slate-50 border border-slate-100 hover:bg-slate-100 text-slate-600 font-bold py-3 rounded-xl transition-all active:scale-[0.95] disabled:opacity-50"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>
+            Google
+          </button>
+        </div>
+
+        <div className="text-center text-sm text-slate-400">
+          Don't have an account?{' '}
+          <Link href="/signup" className="text-[#b864ff] font-bold hover:text-purple-600 transition-colors">
+            Sign up
           </Link>
-          {/* Social Buttons */}
-          {/* Social Buttons */}
-          <div className="grid grid-cols-2 gap-4 mb-8">
-
-            {/* ปุ่ม GitHub */}
-            <button
-              type="button"
-              onClick={handleGitHubLogin}
-              className="flex items-center justify-center gap-2.5 bg-slate-50 hover:bg-slate-100 border border-[var(--border)] rounded-xl py-3 text-[13px] font-semibold text-slate-900 transition-all active:scale-[0.98]"
-            >
-              <svg width="18" height="18" className="flex-shrink-0" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" /></svg>
-              GitHub
-            </button>
-
-            {/* ปุ่ม Google */}
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              className="flex items-center justify-center gap-2.5 bg-slate-50 hover:bg-slate-100 border border-[var(--border)] rounded-xl py-3 text-[13px] font-semibold text-slate-900 transition-all active:scale-[0.98]"
-            >
-              <svg width="18" height="18" className="flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.16v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.16C1.43 8.55 1 10.22 1 12s.43 3.45 1.16 4.93l3.68-2.84z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.16 7.07l3.68 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>
-              Google
-            </button>
-
-          </div>
-
-          <p className="text-center text-[12px] text-slate-400 mt-8">
-            Don't have an account? <Link href="/signup" className="font-bold text-[var(--primary)] hover:text-slate-900 transition-colors">Sign up</Link>
-          </p>
         </div>
       </div>
     </div>
-  )
+  );
 }

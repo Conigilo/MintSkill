@@ -12,7 +12,7 @@ import {
     updateProfile,
     getAuth
 } from 'firebase/auth';
-import { auth } from '@/lib/utils/firebase'; 
+import { auth } from '@/lib/utils/firebase';
 import { userService } from '../services/user.service';
 import { githubService } from '../services/github.service';
 
@@ -31,7 +31,7 @@ export const useAuth = () => {
                     console.warn("Failed to reload user:", error);
                 }
             }
-            
+
             setUser(currentUser);
 
             if (currentUser) {
@@ -82,7 +82,7 @@ export const useAuth = () => {
         const provider = new GithubAuthProvider();
         provider.addScope('repo'); // Request repo scope to count stars and commits
         provider.addScope('read:user');
-        
+
         try {
             const result = await linkWithPopup(auth.currentUser, provider);
             const credential = GithubAuthProvider.credentialFromResult(result);
@@ -118,17 +118,17 @@ export const useAuth = () => {
     const signUpWithEmail = async (name: string, email: string, password: string) => {
         try {
             const result = await createUserWithEmailAndPassword(auth, email, password);
-            
+
             // อัปเดต Profile ชื่อให้ทันที
             await updateProfile(result.user, { displayName: name });
-            
+
             // Force refresh Firebase state เพื่อให้ displayName ขึ้นมา
             // (อันนี้จะทำให้ onAuthStateChanged ถูก trigger อีกครั้ง)
             const currentAuth = getAuth();
             if (currentAuth.currentUser) {
                 await currentAuth.currentUser.reload();
             }
-            
+
             // ซิงค์กับหลังบ้านแบบ Manual เพื่อให้ชื่อไปทันที
             try {
                 await userService.syncProfile({
@@ -141,7 +141,7 @@ export const useAuth = () => {
                 console.error("Profile sync failed (non-critical):", syncError);
                 // Don't re-throw - let signup succeed even if sync fails
             }
-            
+
             return result;
         } catch (error) {
             console.error("SignUp Error:", error);
@@ -163,14 +163,14 @@ export const useAuth = () => {
         await signOut(auth);
     };
 
-    return { 
-        user, 
-        loading, 
-        loginWithGithub, 
+    return {
+        user,
+        loading,
+        loginWithGithub,
         linkGithubAccount,
-        loginWithGoogle, 
-        signUpWithEmail, 
-        signInWithEmail, 
-        logout 
+        loginWithGoogle,
+        signUpWithEmail,
+        signInWithEmail,
+        logout
     };
 };

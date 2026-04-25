@@ -12,6 +12,24 @@ export async function getSkillsByUser(userId: string) {
 }
 
 /**
+ * Update user's aggregate skill stats in the users collection
+ */
+async function updateUserSkillStats(uid: string) {
+    const skillsSnap = await db.collection(Collections.SKILLS)
+        .where('userId', '==', uid)
+        .get()
+    
+    const verifiedSkills = skillsSnap.docs.filter(doc => doc.data().verified).length
+    const totalSkills = skillsSnap.size
+
+    await db.collection(Collections.USERS).doc(uid).update({
+        'stats.skillCount': totalSkills,
+        'stats.verifiedSkills': verifiedSkills,
+        'updatedAt': new Date()
+    })
+}
+
+/**
  * Add a new skill for the user
  */
 export async function addSkill(
@@ -34,7 +52,6 @@ export async function addSkill(
     const result = await db.collection(Collections.SKILLS).add(skillData)
 
     // Update user's skill count
-    const userRef = db.collection(Collections.USERS).doc(uid)
     const userDoc = await userRef.get()
     
     if (userDoc.exists) {
@@ -135,12 +152,20 @@ export async function submitSkillQuizAttempt(uid: string, skillId: string, score
     }
 
     const updateData: Record<string, any> = { updatedAt: new Date(), quizScore: score }
-    const totalScore = score + (skillData?.endorsementScore || 0)
+    const quizScore = score
+    const endorsementScore = skillData?.endorsementScore || 0
     
-    if (totalScore >= 8 && !skillData?.verified) {
-        updateData.verified = true
+    // Calculate Level Based on shared rules
+    let newLevel = 0;
+    if (endorsementScore >= 5 && quizScore >= 10) newLevel = 3;
+    else if (endorsementScore >= 3 && quizScore >= 7) newLevel = 2;
+    else if (endorsementScore >= 1 && quizScore >= 4) newLevel = 1;
+    
+    if (newLevel > 0) {
+        updateData.level = newLevel;
+        updateData.verified = true;
         
-        // Auto-mint badge
+        //Update badge
         const badgeSnap = await db.collection(Collections.BADGES)
             .where('userId', '==', uid)
             .where('skillName', '==', skillData!.name)
@@ -151,12 +176,19 @@ export async function submitSkillQuizAttempt(uid: string, skillId: string, score
             await db.collection(Collections.BADGES).add({
                 userId: uid,
                 skillName: skillData!.name,
+                level: newLevel,
                 name: `${skillData!.name} Certified Expert`,
                 description: `Successfully verified by Endorsements and AI Quiz for ${skillData!.name}`,
                 type: 'skill_verification',
                 iconUrl: 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png',
                 unlockedAt: new Date(),
             })
+        } else {
+            // Update existing badge level if it increased
+            const badgeDoc = badgeSnap.docs[0];
+            if ((badgeDoc.data().level || 0) < newLevel) {
+                await badgeDoc.ref.update({ level: newLevel, updatedAt: new Date() });
+            }
         }
     }
 

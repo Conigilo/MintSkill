@@ -58,7 +58,7 @@ export default function DashboardPage() {
           {/* Main Dashboard Layout */}
           <div className="max-w-7xl mx-auto mt-8 px-8 relative z-10">
             {/* Profile + Tabs Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12 mt-14">
               {/* Left Column: Profile Card + GitHub */}
               <div className="lg:col-span-4 space-y-6">
                 {/* Profile Card */}

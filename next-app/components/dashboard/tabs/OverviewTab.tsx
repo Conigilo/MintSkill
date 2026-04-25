@@ -5,22 +5,42 @@ import { useUserSkills, useUserBadges, useMyEndorsements } from '@/lib/hooks/use
 import { useAuth } from '@/lib/hooks/useAuth'
 import { githubService } from '@/lib/services/github.service'
 import { Star, Github, ExternalLink, RefreshCw } from 'lucide-react'
+import { type Badge } from '@/lib/services/badges.service'
 
 export default function OverviewTab() {
   const { user, loading } = useAuth()
   const uid = user?.uid
   const { skills, isLoading: skillsLoading } = useUserSkills(uid)
-  const { badges } = useUserBadges(uid)
+  const { badges, isLoading: badgesLoading } = useUserBadges(uid)
   const { endorsements } = useMyEndorsements()
   const [badgeModal, setBadgeModal] = useState<{ isOpen: boolean; badge: any | null }>({ isOpen: false, badge: null })
-  const [profile, setProfile] = useState<{ uid?: string, email?: string | null, photoURL?: string | null, displayName?: string | null, contributions?: number, projects?: any[], github?: { repoCount?: number, totalContributions?: number }, recentRepos?: any[] } | null>(null)
+  const [profile, setProfile] = useState<{
+    uid?: string,
+    email?: string | null,
+    photoURL?: string | null,
+    displayName?: string | null,
+    contributions?: number,
+    projects?: any[],
+    github?: {
+      repoCount?: number,
+      totalContributions?: number
+    },
+    recentRepos?: any[],
+    stats?: {
+      skillCount?: number,
+      verifiedSkills?: number,
+      endorsementCount?: number,
+      contributions?: number,
+      projectCount?: number
+    }
+  } | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
 
   const stats = {
-    verifiedSkills: skills?.length || 0,
-    endorsements: endorsements?.length || 0,
-    contributions: profile?.github?.totalContributions || profile?.contributions || 0,
-    projects: profile?.github?.repoCount || profile?.projects?.length || 0,
+    verifiedSkills: profile?.stats?.verifiedSkills || 0,
+    endorsements: profile?.stats?.endorsementCount || 0,
+    contributions: profile?.stats?.contributions || 0,
+    projects: profile?.stats?.projectCount || 0,
   }
 
   const loadProfile = async () => {
@@ -129,25 +149,77 @@ export default function OverviewTab() {
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-xl font-bold text-slate-900">Earned Badges</h3>
             <span className="text-xs border border-slate-300 bg-slate-100/50 px-3 py-1.5 rounded-full text-slate-500">
-              {topBadges.length} total
+              {badges?.length || 0} total
             </span>
           </div>
-          {topBadges.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4">
-              {topBadges.map((badge, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setBadgeModal({ isOpen: true, badge })}
-                  className="bg-white/50 border border-slate-200 rounded-2xl p-4 text-center hover:border-blue-500/50 hover:bg-white transition-all cursor-pointer shadow-sm shadow-blue-900/10"
-                >
-                  <img src={badge.iconUrl || 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png'} className="w-8 h-8 object-contain mx-auto mb-2" alt="" />
-                  <h4 className="text-xs font-semibold text-slate-900 truncate">{badge.name}</h4>
-                </div>
-              ))}
+          {skillsLoading ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Syncing Badges...</p>
+            </div>
+          ) : badges && badges.length > 0 ? (
+            <div className="space-y-6">
+              {[3, 2, 1].map((lvl) => {
+                const groupBadges = badges.filter(b => {
+                  // 1. Get badge skill name
+                  const bName = (b.skillName || "").toLowerCase().trim();
+
+                  // 2. Find matching skill from database
+                  const s = skills?.find(sk => (sk.name || "").toLowerCase().trim() === bName);
+
+                  // 3. GET REAL DATA: Calculate level from raw DB scores if level field is missing
+                  // This ensures accuracy even for old badges
+                  let calcLvl = Number(b.level || s?.level || 1);
+
+                  if (s) {
+                    const q = s.quizScore || 0;
+                    const e = s.endorsementScore || 0;
+                    if (e >= 5 && q >= 10) calcLvl = 3;
+                    else if (e >= 3 && q >= 7) calcLvl = 2;
+                    else if (e >= 1 && q >= 4) calcLvl = 1;
+                  }
+
+                  return calcLvl === lvl;
+                });
+
+                if (groupBadges.length === 0) return null;
+
+                const lvlLabels: Record<number, { name: string, color: string, bg: string }> = {
+                  3: { name: "Senior", color: "text-purple-400", bg: "bg-purple-500/10" },
+                  2: { name: "Middle", color: "text-blue-400", bg: "bg-blue-500/10" },
+                  1: { name: "Junior", color: "text-emerald-400", bg: "bg-emerald-500/10" }
+                };
+
+                return (
+                  <div key={lvl} className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${lvlLabels[lvl].bg} ${lvlLabels[lvl].color}`}>
+                        {lvlLabels[lvl].name}
+                      </span>
+                      <div className="h-px flex-1 bg-slate-200/50"></div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {groupBadges.map((badge, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => setBadgeModal({ isOpen: true, badge })}
+                          className="relative bg-white/50 border border-slate-200 rounded-2xl p-4 text-center hover:border-blue-500/50 hover:bg-white transition-all cursor-pointer shadow-sm group"
+                        >
+                          <img
+                            src={badge.iconUrl || 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png'}
+                            className="w-8 h-8 object-contain mx-auto mb-2 group-hover:scale-110 transition-transform"
+                            alt=""
+                          />
+                          <h4 className="text-[11px] font-bold text-slate-800 truncate">{badge.name}</h4>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-6 text-center">
-
               <p className="text-xs text-slate-400">Get endorsements to earn badges!</p>
             </div>
           )}
@@ -227,6 +299,21 @@ export default function OverviewTab() {
       {/* ================= Badge Certificate Modal ================= */}
       {badgeModal.isOpen && badgeModal.badge && (() => {
         const activeBadge = badgeModal.badge;
+        // Robust real-data level matching for modal
+        const bName = (activeBadge.skillName || "").toLowerCase().trim();
+        const s = skills?.find(sk => (sk.name || "").toLowerCase().trim() === bName);
+        let bLvl = Number(activeBadge.level || s?.level || 1);
+        if (s) {
+          const q = s.quizScore || 0;
+          const e = s.endorsementScore || 0;
+          if (e >= 5 && q >= 10) bLvl = 3;
+          else if (e >= 3 && q >= 7) bLvl = 2;
+          else if (e >= 1 && q >= 4) bLvl = 1;
+        }
+
+        const lvlNames: Record<number, string> = { 3: "Senior", 2: "Middle", 1: "Junior" };
+        const lvlColors: Record<number, string> = { 3: "text-purple-400", 2: "text-blue-400", 1: "text-emerald-400" };
+
         const credId = `skw-${String(activeBadge.id).replace(/[^a-z0-9]/gi, '').substring(0, 8) || Math.random().toString(36).substring(2, 10)}`;
         return (
           <div
@@ -248,7 +335,7 @@ export default function OverviewTab() {
               </div>
 
               <div className="flex flex-col items-center pt-8 pb-4 px-6">
-                <div className={`w-20 h-20 rounded-full bg-blue-500 flex items-center justify-center shadow-lg relative mb-4`}>
+                <div className={`w-20 h-20 rounded-full bg-slate-900 flex items-center justify-center shadow-lg relative mb-4`}>
                   <img src={activeBadge.iconUrl || 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png'} className="w-10 h-10 object-contain" alt="" />
                   <div className="absolute -bottom-1 -right-1 bg-green-500 border-2 border-[#0d1117] w-6 h-6 rounded-full flex items-center justify-center">
                     <svg className="w-3.5 h-3.5 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -257,15 +344,15 @@ export default function OverviewTab() {
                   </div>
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 tracking-tight">{activeBadge.name}</h3>
-                <p className="text-blue-400 text-sm font-medium mt-1">Verified Expert</p>
+                <p className={`${lvlColors[bLvl] || 'text-blue-400'} text-sm font-bold mt-1 uppercase tracking-tighter`}>{lvlNames[bLvl] || "Verified"}</p>
               </div>
 
               <div className="px-6 pb-6 space-y-3">
                 <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3 text-left">
                   <div>
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Verification Details</p>
-                    <p className="text-sm text-green-400 font-medium">
-                      {activeBadge.description || `Successfully verified by Endorsements and AI Quiz for ${activeBadge.skillName}`}
+                    <p className="text-sm text-slate-600 font-medium">
+                      {activeBadge.description || `Successfully verified by Endorsements and AI Quiz at ${lvlNames[bLvl] || 'Expert'} Level.`}
                     </p>
                     <p className="text-[10px] text-slate-400 mt-1">Issued: {new Date(activeBadge.unlockedAt?.seconds ? activeBadge.unlockedAt.seconds * 1000 : activeBadge.unlockedAt || Date.now()).toLocaleDateString()}</p>
                   </div>
