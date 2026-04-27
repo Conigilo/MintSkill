@@ -341,16 +341,19 @@ export default function SkillsTab({ onNavigateToEndorse }: { onNavigateToEndorse
                     {generatedQuestions[quizQuestionIndex]?.opts.map((option: string, index: number) => {
                       const isCorrect = index === generatedQuestions[quizQuestionIndex].a;
                       const isSelected = index === quizSelectedOption;
+                      const hasAnswered = quizStatus !== "idle";
                       
-                      let btnClass = "w-full text-left px-4 py-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-300 text-slate-700 text-sm transition-all focus:outline-none";
+                      let btnClass = "w-full text-left px-5 py-4 rounded-2xl border-2 transition-all flex justify-between items-center group ";
                       
-                      if (quizStatus !== "idle") {
+                      if (!hasAnswered) {
+                        btnClass += "bg-white border-slate-100 hover:border-blue-400 hover:shadow-md text-slate-700";
+                      } else {
                         if (isCorrect) {
-                          btnClass = "w-full text-left px-4 py-3 rounded-lg border border-green-500/50 bg-green-500/10 text-green-400 text-sm transition-all focus:outline-none";
-                        } else if (isSelected && !isCorrect) {
-                          btnClass = "w-full text-left px-4 py-3 rounded-lg border border-red-500/50 bg-red-500/10 text-red-400 text-sm transition-all focus:outline-none";
+                          btnClass += "bg-green-50 border-green-200 text-green-700 font-medium ring-2 ring-green-100";
+                        } else if (isSelected) {
+                          btnClass += "bg-red-50 border-red-200 text-red-700 font-medium ring-2 ring-red-100";
                         } else {
-                          btnClass = "w-full text-left px-4 py-3 rounded-lg border border-slate-200 bg-white text-slate-400 text-sm opacity-50 cursor-not-allowed";
+                          btnClass += "bg-white border-slate-50 text-slate-300 opacity-60";
                         }
                       }
 
@@ -358,25 +361,48 @@ export default function SkillsTab({ onNavigateToEndorse }: { onNavigateToEndorse
                         <button
                           key={index}
                           onClick={() => handleAnswer(index, activeSkill.id)}
-                          disabled={quizStatus !== "idle"}
+                          disabled={hasAnswered}
                           className={btnClass}
                         >
-                          {option}
+                          <span className="flex-1">{option}</span>
+                          {hasAnswered && isCorrect && (
+                            <svg className="w-6 h-6 text-green-500 animate-in zoom-in duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                          {hasAnswered && isSelected && !isCorrect && (
+                            <svg className="w-6 h-6 text-red-500 animate-in zoom-in duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          )}
                         </button>
                       );
                     })}
                   </div>
 
-                  {quizStatus === "correct" && (
-                    <div className="mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-sm font-medium flex justify-between items-center animate-in fade-in duration-300">
-                      <span>🎉 Correct! (+1 Score)</span>
-                      <button onClick={() => handleNextQuestion(activeSkill.id)} className="bg-green-600/20 hover:bg-green-600/40 border border-green-500/30 px-4 py-1.5 rounded-lg text-green-400 transition-colors">Next ➔</button>
-                    </div>
-                  )}
-                  {quizStatus === "wrong" && (
-                    <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm font-medium flex justify-between items-center animate-in fade-in duration-300">
-                      <span>❌ Fail! The correct answer is: {generatedQuestions[quizQuestionIndex]?.opts[generatedQuestions[quizQuestionIndex].a]}</span>
-                      <button onClick={() => handleNextQuestion(activeSkill.id)} className="bg-red-600/20 hover:bg-red-600/40 border border-red-500/30 px-4 py-1.5 rounded-lg text-red-400 transition-colors shrink-0 ml-3">Next ➔</button>
+                  {quizStatus !== "idle" && quizStatus !== "finished" && (
+                    <div className="mt-6 space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                      <div className={`p-5 rounded-2xl border-l-4 ${quizStatus === "correct" ? "bg-green-50 border-green-400" : "bg-red-50 border-red-400"}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          {/* <span className="text-lg">{quizStatus === "correct" ? "🎉" : "💡"}</span> */}
+                          <span className={`font-bold ${quizStatus === "correct" ? "text-green-800" : "text-red-800"}`}>
+                            {quizStatus === "correct" ? "เก่งมาก! ถูกต้อง" : "ผิดจ๊ะ"}
+                          </span>
+                        </div>
+                        <p className={`text-sm ${quizStatus === "correct" ? "text-green-700" : "text-red-700"}`}>
+                          {quizStatus === "correct" ? "" : generatedQuestions[quizQuestionIndex]?.explanation || (quizStatus === "wrong" ? `คำตอบที่ถูกคือ: ${generatedQuestions[quizQuestionIndex]?.opts[generatedQuestions[quizQuestionIndex].a]}` : "")}
+                        </p>
+                      </div>
+
+                      <button 
+                        onClick={() => handleNextQuestion(activeSkill.id)} 
+                        className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 group"
+                      >
+                        ข้อถัดไป
+                        <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                      </button>
                     </div>
                   )}
                   {quizStatus === "finished" && (

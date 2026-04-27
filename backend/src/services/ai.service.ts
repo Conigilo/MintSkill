@@ -1,5 +1,5 @@
 export class AiService {
-    private MICROSERVICE_URL = "http://localhost:3001";
+    private MICROSERVICE_URL = "http://localhost:3002";
 
     async generateQuizForSkill(skillName: string, level: number): Promise<any[]> {
         try {

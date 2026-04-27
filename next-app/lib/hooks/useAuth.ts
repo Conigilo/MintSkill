@@ -92,7 +92,7 @@ export const useAuth = () => {
             return result;
         } catch (error: any) {
             if (error?.code === 'auth/credential-already-in-use') {
-                throw new Error("This GitHub account is already linked. Try logging out and signing in directly with GitHub.");
+                throw new Error("บัญชี GitHub นี้ถูกเชื่อมต่อกับผู้ใช้อื่นไปแล้ว กรุณาลองใช้บัญชีอื่น หรือออกจากระบบแล้วล็อกอินด้วย GitHub แทน");
             }
             console.error("GitHub Link Error:", error);
             throw error;
@@ -129,22 +129,18 @@ export const useAuth = () => {
                 await currentAuth.currentUser.reload();
             }
 
-            // ซิงค์กับหลังบ้านแบบ Manual เพื่อให้ชื่อไปทันที
-            try {
-                await userService.syncProfile({
-                    uid: result.user.uid,
-                    email: result.user.email,
-                    displayName: name,
-                    photoURL: result.user.photoURL,
-                });
-            } catch (syncError) {
-                console.error("Profile sync failed (non-critical):", syncError);
-                // Don't re-throw - let signup succeed even if sync fails
-            }
+            // ซิงค์กับหลังบ้าน (Firestore)
+            // ถ้าตรงนี้พัง จะถือว่าการสมัครสมาชิกไม่สมบูรณ์ เพราะจะไม่มีที่เก็บข้อมูล Skill
+            await userService.syncProfile({
+                uid: result.user.uid,
+                email: result.user.email,
+                displayName: name,
+                photoURL: result.user.photoURL,
+            });
 
             return result;
         } catch (error) {
-            console.error("SignUp Error:", error);
+            console.error("SignUp/Sync Error:", error);
             throw error;
         }
     };

@@ -10,10 +10,10 @@ import SidebarLayout from "@/components/dashboard/SidebarLayout";
 function calcMatch(userSkills: string[], job: any) {
   const normalizedUserSkills = userSkills.map((s) => s.toLowerCase());
 
-  const matched = job.requiredSkills.filter((s) =>
+  const matched = job.requiredSkills.filter((s: string) =>
     normalizedUserSkills.includes(s.toLowerCase())
   );
-  const matchedPreferred = (job.preferredSkills || []).filter((s) =>
+  const matchedPreferred = (job.preferredSkills || []).filter((s: string) =>
     normalizedUserSkills.includes(s.toLowerCase())
   );
 
@@ -22,7 +22,7 @@ function calcMatch(userSkills: string[], job: any) {
   const prefScore = (job.preferredSkills || []).length > 0 ? (matchedPreferred.length / job.preferredSkills!.length) * 20 : 0;
   const score = Math.round(reqScore + prefScore);
 
-  return { score, matched, matchedPreferred, missing: job.requiredSkills.filter((s) => !normalizedUserSkills.includes(s.toLowerCase())) };
+  return { score, matched, matchedPreferred, missing: job.requiredSkills.filter((s: string) => !normalizedUserSkills.includes(s.toLowerCase())) };
 }
 
 // Sub-component: Match ring
@@ -211,7 +211,7 @@ export default function JobsPage() {
                     <div className="pt-4 border-t border-slate-50">
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-3">Required Skills Match</p>
                       <div className="flex flex-wrap gap-1.5">
-                        {job.requiredSkills.map((s) => {
+                        {job.requiredSkills.map((s: string) => {
                           const has = userSkills.map((u) => u.toLowerCase()).includes(s.toLowerCase());
                           return (
                             <span
@@ -279,8 +279,8 @@ export default function JobsPage() {
                     <div>
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-4">Core Competencies</p>
                       <div className="space-y-2">
-                        {selectedJob.requiredSkills.map((s) => {
-                          const has = userSkills.map((u) => u.toLowerCase()).includes(s.toLowerCase());
+                        {selectedJob.requiredSkills.map((s: string) => {
+                          const has = userSkills.map((u: string) => u.toLowerCase()).includes(s.toLowerCase());
                           return (
                             <div key={s} className="flex items-center justify-between group">
                               <span className={`text-sm font-medium ${has ? "text-slate-900" : "text-slate-300"}`}>{s}</span>

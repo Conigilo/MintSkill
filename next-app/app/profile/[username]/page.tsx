@@ -278,15 +278,18 @@ export default function PublicProfilePage() {
               </section>
             )}
 
-            {/* Pinned Repositories */}
-            {repos.length > 0 && (
-              <section>
-                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-3 mb-6">
-                  <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
-                  Featured Projects
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {repos.slice(0, 6).map((repo: any, i: number) => (
+            {repos.length > 0 && (() => {
+              const pinnedRepos = repos.filter((r: any) => r.isSpotlight);
+              const displayRepos = pinnedRepos.length > 0 ? pinnedRepos : repos.slice(0, 6);
+              
+              return (
+                <section>
+                  <h2 className="text-xl font-bold text-slate-900 flex items-center gap-3 mb-6">
+                    <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
+                    {pinnedRepos.length > 0 ? "Featured Projects" : "GitHub Repositories"}
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {displayRepos.map((repo: any, i: number) => (
                     <a 
                       key={i} 
                       href={repo.url} 
@@ -321,7 +324,8 @@ export default function PublicProfilePage() {
                   ))}
                 </div>
               </section>
-            )}
+            );
+          })()}
 
           </div>
         </div>

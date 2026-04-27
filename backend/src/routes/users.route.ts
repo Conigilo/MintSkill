@@ -47,9 +47,9 @@ export const usersRoute = new Elysia({ prefix: '/users', tags: ['Users'] })
     .post('/sync', UsersController.syncProfileHandler, {
         body: t.Object({
             uid: t.String(),
-            email: t.Optional(t.String()),
-            displayName: t.Optional(t.String()),
-            photoURL: t.Optional(t.String()),
+            email: t.Optional(t.Nullable(t.String())),
+            displayName: t.Optional(t.Nullable(t.String())),
+            photoURL: t.Optional(t.Nullable(t.String())),
         }),
         detail: {
             summary: 'Sync User Profile',

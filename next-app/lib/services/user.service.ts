@@ -10,19 +10,10 @@ interface SyncProfileData {
 export const userService = {
   // ฟังก์ชันสำหรับเรียกหลังบ้านให้เซฟข้อมูล User ลง Firestore (เมื่อ Login ครั้งแรก)
   syncProfile: async (userData: SyncProfileData) => {
-    try {
-      return await fetchAPI('/users/sync', {
-        method: 'POST',
-        body: JSON.stringify(userData)
-      });
-    } catch (error) {
-      // Fall back to localStorage if backend is unavailable
-      console.warn("Backend sync failed, saving to localStorage:", error);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(`user_${userData.uid}`, JSON.stringify(userData));
-      }
-      return { success: true, data: userData, local: true };
-    }
+    return await fetchAPI('/users/sync', {
+      method: 'POST',
+      body: JSON.stringify(userData)
+    });
   },
 
   // ดึงข้อมูล Profile ปัจจุบันจากหลังบ้าน

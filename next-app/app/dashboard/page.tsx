@@ -15,6 +15,7 @@ import CVTemplate from "@/components/dashboard/CVTemplate";
 import Image from "next/image";
 import { GitHubCalendar } from "react-github-calendar";
 import EditProfileModal from "@/components/dashboard/EditProfileModal";
+import { Alert } from "@/components/ui";
 
 const TABS = ["Overview", "Skills", "Endorsements", "Gap Analysis", "Export Portfolio"] as const;
 
@@ -30,6 +31,7 @@ export default function DashboardPage() {
     github?: { connected?: boolean; login?: string; repoCount?: number; totalContributions?: number; totalStars?: number };
   } | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { skills } = useUserSkills(user?.uid);
   const { endorsements: myEndorsements } = useMyEndorsements();
@@ -54,6 +56,17 @@ export default function DashboardPage() {
           {/* Background effects */}
           <div className="absolute top-[-10%] left-[10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
           <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
+
+          {/*Alert Message Area */}
+          {error && (
+            <div className="max-w-7xl mx-auto mt-24 px-8 mb-[-2rem] animate-in slide-in-from-top-4 duration-300">
+              <Alert
+                type="error"
+                message={error}
+                onClose={() => setError(null)} 
+              />
+            </div>
+          )}
 
           {/* Main Dashboard Layout */}
           <div className="max-w-7xl mx-auto mt-8 px-8 relative z-10">
@@ -175,7 +188,8 @@ export default function DashboardPage() {
                               await linkGithubAccount();
                               window.location.reload();
                             }
-                          } catch (e) {
+                          } catch (e: any) {
+                            setError(e.message || "Failed to link GitHub account.");
                             console.error(e);
                           }
                         }}

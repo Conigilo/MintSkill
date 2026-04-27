@@ -15,7 +15,9 @@ const app = new Elysia()
 
         const genAI = new GoogleGenerativeAI(apiKey)
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-3.1-flash-lite-preview",
+            //change gemini-flash-lite-latest to gemini-3.1-flash-lite-preview when service is overloaded
+            // const modelName = "gemini-flash-lite-latest";
             generationConfig: { responseMimeType: "application/json" }
         })
 
@@ -34,10 +36,19 @@ const app = new Elysia()
               {
                 "q": "ข้อความคำถาม?",
                 "opts": ["ตัวเลือก 1", "ตัวเลือก 2", "ตัวเลือก 3", "ตัวเลือก 4"],
-                "a": 0
+                "a": 0,
+                "explanation": "คำอธิบายเฉลยสั้นๆ ว่าทำไมข้อนี้ถึงถูกหรือทำไมข้อนี้ถึงผิด"
               }
             ]`
-
+        // //if server cant load we use mock data for testing
+        // const mockData = [
+        //     {
+        //         "q": "ข้อความคำถาม?",
+        //         "opts": ["ตัวเลือก 1", "ตัวเลือก 2", "ตัวเลือก 3", "ตัวเลือก 4"],
+        //         "a": 0,
+        //         "explanation": "คำอธิบายเฉลยสั้นๆ ว่าทำไมข้อนี้ถึงถูกหรือทำไมข้อนี้ถึงผิด"
+        //     }
+        // ]
         try {
             const result = await model.generateContent(prompt)
             const text = result.response.text()
@@ -52,6 +63,25 @@ const app = new Elysia()
             level: t.Number()
         })
     })
-    .listen(3001)
+    .get('/list-models', async () => {
+        let apiKey = process.env.GEMINI_API_KEY || Bun.env.GEMINI_API_KEY;
 
-console.log(`🤖 AI Microservice running at http://localhost:3001`)
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        const data = await response.json();
+
+        if (!data.models) return data;
+
+        // ดึงมาเฉพาะชื่อ Model ที่ใช้คำสั่ง generateContent (สร้าง Quiz) ได้
+        const availableModels = data.models
+            .filter((m: any) => m.supportedGenerationMethods?.includes("generateContent"))
+            .map((m: any) => m.name.replace('models/', '')); // ตัดคำว่า models/ ออกให้เหลือแค่ชื่อ
+
+        return {
+            total: availableModels.length,
+            models: availableModels
+        };
+    })
+    .listen(3002)
+
+console.log(`🚀 AI Microservice READY at http://localhost:3002`)
+console.log(`📌 Using GEMINI_API_KEY: ${process.env.GEMINI_API_KEY || Bun.env.GEMINI_API_KEY ? "Loaded ✅" : "Check .env ❌"}`)
