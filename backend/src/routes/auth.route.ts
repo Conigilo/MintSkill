@@ -1,5 +1,5 @@
 import { Elysia, t } from 'elysia';
-import { githubCallbackHandler, verifyTokenHandler, logoutHandler } from '../controllers/auth.controller';
+import { githubCallbackHandler, verifyTokenHandler, logoutHandler, loginHandler } from '../controllers/auth.controller';
 
 export const authRoute = new Elysia({ prefix: '/auth', tags: ['Auth'] })
   // GitHub OAuth callback
@@ -8,6 +8,17 @@ export const authRoute = new Elysia({ prefix: '/auth', tags: ['Auth'] })
     detail: {
       summary: 'GitHub Auth Callback',
       description: 'Exchange GitHub OAuth code for Firebase custom token',
+    },
+  })
+  // Email Login (Dev/Test)
+  .post('/login', loginHandler, {
+    body: t.Object({ 
+      email: t.String(),
+      password: t.Optional(t.String()) 
+    }),
+    detail: {
+      summary: 'Email Login (Dev)',
+      description: 'Login with email to get a custom token (Development only)',
     },
   })
   // Verify Firebase token

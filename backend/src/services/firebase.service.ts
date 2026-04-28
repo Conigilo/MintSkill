@@ -23,7 +23,7 @@ if (!getApps().length) {
 
     // Read JSON file using Bun.file() for better performance
     const serviceAccountFile = Bun.file(absolutePath)
-    
+
     if (!await serviceAccountFile.exists()) {
         throw new Error(`Service account file not found at: ${absolutePath}`)
     }
@@ -50,6 +50,7 @@ export const Collections = {
     JOBS: 'jobs',
     CHALLENGES: 'challenges',
     CHALLENGE_ATTEMPTS: 'challenge_attempts',
+    APPLICATIONS: 'applications',
 } as const
 
 /**
@@ -58,11 +59,11 @@ export const Collections = {
  */
 export async function getDoc<T>(collection: string, id: string): Promise<T | null> {
     const snapshot = await db.collection(collection).doc(id).get()
-    
+
     if (!snapshot.exists) {
         return null
     }
-    
+
     return { id: snapshot.id, ...snapshot.data() } as T
 }
 
@@ -74,13 +75,13 @@ export async function queryDocs<T>(
     filters: [string, FirebaseFirestore.WhereFilterOp, any][]
 ): Promise<T[]> {
     let query: FirebaseFirestore.Query = db.collection(collection)
-    
+
     for (const [field, operator, value] of filters) {
         query = query.where(field, operator, value)
     }
-    
+
     const snapshot = await query.get()
-    
+
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as T)
 }
 

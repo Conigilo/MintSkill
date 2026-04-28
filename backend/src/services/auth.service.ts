@@ -19,17 +19,17 @@ async function exchangeGitHubCode(code: string): Promise<string> {
             code,
         }),
     })
-    
+
     const data = await response.json() as any
-    
+
     if (data.error) {
         throw new Error(data.error)
     }
-    
+
     if (!data.access_token) {
         throw new Error('No access token returned')
     }
-    
+
     return data.access_token
 }
 
@@ -43,11 +43,11 @@ async function fetchGitHubUserProfile(token: string) {
             Accept: 'application/vnd.github+json',
         },
     })
-    
+
     if (!response.ok) {
         throw new Error(`GitHub API error: ${response.status}`)
     }
-    
+
     return response.json() as Promise<any>
 }
 
@@ -121,7 +121,7 @@ export async function githubCallback(code: string) {
 
     // Step 5: Create Firebase custom token for frontend
     const customToken = await auth.createCustomToken(userId)
-    
+
     return { token: customToken, uid: userId }
 }
 
@@ -153,6 +153,55 @@ export async function logout(authHeader: string | undefined) {
             // Token already expired, that's fine
         }
     }
-    
+
     return { success: true }
+}
+
+/**
+ * Login with Email (Simplified for Development)
+ * ในระบบจริงควรเช็ค Password ผ่าน Firebase Auth REST API
+ */
+export async function loginWithEmail(email: string) {
+    try {
+        // 1. หา User จาก Email
+        const userRecord = await auth.getUserByEmail(email)
+        const userId = userRecord.uid
+
+        // 2. สร้าง Custom Token
+        const customToken = await auth.createCustomToken(userId)
+
+        // 3. แลก Custom Token เป็น ID Token (เพื่อให้ใช้เทส API ได้ทันที)
+        // ต้องมี FIREBASE_WEB_API_KEY ใน .env
+        const apiKey = process.env.FIREBASE_WEB_API_KEY
+        let idToken = customToken // fallback เป็น custom token ถ้าไม่มี key
+
+        if (apiKey) {
+            const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token: customToken,
+                    returnSecureToken: true
+                })
+            })
+            const data = await response.json() as any
+            if (data.idToken) {
+                idToken = data.idToken
+            }
+        }
+
+        // 4. อัปเดตเวลา Login ล่าสุด
+        await db.collection(Collections.USERS).doc(userId).update({
+            lastLoginAt: new Date(),
+        })
+
+        return {
+            token: idToken,
+            uid: userId,
+            displayName: userRecord.displayName,
+            isIdToken: !!apiKey // บอกให้รู้ว่านี่คือ ID Token จริงๆ แล้วนะ
+        }
+    } catch (error: any) {
+        throw new Error('ไม่พบผู้ใช้งานด้วย Email นี้ หรือระบบแลก Token ขัดข้อง: ' + error.message)
+    }
 }

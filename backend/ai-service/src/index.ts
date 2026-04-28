@@ -83,5 +83,5 @@ const app = new Elysia()
     })
     .listen(3002)
 
-console.log(`🚀 AI Microservice READY at http://localhost:3002`)
-console.log(`📌 Using GEMINI_API_KEY: ${process.env.GEMINI_API_KEY || Bun.env.GEMINI_API_KEY ? "Loaded ✅" : "Check .env ❌"}`)
+console.log(`AI Microservice READY at http://localhost:3002`)
+console.log(`Using GEMINI_API_KEY: ${process.env.GEMINI_API_KEY || Bun.env.GEMINI_API_KEY ? "Loaded ✅" : "Check .env ❌"}`)

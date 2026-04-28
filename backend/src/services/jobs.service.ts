@@ -55,3 +55,22 @@ export async function getJobById(jobId: string) {
     if (!doc.exists) return null
     return { id: doc.id, ...doc.data() }
 }
+
+/**
+ * Persist a job application to Firestore
+ */
+export async function applyForJob(userId: string, jobId: string, coverLetter?: string) {
+    const application = {
+        userId,
+        jobId,
+        coverLetter: coverLetter || null,
+        status: 'pending',
+        appliedAt: new Date(),
+    }
+
+    const docRef = await db.collection(Collections.APPLICATIONS).add(application)
+    return {
+        id: docRef.id,
+        ...application
+    }
+}

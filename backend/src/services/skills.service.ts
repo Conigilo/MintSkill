@@ -52,10 +52,10 @@ export async function addSkill(
     const result = await db.collection(Collections.SKILLS).add(skillData)
 
     // Update user's skill count
-    const userDoc = await userRef.get()
+    const userDoc = await db.collection(Collections.USERS).doc(uid).get()
     
     if (userDoc.exists) {
-        await userRef.update({
+        await db.collection(Collections.USERS).doc(uid).update({
             'stats.skillCount': (userDoc.data()?.stats?.skillCount || 0) + 1,
         })
     }

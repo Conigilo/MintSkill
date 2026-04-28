@@ -77,3 +77,30 @@ export async function logoutHandler({ headers, set }: any) {
         }
     }
 }
+
+/**
+ * Handle Email Login
+ */
+export async function loginHandler({ body, set }: any) {
+    try {
+        const { email } = body
+        
+        if (!email) {
+            set.status = 400
+            return { success: false, error: 'กรุณากรอก Email' }
+        }
+
+        const result = await AuthService.loginWithEmail(email)
+        
+        return { 
+            success: true,
+            data: result 
+        }
+    } catch (error: any) {
+        set.status = 401
+        return { 
+            success: false, 
+            error: error.message 
+        }
+    }
+}

@@ -58,6 +58,7 @@ export default function JobsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "high" | "medium" | "low">("all");
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [applying, setApplying] = useState(false);
 
   // Fetch user skills & jobs
   useEffect(() => {
@@ -101,6 +102,42 @@ export default function JobsPage() {
     }
     fetchData();
   }, [user, authLoading]);
+
+  // Handle Application
+  const handleApply = async (jobId: string) => {
+    if (!user) {
+      alert("Please login to apply for this job.");
+      return;
+    }
+
+    setApplying(true);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs/${jobId}/apply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          coverLetter: "Interested in this position based on my verified skills."
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(`Successfully applied for ${selectedJob?.title}!`);
+      } else {
+        alert(`Failed to apply: ${data.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Apply Error:", error);
+      alert("An error occurred while submitting your application.");
+    } finally {
+      setApplying(false);
+    }
+  };
 
   // Enrich jobs with match data
   const enrichedJobs = useMemo(() => {
@@ -305,8 +342,20 @@ export default function JobsPage() {
                   </div>
 
                   {/* Apply CTA */}
-                  <button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-5 rounded-2xl transition-all shadow-xl shadow-slate-200 active:scale-[0.98]">
-                    Submit Application
+                  <button
+                    onClick={() => handleApply(selectedJob.id)}
+                    disabled={applying}
+                    className={`w-full text-white font-bold py-5 rounded-2xl transition-all shadow-xl shadow-slate-200 active:scale-[0.98] flex items-center justify-center gap-2 ${applying ? "bg-slate-400 cursor-not-allowed" : "bg-slate-900 hover:bg-slate-800"
+                      }`}
+                  >
+                    {applying ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Submitting...
+                      </>
+                    ) : (
+                      "Submit Application"
+                    )}
                   </button>
                 </div>
               );

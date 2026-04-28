@@ -106,18 +106,12 @@ export async function applyForJobHandler({ params, body, headers, set }: any) {
             }
         }
 
-        // In a real app, save to a 'applications' collection in Firestore
-        // For now, return a simulated success response
+        // Save application to Firestore
+        const application = await JobsService.applyForJob(decoded.uid, jobId, body?.coverLetter)
+
         return {
             success: true,
-            data: {
-                applied: true,
-                applicationId: `app_${decoded.uid}_${jobId}_${Date.now()}`,
-                jobId,
-                userId: decoded.uid,
-                appliedAt: new Date().toISOString(),
-                coverLetter: body?.coverLetter || null,
-            },
+            data: application,
             message: 'Application submitted successfully'
         }
     } catch (error: any) {
