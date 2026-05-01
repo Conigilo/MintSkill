@@ -23,15 +23,6 @@ export const useAuth = () => {
     useEffect(() => {
         // ดักจับการเปลี่ยนแปลงสถานะ Login
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            if (currentUser) {
-                // Force reload to get latest displayName and photoURL
-                try {
-                    await currentUser.reload();
-                } catch (error) {
-                    console.warn("Failed to reload user:", error);
-                }
-            }
-
             setUser(currentUser);
 
             if (currentUser) {

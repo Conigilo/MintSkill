@@ -5,7 +5,6 @@ import { useUserSkills, useUserBadges, useMyEndorsements } from '@/lib/hooks/use
 import { useAuth } from '@/lib/hooks/useAuth'
 import { githubService } from '@/lib/services/github.service'
 import { Star, Github, ExternalLink, RefreshCw } from 'lucide-react'
-import { type Badge } from '@/lib/services/badges.service'
 
 export default function OverviewTab() {
   const { user, loading } = useAuth()
@@ -58,7 +57,7 @@ export default function OverviewTab() {
     if (!loading && uid) {
       loadProfile()
     }
-  }, [uid, loading, user])
+  }, [uid, loading])
 
   const handleSync = async () => {
     setIsSyncing(true)

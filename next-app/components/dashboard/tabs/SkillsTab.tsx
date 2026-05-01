@@ -41,7 +41,7 @@ export default function SkillsTab({ onNavigateToEndorse }: { onNavigateToEndorse
     if (authLoading) return;
     if (!user) { setIsLoading(false); return; }
     fetchSkills();
-  }, [authLoading, user]);
+  }, [authLoading, user?.uid]);
 
   // State modals
   const [verifyModal, setVerifyModal] = useState<{ isOpen: boolean; skillId: string | null }>({ isOpen: false, skillId: null });

@@ -20,7 +20,7 @@ export default function CVTemplate({ user, skills }: CVTemplateProps) {
         } catch (e) {
             console.error("Error loading resume data:", e);
         }
-    }, [user]);
+    }, [user?.uid]);
 
     // 2. ดึง Skill ที่ Verified จากระบบ (ทักษะทางเทคนิคจะแยกจากข้อมูลแมนวลอื่นๆ)
     const verifiedSkills = skills?.filter(s => s.verified).map(s => s.name) || [];

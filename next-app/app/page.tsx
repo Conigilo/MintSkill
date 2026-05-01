@@ -1,16 +1,29 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useEffect, useState } from "react";
 
 export default function LandingPage() {
     const router = useRouter();
-    const { user, loading, logout } = useAuth();
+    const { user, loading, logout, loginWithGithub } = useAuth();
     const [imgSrc, setImgSrc] = useState("/logo.png");
+    const [isGithubLoading, setIsGithubLoading] = useState(false);
 
-    // Force refresh logo if it's not updating
+    // สร้างฟังก์ชันจัดการการล็อกอิน
+    const handleGitHubLogin = async () => {
+        try {
+            setIsGithubLoading(true);
+            const result = await loginWithGithub();
+            if (result) router.push("/dashboard"); // ล็อกอินสำเร็จให้ไปหน้า dashboard
+        } catch (err: any) {
+            console.error("Failed to login with GitHub", err);
+        } finally {
+            setIsGithubLoading(false);
+        }
+    };
+
+
     useEffect(() => {
         setImgSrc(`/logo.png?t=${Date.now()}`);
     }, []);
@@ -27,7 +40,7 @@ export default function LandingPage() {
                     <div className="lp-logo-area" onClick={() => router.push("/")} style={{ cursor: 'pointer' }}>
                         <img
                             src={imgSrc}
-                            alt="Skill Wallet Logo"
+                            alt="MinkSkill Logo"
                             style={{ height: '150px', width: 'auto', objectFit: 'contain' }}
                         />
                     </div>
@@ -77,11 +90,22 @@ export default function LandingPage() {
                         ) : (
                             <>
                                 <button
-                                    onClick={() => router.push("/login")}
-                                    className="px-8 py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all active:scale-95"
+                                    onClick={handleGitHubLogin}
+                                    disabled={isGithubLoading}
+                                    className="px-8 py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-3 disabled:opacity-50"
                                 >
-                                    Get Started
+                                    {isGithubLoading ? (
+                                        <span>Loading...</span>
+                                    ) : (
+                                        <>
+                                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.699-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.03-2.682-.103-.253-.447-1.27.098-2.646 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.376.202 2.394.1 2.646.64.699 1.026 1.591 1.026 2.682 0 3.841-2.337 4.687-4.565 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.418 22 12c0-5.523-4.477-10-10-10z"></path>
+                                            </svg>
+                                            Login with GitHub
+                                        </>
+                                    )}
                                 </button>
+
                                 <a href="#features" className="px-8 py-4 bg-white text-slate-600 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-all">
                                     Learn More
                                 </a>
@@ -111,7 +135,6 @@ export default function LandingPage() {
             <section id="features" className="lp-features">
                 <div className="lp-features-header">
                     <div className="flex flex-col items-center gap-4">
-                        <img src="/logo.png" alt="Logo" className="h-10 w-auto" />
                         <h2 className="lp-h2">Everything you need to stand out</h2>
                     </div>
                 </div>
@@ -167,4 +190,4 @@ export default function LandingPage() {
             </footer>
         </div>
     );
-}
+}   
