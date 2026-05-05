@@ -493,4 +493,6 @@ npm run dev
 
 ## License
 
-**This porject develop by Sarit Sridit**
+**This porject develop by**
+- **Sarit Sridit**
+- **Krittinan Buathong**
