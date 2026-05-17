@@ -670,3 +670,105 @@
     size: A4;
   }
 }
+
+/* ── GitHub Dark Mode Overrides ── */
+/* Base Colors */
+.dark body { background-color: #0d1117 !important; color: #c9d1d9 !important; }
+.dark .lp-root { background-color: #0d1117 !important; color: #c9d1d9 !important; }
+
+/* Text Colors */
+.dark .text-slate-900 { color: #c9d1d9 !important; }
+.dark .text-slate-800 { color: #c9d1d9 !important; }
+.dark .text-slate-700 { color: #8b949e !important; }
+.dark .text-slate-600 { color: #8b949e !important; }
+.dark .text-slate-500 { color: #8b949e !important; }
+.dark .text-slate-400 { color: #8b949e !important; }
+.dark .text-slate-300 { color: #484f58 !important; }
+
+/* Backgrounds - App Level */
+.dark .bg-slate-50 { background-color: #0d1117 !important; }
+.dark .bg-slate-50\/50 { background-color: #0d1117 !important; }
+.dark .bg-slate-50\/80 { background-color: rgba(13, 17, 23, 0.8) !important; }
+
+/* Backgrounds - Cards / Sidebar / Headers */
+.dark .bg-white { background-color: #161b22 !important; color: #c9d1d9 !important; border-color: #30363d !important; }
+.dark .bg-white\/50, .dark [class*="bg-white/50"] { background-color: rgba(22, 27, 34, 0.75) !important; border-color: #30363d !important; }
+.dark .bg-slate-100 { background-color: #21262d !important; }
+.dark .bg-slate-100\/50, .dark [class*="bg-slate-100/50"] { background-color: #21262d !important; color: #c9d1d9 !important; border-color: #30363d !important; }
+.dark .glass-panel { background-color: #161b22 !important; border-color: #30363d !important; color: #c9d1d9 !important; }
+
+/* Backgrounds - Hover */
+.dark .hover\:bg-slate-100:hover { background-color: #30363d !important; }
+.dark .hover\:bg-slate-100\/30:hover, .dark [class*="hover:bg-slate-100/30"]:hover { background-color: rgba(48, 54, 61, 0.3) !important; }
+.dark .hover\:bg-slate-50:hover { background-color: #21262d !important; }
+
+/* Backgrounds - Buttons / Accents */
+.dark .bg-slate-900 { background-color: #21262d !important; color: #c9d1d9 !important; border-color: #363b42 !important; border-width: 1px !important; }
+.dark .hover\:bg-slate-800:hover { background-color: #30363d !important; }
+.dark .bg-slate-800 { background-color: #21262d !important; }
+
+/* Borders */
+.dark .border-slate-50 { border-color: #30363d !important; }
+.dark .border-slate-100 { border-color: #30363d !important; }
+.dark .border-slate-200 { border-color: #30363d !important; }
+.dark .border-slate-200\/50, .dark [class*="border-slate-200/50"] { border-color: rgba(48, 54, 61, 0.5) !important; }
+.dark .border-slate-200\/60, .dark [class*="border-slate-200/60"] { border-color: rgba(48, 54, 61, 0.6) !important; }
+.dark .border-slate-300 { border-color: #484f58 !important; }
+.dark .border-slate-700 { border-color: #30363d !important; }
+
+/* Highlight / Emerald (like GitHub green) */
+.dark .text-emerald-700, .dark .text-emerald-600 { color: #3fb950 !important; }
+.dark .bg-emerald-50 { background-color: rgba(46, 160, 67, 0.15) !important; }
+.dark .border-emerald-100 { border-color: rgba(46, 160, 67, 0.4) !important; }
+.dark .border-emerald-600 { border-color: #238636 !important; }
+
+/* Highlight / Neutral (Replacing Blue for a Black/White Theme) */
+.dark .text-indigo-600, .dark .text-blue-400, .dark .text-blue-500, .dark .text-blue-600 { color: #ffffff !important; }
+.dark .bg-blue-500\/10, .dark [class~="bg-blue-500/10"] { background-color: #21262d !important; }
+.dark .hover\:bg-blue-500\/20:hover, .dark [class*="hover:bg-blue-500/20"]:hover { background-color: #30363d !important; }
+.dark .bg-blue-500\/20, .dark [class~="bg-blue-500/20"] { background-color: #30363d !important; }
+.dark .border-blue-500\/20, .dark [class~="border-blue-500/20"], .dark .border-blue-500\/30, .dark [class~="border-blue-500/30"] { border-color: #484f58 !important; }
+
+/* Any gradient backgrounds should become neutral dark */
+.dark .bg-gradient-to-r, .dark .bg-gradient-to-br {
+  background-image: none !important;
+  background-color: #21262d !important;
+}
+
+/* Force hide all decorative background blurs in Dark Mode */
+.dark .blur-\[120px\], .dark [class*="blur-[120px]"],
+.dark .bg-blue-600\/10, .dark [class*="bg-blue-600/10"],
+.dark .bg-purple-600\/10, .dark [class*="bg-purple-600/10"] { 
+  display: none !important; 
+  background-color: transparent !important;
+}
+
+/* Shadows (disable light shadows in dark mode, use subtle dark ones) */
+.dark * {
+  --tw-shadow-color: transparent !important;
+}
+.dark [class*="shadow"] { 
+  box-shadow: none !important; 
+}
+.dark .ring-emerald-600\/20 { --tw-ring-color: rgba(46, 160, 67, 0.4) !important; }
+
+/* Landing Page specific */
+.dark .lp-nav { background: rgba(13, 17, 23, 0.85) !important; border-bottom-color: rgba(48, 54, 61, 0.8) !important; }
+.dark .lp-nav-skeleton { background: #30363d !important; }
+.dark .lp-btn-nav-ghost { color: #c9d1d9 !important; border-color: #30363d !important; }
+.dark .lp-btn-nav-ghost:hover { background: #21262d !important; color: #f0f6fc !important; border-color: #8b949e !important; }
+.dark .lp-h1, .dark .lp-h2, .dark .lp-trust-num, .dark .lp-card-title { color: #c9d1d9 !important; }
+.dark .lp-subtext, .dark .lp-trust-label, .dark .lp-card-desc, .dark .lp-footer-copy { color: #8b949e !important; }
+.dark .lp-btn-hero-ghost { background: #21262d !important; color: #c9d1d9 !important; border-color: #30363d !important; }
+.dark .lp-btn-hero-ghost:hover { background: #30363d !important; color: #f0f6fc !important; border-color: #8b949e !important; }
+.dark .lp-trust-bar, .dark .lp-card, .dark .lp-footer { background: #161b22 !important; border-color: #30363d !important; }
+.dark .lp-trust-sep { background: #30363d !important; }
+.dark .lp-card-blue:hover { border-color: #388bfd !important; }
+.dark .lp-card-purple:hover { border-color: #bc8cff !important; }
+.dark .lp-card-emerald:hover { border-color: #2ea043 !important; }
+.dark .lp-card-featured { background: linear-gradient(160deg, #1f1b2e 0%, #161b22 100%) !important; border-color: #bc8cff !important; }
+.dark .lp-tag { background: #0d1117 !important; border-color: #30363d !important; color: #8b949e !important; }
+
+/* Select and Option Overrides */
+.dark select, .dark option { background-color: #161b22 !important; color: #c9d1d9 !important; color-scheme: dark; }
+.dark option:hover, .dark option:checked { background-color: #30363d !important; }
