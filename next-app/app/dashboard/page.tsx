@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { userService } from "@/lib/services/user.service";
 import { githubService } from "@/lib/services/github.service";
@@ -21,6 +22,7 @@ const TABS = ["Overview", "Skills", "Endorsements", "Gap Analysis", "Export Port
 
 export default function DashboardPage() {
   const { user, loading: authLoading, linkGithubAccount } = useAuth();
+  const { resolvedTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<string>("Overview");
   const [profile, setProfile] = useState<{
     displayName?: string;
@@ -150,7 +152,7 @@ export default function DashboardPage() {
                             blockSize={9}
                             blockMargin={3}
                             fontSize={10}
-                            colorScheme="light"
+                            colorScheme={resolvedTheme === 'dark' ? 'dark' : 'light'}
                           />
                         </div>
                       ) : (

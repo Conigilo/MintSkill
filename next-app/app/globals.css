@@ -1,6 +1,8 @@
 /* ใช้คำสั่งใหม่ของ Tailwind v4 */
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     --background: #f8fafc;
@@ -671,12 +673,23 @@
   }
 }
 
-/* ── GitHub Dark Mode Overrides ── */
-/* Base Colors */
+/* ══════════════════════════════════════════
+   DARK MODE — GitHub Dimmed Theme
+   ══════════════════════════════════════════ */
+
+/* ── Dark Mode CSS Variables ── */
+.dark {
+  --background: #0d1117;
+  --card: #161b22;
+  --border: #30363d;
+  --primary: #6366f1;
+}
+
+/* ── Base Colors ── */
 .dark body { background-color: #0d1117 !important; color: #c9d1d9 !important; }
 .dark .lp-root { background-color: #0d1117 !important; color: #c9d1d9 !important; }
 
-/* Text Colors */
+/* ── Text Colors ── */
 .dark .text-slate-900 { color: #c9d1d9 !important; }
 .dark .text-slate-800 { color: #c9d1d9 !important; }
 .dark .text-slate-700 { color: #8b949e !important; }
@@ -685,29 +698,29 @@
 .dark .text-slate-400 { color: #8b949e !important; }
 .dark .text-slate-300 { color: #484f58 !important; }
 
-/* Backgrounds - App Level */
+/* ── Backgrounds - App Level ── */
 .dark .bg-slate-50 { background-color: #0d1117 !important; }
 .dark .bg-slate-50\/50 { background-color: #0d1117 !important; }
 .dark .bg-slate-50\/80 { background-color: rgba(13, 17, 23, 0.8) !important; }
 
-/* Backgrounds - Cards / Sidebar / Headers */
+/* ── Backgrounds - Cards / Sidebar / Headers ── */
 .dark .bg-white { background-color: #161b22 !important; color: #c9d1d9 !important; border-color: #30363d !important; }
 .dark .bg-white\/50, .dark [class*="bg-white/50"] { background-color: rgba(22, 27, 34, 0.75) !important; border-color: #30363d !important; }
 .dark .bg-slate-100 { background-color: #21262d !important; }
 .dark .bg-slate-100\/50, .dark [class*="bg-slate-100/50"] { background-color: #21262d !important; color: #c9d1d9 !important; border-color: #30363d !important; }
-.dark .glass-panel { background-color: #161b22 !important; border-color: #30363d !important; color: #c9d1d9 !important; }
+.dark .glass-panel { background-color: #161b22 !important; border-color: #30363d !important; color: #c9d1d9 !important; box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important; }
 
-/* Backgrounds - Hover */
+/* ── Backgrounds - Hover ── */
 .dark .hover\:bg-slate-100:hover { background-color: #30363d !important; }
 .dark .hover\:bg-slate-100\/30:hover, .dark [class*="hover:bg-slate-100/30"]:hover { background-color: rgba(48, 54, 61, 0.3) !important; }
 .dark .hover\:bg-slate-50:hover { background-color: #21262d !important; }
 
-/* Backgrounds - Buttons / Accents */
+/* ── Backgrounds - Buttons / Accents ── */
 .dark .bg-slate-900 { background-color: #21262d !important; color: #c9d1d9 !important; border-color: #363b42 !important; border-width: 1px !important; }
 .dark .hover\:bg-slate-800:hover { background-color: #30363d !important; }
 .dark .bg-slate-800 { background-color: #21262d !important; }
 
-/* Borders */
+/* ── Borders ── */
 .dark .border-slate-50 { border-color: #30363d !important; }
 .dark .border-slate-100 { border-color: #30363d !important; }
 .dark .border-slate-200 { border-color: #30363d !important; }
@@ -715,44 +728,122 @@
 .dark .border-slate-200\/60, .dark [class*="border-slate-200/60"] { border-color: rgba(48, 54, 61, 0.6) !important; }
 .dark .border-slate-300 { border-color: #484f58 !important; }
 .dark .border-slate-700 { border-color: #30363d !important; }
+.dark .border-slate-300\/50 { border-color: rgba(72, 79, 88, 0.5) !important; }
 
-/* Highlight / Emerald (like GitHub green) */
+/* ══ Accent Colors — Keep vibrant in dark mode ══ */
+
+/* Blue accents — keep blue tones, don't force white */
+.dark .text-blue-400 { color: #58a6ff !important; }
+.dark .text-blue-500 { color: #388bfd !important; }
+.dark .text-blue-600 { color: #388bfd !important; }
+.dark .text-indigo-600 { color: #a5b4fc !important; }
+.dark .bg-blue-500\/10, .dark [class*="bg-blue-500/10"] { background-color: rgba(56, 139, 253, 0.1) !important; }
+.dark .bg-blue-500\/20, .dark [class*="bg-blue-500/20"] { background-color: rgba(56, 139, 253, 0.2) !important; }
+.dark .bg-blue-600\/10, .dark [class*="bg-blue-600/10"] { background-color: rgba(56, 139, 253, 0.1) !important; }
+.dark .bg-blue-600\/20, .dark [class*="bg-blue-600/20"] { background-color: rgba(56, 139, 253, 0.15) !important; }
+.dark .hover\:bg-blue-500\/20:hover, .dark [class*="hover:bg-blue-500/20"]:hover { background-color: rgba(56, 139, 253, 0.2) !important; }
+.dark .hover\:bg-blue-600\/20:hover, .dark [class*="hover:bg-blue-600/20"]:hover { background-color: rgba(56, 139, 253, 0.2) !important; }
+.dark .hover\:bg-blue-600\/30:hover, .dark [class*="hover:bg-blue-600/30"]:hover { background-color: rgba(56, 139, 253, 0.25) !important; }
+.dark .border-blue-500\/20, .dark [class*="border-blue-500/20"] { border-color: rgba(56, 139, 253, 0.25) !important; }
+.dark .border-blue-500\/30, .dark [class*="border-blue-500/30"] { border-color: rgba(56, 139, 253, 0.35) !important; }
+.dark .border-blue-400\/40, .dark [class*="border-blue-400/40"] { border-color: rgba(88, 166, 255, 0.4) !important; }
+
+/* Green accents */
+.dark .text-green-400 { color: #3fb950 !important; }
+.dark .text-green-700 { color: #3fb950 !important; }
+.dark .text-green-800 { color: #56d364 !important; }
+.dark .bg-green-500\/10, .dark [class*="bg-green-500/10"] { background-color: rgba(46, 160, 67, 0.12) !important; }
+.dark .bg-green-50 { background-color: rgba(46, 160, 67, 0.1) !important; }
+.dark .bg-green-600 { background-color: #238636 !important; }
+.dark .hover\:bg-green-500:hover { background-color: #2ea043 !important; }
+.dark .hover\:bg-green-600\/20:hover { background-color: rgba(46, 160, 67, 0.2) !important; }
+.dark .border-green-500\/20, .dark [class*="border-green-500/20"] { border-color: rgba(46, 160, 67, 0.3) !important; }
+.dark .border-green-500\/30, .dark [class*="border-green-500/30"] { border-color: rgba(46, 160, 67, 0.35) !important; }
+.dark .border-green-200 { border-color: rgba(46, 160, 67, 0.4) !important; }
+.dark .border-green-400 { border-color: #2ea043 !important; }
+.dark .bg-green-600\/10, .dark [class*="bg-green-600/10"] { background-color: rgba(46, 160, 67, 0.1) !important; }
+
+/* Emerald accents */
 .dark .text-emerald-700, .dark .text-emerald-600 { color: #3fb950 !important; }
+.dark .text-emerald-400 { color: #3fb950 !important; }
 .dark .bg-emerald-50 { background-color: rgba(46, 160, 67, 0.15) !important; }
+.dark .bg-emerald-500\/10, .dark [class*="bg-emerald-500/10"] { background-color: rgba(46, 160, 67, 0.1) !important; }
 .dark .border-emerald-100 { border-color: rgba(46, 160, 67, 0.4) !important; }
 .dark .border-emerald-600 { border-color: #238636 !important; }
 
-/* Highlight / Neutral (Replacing Blue for a Black/White Theme) */
-.dark .text-indigo-600, .dark .text-blue-400, .dark .text-blue-500, .dark .text-blue-600 { color: #ffffff !important; }
-.dark .bg-blue-500\/10, .dark [class~="bg-blue-500/10"] { background-color: #21262d !important; }
-.dark .hover\:bg-blue-500\/20:hover, .dark [class*="hover:bg-blue-500/20"]:hover { background-color: #30363d !important; }
-.dark .bg-blue-500\/20, .dark [class~="bg-blue-500/20"] { background-color: #30363d !important; }
-.dark .border-blue-500\/20, .dark [class~="border-blue-500/20"], .dark .border-blue-500\/30, .dark [class~="border-blue-500/30"] { border-color: #484f58 !important; }
+/* Cyan accents */
+.dark .text-cyan-400 { color: #56d4dd !important; }
+.dark .bg-cyan-600\/10, .dark [class*="bg-cyan-600/10"] { background-color: rgba(34, 211, 238, 0.1) !important; }
+.dark .hover\:bg-cyan-600\/20:hover { background-color: rgba(34, 211, 238, 0.15) !important; }
+.dark .border-cyan-500\/20, .dark [class*="border-cyan-500/20"] { border-color: rgba(34, 211, 238, 0.25) !important; }
 
-/* Any gradient backgrounds should become neutral dark */
-.dark .bg-gradient-to-r, .dark .bg-gradient-to-br {
+/* Red accents */
+.dark .text-red-500 { color: #f85149 !important; }
+.dark .text-red-700 { color: #f85149 !important; }
+.dark .text-red-800 { color: #f85149 !important; }
+.dark .bg-red-50 { background-color: rgba(248, 81, 73, 0.1) !important; }
+.dark .border-red-200 { border-color: rgba(248, 81, 73, 0.3) !important; }
+.dark .border-red-400 { border-color: rgba(248, 81, 73, 0.5) !important; }
+.dark .bg-red-500\/10, .dark [class*="bg-red-500/10"] { background-color: rgba(248, 81, 73, 0.1) !important; }
+.dark .border-red-500\/30, .dark [class*="border-red-500/30"] { border-color: rgba(248, 81, 73, 0.3) !important; }
+.dark .hover\:text-red-500:hover { color: #f85149 !important; }
+.dark .hover\:bg-red-50:hover { background-color: rgba(248, 81, 73, 0.1) !important; }
+
+/* Yellow accents */
+.dark .text-yellow-400 { color: #e3b341 !important; }
+.dark .bg-yellow-500\/10, .dark [class*="bg-yellow-500/10"] { background-color: rgba(227, 179, 65, 0.1) !important; }
+.dark .border-yellow-500\/30, .dark [class*="border-yellow-500/30"] { border-color: rgba(227, 179, 65, 0.3) !important; }
+
+/* Purple accents */
+.dark .text-purple-400 { color: #bc8cff !important; }
+.dark .bg-purple-500\/10, .dark [class*="bg-purple-500/10"] { background-color: rgba(188, 140, 255, 0.1) !important; }
+
+/* Orange accents */
+.dark .text-orange-400 { color: #f0883e !important; }
+.dark .bg-orange-500\/20, .dark [class*="bg-orange-500/20"] { background-color: rgba(240, 136, 62, 0.15) !important; }
+.dark .border-orange-500\/40, .dark [class*="border-orange-500/40"] { border-color: rgba(240, 136, 62, 0.3) !important; }
+
+/* ══ Gradients — Only flatten on landing page, preserve app gradients ══ */
+.dark .lp-card .bg-gradient-to-r,
+.dark .lp-card .bg-gradient-to-br {
   background-image: none !important;
   background-color: #21262d !important;
 }
+/* Profile avatar gradient — keep it vibrant */
+.dark .bg-gradient-to-br.from-blue-500.to-purple-600 {
+  background-image: linear-gradient(to bottom right, #388bfd, #8b5cf6) !important;
+}
 
-/* Force hide all decorative background blurs in Dark Mode */
+/* ══ Decorative blurs — hide ONLY background decoration blobs ══ */
 .dark .blur-\[120px\], .dark [class*="blur-[120px]"],
-.dark .bg-blue-600\/10, .dark [class*="bg-blue-600/10"],
-.dark .bg-purple-600\/10, .dark [class*="bg-purple-600/10"] { 
-  display: none !important; 
-  background-color: transparent !important;
+.dark .blur-\[150px\], .dark [class*="blur-[150px]"],
+.dark .lp-blob {
+  display: none !important;
 }
 
-/* Shadows (disable light shadows in dark mode, use subtle dark ones) */
-.dark * {
-  --tw-shadow-color: transparent !important;
+/* ══ Shadows — subtle dark shadows instead of removing everything ══ */
+.dark .glass-panel {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
 }
-.dark [class*="shadow"] { 
-  box-shadow: none !important; 
-}
+.dark .shadow-2xl { box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5) !important; }
+.dark .shadow-lg { box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4) !important; }
+.dark .shadow-md { box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35) !important; }
+.dark .shadow-sm { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important; }
+.dark .shadow-none { box-shadow: none !important; }
+
 .dark .ring-emerald-600\/20 { --tw-ring-color: rgba(46, 160, 67, 0.4) !important; }
+.dark .ring-2.ring-green-100 { --tw-ring-color: rgba(46, 160, 67, 0.2) !important; }
+.dark .ring-2.ring-red-100 { --tw-ring-color: rgba(248, 81, 73, 0.2) !important; }
 
-/* Landing Page specific */
+/* ══ Scrollbar — dark style ══ */
+.dark ::-webkit-scrollbar-thumb { background-color: #484f58 !important; }
+.dark ::-webkit-scrollbar-thumb:hover { background-color: #6e7681 !important; }
+.dark ::-webkit-scrollbar-track { background: #0d1117 !important; }
+
+/* ══ Selection ══ */
+.dark ::selection { background-color: rgba(56, 139, 253, 0.3) !important; }
+
+/* ══ Landing Page specific ══ */
 .dark .lp-nav { background: rgba(13, 17, 23, 0.85) !important; border-bottom-color: rgba(48, 54, 61, 0.8) !important; }
 .dark .lp-nav-skeleton { background: #30363d !important; }
 .dark .lp-btn-nav-ghost { color: #c9d1d9 !important; border-color: #30363d !important; }
@@ -769,6 +860,6 @@
 .dark .lp-card-featured { background: linear-gradient(160deg, #1f1b2e 0%, #161b22 100%) !important; border-color: #bc8cff !important; }
 .dark .lp-tag { background: #0d1117 !important; border-color: #30363d !important; color: #8b949e !important; }
 
-/* Select and Option Overrides */
+/* ══ Select and Option Overrides ══ */
 .dark select, .dark option { background-color: #161b22 !important; color: #c9d1d9 !important; color-scheme: dark; }
 .dark option:hover, .dark option:checked { background-color: #30363d !important; }

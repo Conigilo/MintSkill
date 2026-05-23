@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { developersService, type Developer } from "@/lib/services/developers.service";
 import { useAuth } from "@/lib/hooks/useAuth";
-import EndorseModal from "@/components/EndorseModal";
+import RequestEndorseModal from "@/components/RequestEndorseModal";
 import SidebarLayout from "@/components/dashboard/SidebarLayout";
 
 export default function ExplorePage() {
@@ -14,7 +14,7 @@ export default function ExplorePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
-    const [endorseTarget, setEndorseTarget] = useState<{ id: string; name: string } | null>(null);
+    const [endorseTarget, setEndorseTarget] = useState<{ id: string; name: string; email?: string } | null>(null);
 
     // Helper to get best display name from Firestore user data
     const getName = (dev: any) => dev.name || dev.displayName || 'Developer';
@@ -41,19 +41,19 @@ export default function ExplorePage() {
 
     return (
         <SidebarLayout activePage="explore">
-        <div className="text-slate-900 p-10 relative">
+        <div className="text-slate-800 dark:text-slate-100 p-10 relative">
             <div className="absolute top-[-10%] left-[10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
 
             <div className="relative z-10">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-6">Explore Developers</h1>
+                <h1 className="text-3xl font-bold mb-6 text-slate-800 dark:text-white">Explore Developers</h1>
                 <input
                     type="text"
                     placeholder="Search by name, skill, or role..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-gray-500 focus:border-blue-500 outline-none transition-colors"
+                    className="w-full px-4 py-3 rounded-lg bg-[#ffffff] border border-slate-300 text-slate-900 placeholder-gray-500 focus:border-blue-500 outline-none transition-colors dark:bg-[#0d1117] dark:border-[#30363d] dark:text-[#f0f6fc]"
                 />
             </div>
 
@@ -82,12 +82,9 @@ export default function ExplorePage() {
                     {developers.map(dev => (
                         <div 
                             key={dev.id}
-                            className="bg-white border border-slate-200 p-6 rounded-2xl hover:border-slate-300 transition-all hover:shadow-lg hover:shadow-blue-500/10 flex flex-col"
+                            className="bg-[#ffffff] border border-slate-200/80 p-6 rounded-2xl dark:bg-[#161b22] dark:border-[#30363d] hover:border-slate-300 dark:hover:border-[#484f58] transition-all hover:shadow-md flex flex-col justify-between"
                         >
-                            <div
-                                onClick={() => router.push(`/profile/${getHandle(dev)}`)}
-                                className="cursor-pointer flex-1"
-                            >
+                            <div className="flex-1">
                                 <div className="flex gap-4 items-center mb-4">
                                     {dev.photoURL ? (
                                         <img 
@@ -109,28 +106,28 @@ export default function ExplorePage() {
                                         {getName(dev).charAt(0).toUpperCase()}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold">{getName(dev)}</h3>
-                                        <p className="text-sm text-slate-500">{dev.title || 'Professional'}</p>
+                                        <h3 className="font-bold text-slate-800 dark:text-[#f0f6fc]">{getName(dev)}</h3>
+                                        <p className="text-xs text-slate-400 dark:text-[#8b949e]">{dev.title || 'Professional'}</p>
                                     </div>
                                 </div>
                                 
                                 {dev.bio && (
-                                    <p className="text-xs text-slate-500 mb-4 line-clamp-2">{dev.bio}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 line-clamp-2 leading-relaxed">{dev.bio}</p>
                                 )}
 
                                 {dev.matchScore && (
-                                    <p className="text-xs text-green-400 mb-3 font-semibold">{dev.matchScore}% Skill Match</p>
+                                    <p className="text-xs text-green-600 dark:text-green-400 mb-3 font-semibold">{dev.matchScore}% Skill Match</p>
                                 )}
 
                                 {dev.topSkills && dev.topSkills.length > 0 && (
                                     <div className="flex gap-2 flex-wrap mb-4">
                                         {dev.topSkills.slice(0, 3).map((skill, i) => (
-                                            <span key={i} className="text-xs bg-slate-100 px-2 py-1 rounded">
+                                            <span key={i} className="text-xs bg-slate-100 dark:bg-[#21262d] dark:text-[#8b949e] px-2 py-1 rounded">
                                                 {skill.name}
                                             </span>
                                         ))}
                                         {dev.topSkills.length > 3 && (
-                                            <span className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500">
+                                            <span className="text-xs bg-slate-100 dark:bg-[#21262d] dark:text-[#8b949e] px-2 py-1 rounded text-slate-500">
                                                 +{dev.topSkills.length - 3}
                                             </span>
                                         )}
@@ -138,28 +135,40 @@ export default function ExplorePage() {
                                 )}
                             </div>
 
-                            {/* Endorse button — only for logged-in users endorsing others */}
-                            {user && user.uid !== dev.id && (
+                            {/* Action Buttons Row */}
+                            <div className="mt-4 flex gap-2 w-full">
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        setEndorseTarget({ id: dev.id, name: getName(dev) });
+                                        router.push(`/profile/${getHandle(dev)}`);
                                     }}
-                                    className="mt-2 w-full py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 text-sm font-medium transition-colors"
+                                    className="flex-1 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 dark:text-slate-300 dark:bg-[#21262d] dark:hover:bg-[#30363d] rounded-xl transition-all select-none border border-slate-200/60 dark:border-transparent text-center"
                                 >
-                                    Endorse
+                                    ดูโปรไฟล์เต็ม
                                 </button>
-                            )}
+                                {user && user.uid !== dev.id && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setEndorseTarget({ id: dev.id, name: getName(dev), email: dev.email });
+                                        }}
+                                        className="flex-1 py-2 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 rounded-xl transition-all border border-blue-100 dark:border-transparent select-none text-center"
+                                    >
+                                        ขอคำรับรอง
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     ))}
                 </div>
             )}
 
-            {/* Endorse Modal */}
+            {/* Request Endorse Modal */}
             {endorseTarget && (
-                <EndorseModal
+                <RequestEndorseModal
                     targetUserId={endorseTarget.id}
                     targetName={endorseTarget.name}
+                    targetEmail={endorseTarget.email}
                     onClose={() => setEndorseTarget(null)}
                     onSuccess={() => setEndorseTarget(null)}
                 />

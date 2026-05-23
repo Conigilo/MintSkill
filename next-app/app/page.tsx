@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function LandingPage() {
     const router = useRouter();

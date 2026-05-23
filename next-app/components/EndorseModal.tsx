@@ -65,13 +65,13 @@ export default function EndorseModal({ targetUserId, targetName, onClose, onSucc
         onClose();
       }, 1500);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "";
-      if (msg.includes("ALREADY_ENDORSED")) {
-        setError("You have already endorsed this user.");
-      } else if (msg.includes("CANNOT_ENDORSE_SELF")) {
-        setError("You cannot endorse yourself.");
+      const msg = (err instanceof Error ? err.message : "").toUpperCase();
+      if (msg.includes("ALREADY_ENDORSED") || msg.includes("ALREADY ENDORSED")) {
+        setError("คุณเคยให้การรับรองนักพัฒนาท่านนี้ไปแล้ว");
+      } else if (msg.includes("CANNOT_ENDORSE_SELF") || msg.includes("CANNOT ENDORSE YOURSELF")) {
+        setError("คุณไม่สามารถรับรองทักษะให้ตัวเองได้");
       } else {
-        setError("Something went wrong. Please try again.");
+        setError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
       }
     } finally {
       setIsLoading(false);
