@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/hooks/useAuth";
 import { useEffect, useState } from "react";
+import { DarkModeToggle } from "@/components/DarkModeToggle";
 
 export default function LandingPage() {
     const router = useRouter();
@@ -30,6 +30,7 @@ export default function LandingPage() {
 
     return (
         <div className="lp-root">
+            <DarkModeToggle />
             {/* Background Decorations */}
             <div className="lp-blob lp-blob-1" />
             <div className="lp-blob lp-blob-2" />
