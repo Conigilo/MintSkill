@@ -17,7 +17,7 @@ export default function LandingPage() {
             setIsGithubLoading(true);
             const result = await loginWithGithub();
             if (result) router.push("/dashboard"); // ล็อกอินสำเร็จให้ไปหน้า dashboard
-        } catch (err: any) {
+        } catch (err) {
             console.error("Failed to login with GitHub", err);
         } finally {
             setIsGithubLoading(false);
