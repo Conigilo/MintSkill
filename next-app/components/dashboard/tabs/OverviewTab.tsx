@@ -5,6 +5,7 @@ import { useUserSkills, useUserBadges, useMyEndorsements } from '@/lib/hooks/use
 import { useAuth } from '@/lib/hooks/useAuth'
 import { githubService } from '@/lib/services/github.service'
 import { Star, Github, ExternalLink, RefreshCw } from 'lucide-react'
+import { getSkillLogoUrl } from '@/lib/utils/skill-logo'
 
 export default function OverviewTab() {
   const { user, loading } = useAuth()
@@ -334,10 +335,22 @@ export default function OverviewTab() {
               </div>
 
               <div className="flex flex-col items-center pt-8 pb-4 px-6">
-                <div className={`w-20 h-20 rounded-full bg-slate-900 flex items-center justify-center shadow-lg relative mb-4`}>
-                  <img src={activeBadge.iconUrl || 'https://cdn-icons-png.flaticon.com/512/5968/5968863.png'} className="w-10 h-10 object-contain" alt="" />
-                  <div className="absolute -bottom-1 -right-1 bg-green-500 border-2 border-[#0d1117] w-6 h-6 rounded-full flex items-center justify-center">
-                    <svg className="w-3.5 h-3.5 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className={`w-20 h-20 rounded-full bg-slate-50 dark:bg-[#161b22] border border-slate-200 dark:border-[#30363d] flex items-center justify-center shadow-lg relative mb-4 p-4`}>
+                  <img
+                    src={getSkillLogoUrl(activeBadge.name || activeBadge.skillName || '')}
+                    alt={activeBadge.name}
+                    className="w-12 h-12 object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      const fallback = e.currentTarget.parentElement?.querySelector(".logo-fallback-modal-large");
+                      if (fallback) fallback.classList.remove("hidden");
+                    }}
+                  />
+                  <div className="logo-fallback-modal-large hidden font-black text-2xl text-slate-700 dark:text-[#8b949e] select-none">
+                    {(activeBadge.name || activeBadge.skillName || 'SK').slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 bg-green-500 border-2 dark:border-[#30363d] border-white w-6 h-6 rounded-full flex items-center justify-center">
+                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>

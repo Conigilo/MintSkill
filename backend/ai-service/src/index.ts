@@ -2,6 +2,14 @@ import { Elysia, t } from 'elysia'
 import { cors } from '@elysiajs/cors'
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
+function cleanJsonText(rawText: string): string {
+    let cleaned = rawText.trim();
+    if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```(?:json)?/g, '').replace(/```$/g, '').trim();
+    }
+    return cleaned;
+}
+
 const app = new Elysia()
     .use(cors())
     .post('/generate-quiz', async ({ body, set }) => {
@@ -52,7 +60,8 @@ const app = new Elysia()
         try {
             const result = await model.generateContent(prompt)
             const text = result.response.text()
-            return JSON.parse(text)
+            const cleanedText = cleanJsonText(text)
+            return JSON.parse(cleanedText)
         } catch (error: any) {
             set.status = 500
             return { error: error.message }
@@ -81,7 +90,7 @@ const app = new Elysia()
             models: availableModels
         };
     })
-    .listen(3002)
+    .listen(parseInt(process.env.PORT || Bun.env.PORT || '3002'))
 
-console.log(`AI Microservice READY at http://localhost:3002`)
+console.log(`AI Microservice READY at http://localhost:${app.server?.port || 3002}`)
 console.log(`Using GEMINI_API_KEY: ${process.env.GEMINI_API_KEY || Bun.env.GEMINI_API_KEY ? "Loaded ✅" : "Check .env ❌"}`)

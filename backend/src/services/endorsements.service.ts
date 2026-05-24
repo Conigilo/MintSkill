@@ -1,5 +1,6 @@
 import { db, Collections } from './firebase.service'
 import { randomBytes } from 'crypto'
+import { updateUserSkillStats } from './skills.service'
 
 /**
  * Update skill endorsement count and auto-mint badge if threshold met
@@ -73,21 +74,22 @@ async function updateSkillAndMintBadge(toUserId: string, skillName: string) {
         
         // After updating the skill, sync the user's aggregate stats
         await updateUserEndorsementCount(toUserId)
+        await updateUserSkillStats(toUserId)
     } else {
-        // Initial Level Calculation for new skill
-        let initialLevel = 0;
-        if (endorsementScore >= 1) initialLevel = 1; // Assuming 0 quiz score for new skill via endorsement
-
         await db.collection(Collections.SKILLS).add({
             userId: toUserId,
             name: skillName,
             category: 'Other',
-            level: initialLevel || 1,
+            level: 0, // Starts at Level 0 (Beginner)
             endorsementScore,
             quizScore: 0,
-            verified: initialLevel > 0,
+            verified: false, // Must pass AI quiz to be verified
             createdAt: new Date(),
         })
+
+        // Sync the user's aggregate stats
+        await updateUserEndorsementCount(toUserId)
+        await updateUserSkillStats(toUserId)
     }
 }
 

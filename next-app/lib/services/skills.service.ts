@@ -3,18 +3,11 @@
  */
 
 import { fetchAPI } from './api'
+import type { SkillFromAPI } from '@/lib/types'
 
-export interface Skill {
-  quizScore: number
-  endorsementScore?: number
-  id?: string
-  name: string
-  category: string
-  level?: number
-  endorsements?: number
-  verified?: boolean
-  createdAt?: string
-}
+// Re-export type สำหรับ backward compatibility
+export type Skill = SkillFromAPI
+
 
 export const skillsService = {
   /**

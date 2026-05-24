@@ -41,15 +41,19 @@ setInterval(() => {
 const app = new Elysia()
     .use(cors({ origin: FRONTEND_URL ?? 'http://localhost:3000', credentials: true }))
     .onBeforeHandle(({ request, set }) => {
+        const isDev = process.env.NODE_ENV !== 'production'
         const ip = request.headers.get('x-forwarded-for') || 'unknown'
         const now = Date.now()
         const entry = rateLimitMap.get(ip)
+        
+        // ขยายขีดจำกัดในสภาพแวดล้อม Development เพื่อให้สะดวกต่อการทดสอบและ Hot Reload
+        const currentLimit = isDev ? 1000 : RATE_LIMIT_MAX
 
         if (!entry || now > entry.resetAt) {
             rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW })
         } else {
             entry.count++
-            if (entry.count > RATE_LIMIT_MAX) {
+            if (entry.count > currentLimit) {
                 set.status = 429
                 return { success: false, error: 'Too many requests. Please try again later.' }
             }

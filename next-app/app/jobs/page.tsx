@@ -176,7 +176,7 @@ export default function JobsPage() {
                 key={f.key}
                 onClick={() => setFilter(f.key)}
                 className={`px-5 py-2 rounded-full text-xs font-bold transition-all border ${filter === f.key
-                  ? "bg-slate-900 border-slate-900 text-white shadow-lg shadow-slate-200"
+                  ? "bg-slate-900 border-slate-900 text-white shadow-lg"
                   : "bg-white border-slate-200 text-slate-400 hover:border-slate-300"
                   }`}
               >
@@ -211,8 +211,8 @@ export default function JobsPage() {
                     key={job.id}
                     onClick={() => setSelectedJobId(isSelected ? null : job.id)}
                     className={`relative bg-white border rounded-[1.5rem] p-6 cursor-pointer transition-all duration-300 ${isSelected
-                      ? "border-emerald-600 shadow-2xl shadow-emerald-100 ring-1 ring-emerald-600/20"
-                      : "border-slate-200/60 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-100"
+                      ? "border-emerald-600 shadow-2xl ring-1 ring-emerald-600/20"
+                      : "border-slate-200/60 hover:border-slate-300 hover:shadow-xl"
                       }`}
                   >
                     {/* Top Row: Logo & Company */}
@@ -345,7 +345,7 @@ export default function JobsPage() {
                   <button
                     onClick={() => handleApply(selectedJob.id)}
                     disabled={applying}
-                    className={`w-full text-white font-bold py-5 rounded-2xl transition-all shadow-xl shadow-slate-200 active:scale-[0.98] flex items-center justify-center gap-2 ${applying ? "bg-slate-400 cursor-not-allowed" : "bg-slate-900 hover:bg-slate-800"
+                    className={`w-full text-white font-bold py-5 rounded-2xl transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-2 ${applying ? "bg-slate-400 cursor-not-allowed" : "bg-slate-900 hover:bg-slate-800"
                       }`}
                   >
                     {applying ? (

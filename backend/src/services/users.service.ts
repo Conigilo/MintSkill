@@ -55,7 +55,8 @@ export async function syncProfile(uid: string, userData: any) {
             updatedAt: new Date(),
             stats: {
                 verifiedSkills: 0,
-                endorsements: 0,
+                endorsementCount: 0,
+                skillCount: 0,
                 profileViews: 0
             }
         }

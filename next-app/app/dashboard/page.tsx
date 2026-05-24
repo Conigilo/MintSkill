@@ -17,6 +17,7 @@ import Image from "next/image";
 import { GitHubCalendar } from "react-github-calendar";
 import EditProfileModal from "@/components/dashboard/EditProfileModal";
 import { Alert } from "@/components/ui";
+import NotificationBell from "@/components/dashboard/notifications/NotificationBell";
 
 const TABS = ["Overview", "Skills", "Endorsements", "Gap Analysis", "Export Portfolio"] as const;
 
@@ -209,17 +210,25 @@ export default function DashboardPage() {
 
               {/* Right Column: Tabs */}
               <div className="lg:col-span-8 space-y-6">
-                <div className="flex gap-6 border-b border-slate-200/50 overflow-x-auto no-scrollbar">
-                  {TABS.map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`pb-4 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === tab ? "text-slate-900" : "text-slate-400 hover:text-slate-700"}`}
-                    >
-                      {tab}
-                      {activeTab === tab && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />}
-                    </button>
-                  ))}
+                <div className="flex justify-between items-center border-b border-slate-200/50">
+                  <div className="flex gap-6 overflow-x-auto no-scrollbar">
+                    {TABS.map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`pb-4 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === tab ? "text-slate-900" : "text-slate-400 hover:text-slate-700"}`}
+                      >
+                        {tab}
+                        {activeTab === tab && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="pb-3 px-2">
+                    <NotificationBell
+                      pendingRequests={myEndorsements?.filter((e: any) => e.status === "pending") || []}
+                      onNavigateToEndorseTab={() => setActiveTab("Endorsements")}
+                    />
+                  </div>
                 </div>
 
                 <div className="mt-6">

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useMyEndorsements, useSentEndorsements, useUserSkills } from '@/lib/hooks/useProfileData'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { endorsementService } from '@/lib/services/endorsements.service'
+import { timeAgo } from '@/lib/utils/date'
 
 export default function EndorsementsTab() {
   const { user } = useAuth()
@@ -22,40 +23,6 @@ export default function EndorsementsTab() {
   useEffect(() => {
     setCurrentPage(1)
   }, [activeTab])
-
-  const timeAgo = (dateVal: any): string => {
-    if (!dateVal) return 'ไม่ระบุเวลา'
-
-    let date: Date
-
-    if (dateVal instanceof Date) {
-      date = dateVal
-    } else if (dateVal?.toDate) {
-      date = dateVal.toDate()
-    } else if (typeof dateVal === 'number') {
-      date = new Date(dateVal)
-    } else if (dateVal?._seconds) {
-      date = new Date(dateVal._seconds * 1000)
-    } else if (dateVal?.seconds) {
-      date = new Date(dateVal.seconds * 1000)
-    } else {
-      date = new Date(dateVal)
-    }
-
-    if (isNaN(date.getTime())) return 'วันที่ไม่ถูกต้อง'
-
-    const diff = Math.floor((Date.now() - date.getTime()) / 1000)
-    if (diff < 60) return 'เมื่อกี้'
-    if (diff < 3600) return `${Math.floor(diff / 60)} นาทีที่แล้ว`
-    if (diff < 86400) return `${Math.floor(diff / 3600)} ชั่วโมงที่แล้ว`
-    if (diff < 2592000) return `${Math.floor(diff / 86400)} วันที่แล้ว`
-
-    return date.toLocaleDateString('th-TH', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
 
   // Handle Request Submission
   const handleSendRequest = async () => {
@@ -189,7 +156,7 @@ export default function EndorsementsTab() {
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[380px] content-start">
             {paginatedList.map((item: any, index) => {
               const senderName = item.fromName || item.fromUserName || item.toUserName || 'Anonymous'
               const isPending = item.status === 'pending'
