@@ -1,4 +1,4 @@
-# Skill Wallet — System Design
+# Mint Skill — System Design
 > Stack: React · Elysia (Bun) · Firebase
 
 ---

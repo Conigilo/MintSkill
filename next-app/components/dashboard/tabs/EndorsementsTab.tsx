@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useMyEndorsements, useSentEndorsements, useUserSkills } from '@/lib/hooks/useProfileData'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { endorsementService } from '@/lib/services/endorsements.service'
+import { timeAgo } from '@/lib/utils/date'
+import ApproveEndorseModal from '@/components/ApproveEndorseModal'
 
 export default function EndorsementsTab() {
   const { user } = useAuth()
@@ -17,45 +19,32 @@ export default function EndorsementsTab() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitResult, setSubmitResult] = useState<{ success: boolean; link?: string; error?: string } | null>(null)
 
+  const [pendingRequestsToMe, setPendingRequestsToMe] = useState<any[]>([])
+  const [isPendingToMeLoading, setIsPendingToMeLoading] = useState(true)
+  const [approveModalData, setApproveModalData] = useState<{ requestId: string; targetUserId: string; targetName: string } | null>(null)
+
   const [currentPage, setCurrentPage] = useState(1)
+
+  const fetchPendingToMe = async () => {
+    if (!user?.uid) return
+    try {
+      setIsPendingToMeLoading(true)
+      const res = await endorsementService.getPendingEndorsementRequests()
+      setPendingRequestsToMe(res.data || res || [])
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsPendingToMeLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchPendingToMe()
+  }, [user])
 
   useEffect(() => {
     setCurrentPage(1)
   }, [activeTab])
-
-  const timeAgo = (dateVal: any): string => {
-    if (!dateVal) return 'ไม่ระบุเวลา'
-
-    let date: Date
-
-    if (dateVal instanceof Date) {
-      date = dateVal
-    } else if (dateVal?.toDate) {
-      date = dateVal.toDate()
-    } else if (typeof dateVal === 'number') {
-      date = new Date(dateVal)
-    } else if (dateVal?._seconds) {
-      date = new Date(dateVal._seconds * 1000)
-    } else if (dateVal?.seconds) {
-      date = new Date(dateVal.seconds * 1000)
-    } else {
-      date = new Date(dateVal)
-    }
-
-    if (isNaN(date.getTime())) return 'วันที่ไม่ถูกต้อง'
-
-    const diff = Math.floor((Date.now() - date.getTime()) / 1000)
-    if (diff < 60) return 'เมื่อกี้'
-    if (diff < 3600) return `${Math.floor(diff / 60)} นาทีที่แล้ว`
-    if (diff < 86400) return `${Math.floor(diff / 3600)} ชั่วโมงที่แล้ว`
-    if (diff < 2592000) return `${Math.floor(diff / 86400)} วันที่แล้ว`
-
-    return date.toLocaleDateString('th-TH', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
 
   // Handle Request Submission
   const handleSendRequest = async () => {
@@ -141,6 +130,73 @@ export default function EndorsementsTab() {
         </button>
       </div>
 
+      {/* ═══ Direct Endorsement Requests To Me ═══ */}
+      {pendingRequestsToMe.length > 0 && (
+        <div className="bg-[#ffffff] border border-amber-200 dark:bg-[#161b22] dark:border-amber-500/30 rounded-2xl p-5 space-y-4 shadow-sm animate-in fade-in duration-300">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-amber-500"></span>
+            <h4 className="text-xs font-bold text-slate-800 dark:text-amber-400 uppercase tracking-wider">
+              มีคำขอให้คุณช่วยรับรองทักษะ ({pendingRequestsToMe.length})
+            </h4>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {pendingRequestsToMe.map((req) => (
+              <div 
+                key={req.id} 
+                className="bg-slate-50 dark:bg-[#0d1117] border border-slate-200/60 dark:border-[#21262d] rounded-xl p-4 flex flex-col justify-between gap-3 hover:border-amber-400/40 transition-colors"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold text-xs">
+                      {(req.toUserName || "U")[0].toUpperCase()}
+                    </div>
+                    <span className="text-xs font-bold text-slate-800 dark:text-[#f0f6fc]">
+                      {req.toUserName || "ผู้ใช้ในระบบ"}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 italic pl-8 line-clamp-2">
+                    "{req.message || "ช่วยรับรองทักษะให้ฉันหน่อยสิ"}"
+                  </p>
+                </div>
+
+                <div className="flex justify-end gap-2 pl-8">
+                  <button
+                    onClick={async () => {
+                      if (confirm("คุณต้องการลบคำขอรับรองทักษะนี้ออกใช่หรือไม่?")) {
+                        try {
+                          await endorsementService.declineEndorsementRequest(req.id)
+                          fetchPendingToMe()
+                          refetchReceived()
+                          refetchSent()
+                        } catch (e) {
+                          alert("เกิดข้อผิดพลาดในการลบคำขอ")
+                        }
+                      }
+                    }}
+                    className="px-3.5 py-1.5 border border-slate-200 dark:border-[#30363d] text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 text-[10px] font-bold rounded-lg transition-all active:scale-95 whitespace-nowrap bg-white dark:bg-[#161b22] cursor-pointer"
+                  >
+                    ลบออก
+                  </button>
+                  <button
+                    onClick={() => {
+                      setApproveModalData({
+                        requestId: req.id,
+                        targetUserId: req.toUserId,
+                        targetName: req.toUserName || "ผู้ใช้ในระบบ",
+                      })
+                    }}
+                    className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold rounded-lg transition-all active:scale-95 whitespace-nowrap cursor-pointer"
+                  >
+                    รับรองทักษะให้เพื่อน
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ═══ Tab Navigation (Simple Flat Style) ═══ */}
       <div className="flex gap-6 border-b border-slate-200/60 dark:border-[#21262d] pb-px">
         <button
@@ -189,7 +245,7 @@ export default function EndorsementsTab() {
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[380px] content-start">
             {paginatedList.map((item: any, index) => {
               const senderName = item.fromName || item.fromUserName || item.toUserName || 'Anonymous'
               const isPending = item.status === 'pending'
@@ -230,7 +286,7 @@ export default function EndorsementsTab() {
                             )}
                           </div>
                           <p className="text-[10px] text-slate-400 dark:text-[#8b949e] mt-0.5 truncate">
-                            {item.fromRole || 'ผู้ให้การรับรอง'}
+                            {item.fromRole || (isPending ? 'รอการยืนยันผ่านลิงก์' : 'ผู้ให้การรับรอง')}
                           </p>
                         </div>
                       </div>
@@ -294,7 +350,6 @@ export default function EndorsementsTab() {
           {/* ═══ Pagination Controls ═══ */}
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2 pt-4 border-t border-slate-100 dark:border-[#21262d] select-none">
-              {/* Previous Button */}
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
@@ -306,7 +361,6 @@ export default function EndorsementsTab() {
                 </svg>
               </button>
 
-              {/* Page indicators */}
               <div className="flex items-center gap-1">
                 {Array.from({ length: totalPages }, (_, i) => {
                   const pageNum = i + 1
@@ -328,7 +382,6 @@ export default function EndorsementsTab() {
                 })}
               </div>
 
-              {/* Next Button */}
               <button
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
@@ -365,7 +418,6 @@ export default function EndorsementsTab() {
             {/* Modal Content */}
             <div className="p-5">
               {submitResult?.success ? (
-                /* Success screen */
                 <div className="text-center py-2 space-y-4">
                   <div className="w-10 h-10 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -403,7 +455,6 @@ export default function EndorsementsTab() {
                   </button>
                 </div>
               ) : (
-                /* Form screen */
                 <div className="space-y-3.5">
                   <div className="space-y-1">
                     <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
@@ -454,9 +505,24 @@ export default function EndorsementsTab() {
                 </div>
               )}
             </div>
-
           </div>
         </div>
+      )}
+
+      {/* ═══ Approve Endorsement Request Modal ═══ */}
+      {approveModalData && (
+        <ApproveEndorseModal
+          requestId={approveModalData.requestId}
+          targetUserId={approveModalData.targetUserId}
+          targetName={approveModalData.targetName}
+          onClose={() => setApproveModalData(null)}
+          onSuccess={() => {
+            setApproveModalData(null)
+            fetchPendingToMe()
+            refetchReceived()
+            refetchSent()
+          }}
+        />
       )}
 
     </div>

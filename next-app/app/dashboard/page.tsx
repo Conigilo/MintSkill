@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { userService } from "@/lib/services/user.service";
@@ -11,12 +11,13 @@ import EndorsementsTab from "@/components/dashboard/tabs/EndorsementsTab";
 import GapAnalysisTab from "@/components/dashboard/tabs/GapAnalysisTab";
 import ExportPortfolioTab from "@/components/dashboard/tabs/exportPortfolioTab";
 import SidebarLayout from "@/components/dashboard/SidebarLayout";
-import { useUserSkills, useMyEndorsements, useUserBadges } from "@/lib/hooks/useProfileData";
+import { useUserSkills, useMyEndorsements } from "@/lib/hooks/useProfileData";
 import CVTemplate from "@/components/dashboard/CVTemplate";
 import Image from "next/image";
 import { GitHubCalendar } from "react-github-calendar";
 import EditProfileModal from "@/components/dashboard/EditProfileModal";
 import { Alert } from "@/components/ui";
+import NotificationBell from "@/components/dashboard/notifications/NotificationBell";
 
 const TABS = ["Overview", "Skills", "Endorsements", "Gap Analysis", "Export Portfolio"] as const;
 
@@ -36,20 +37,28 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   const { skills } = useUserSkills(user?.uid);
-  const { endorsements: myEndorsements } = useMyEndorsements();
-  const { badges } = useUserBadges(user?.uid);
+  const { endorsements: myEndorsements, refetch: refetchEndorsements } = useMyEndorsements();
 
-  const refreshProfile = () => {
+  const refreshProfile = useCallback(() => {
     userService.getProfile().then((res) => {
       const data = res?.data || res?.user || res;
       if (data?.uid || data?.displayName) setProfile(data);
     }).catch(() => { });
-  };
+  }, []);
 
   useEffect(() => {
     if (authLoading || !user) return;
     refreshProfile();
-  }, [user, authLoading]);
+  }, [user, authLoading, refreshProfile]);
+
+  // Support redirecting to specific tab from other pages (like Jobs)
+  useEffect(() => {
+    const redirectTab = localStorage.getItem('activeDashboardTab');
+    if (redirectTab) {
+      setActiveTab(redirectTab);
+      localStorage.removeItem('activeDashboardTab');
+    }
+  }, []);
 
   return (
     <>
@@ -61,19 +70,19 @@ export default function DashboardPage() {
 
           {/*Alert Message Area */}
           {error && (
-            <div className="max-w-7xl mx-auto mt-24 px-8 mb-[-2rem] animate-in slide-in-from-top-4 duration-300">
+            <div className="max-w-[1440px] mx-auto mt-24 px-8 mb-[-2rem] animate-in slide-in-from-top-4 duration-300">
               <Alert
                 type="error"
                 message={error}
-                onClose={() => setError(null)} 
+                onClose={() => setError(null)}
               />
             </div>
           )}
 
           {/* Main Dashboard Layout */}
-          <div className="max-w-7xl mx-auto mt-8 px-8 relative z-10">
+          <div className="max-w-[1440px] mx-auto mt-8 px-8 relative z-10">
             {/* Profile + Tabs Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12 mt-14">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12 mt-14 items-stretch">
               {/* Left Column: Profile Card + GitHub */}
               <div className="lg:col-span-4 space-y-6">
                 {/* Profile Card */}
@@ -208,21 +217,30 @@ export default function DashboardPage() {
               </div>
 
               {/* Right Column: Tabs */}
-              <div className="lg:col-span-8 space-y-6">
-                <div className="flex gap-6 border-b border-slate-200/50 overflow-x-auto no-scrollbar">
-                  {TABS.map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`pb-4 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === tab ? "text-slate-900" : "text-slate-400 hover:text-slate-700"}`}
-                    >
-                      {tab}
-                      {activeTab === tab && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />}
-                    </button>
-                  ))}
+              <div className="lg:col-span-7 space flex flex-col h-full">
+                <div className="flex justify-between items-center border-b border-slate-200/50">
+                  <div className="flex gap-6 overflow-x-auto no-scrollbar">
+                    {TABS.map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`pb-4 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === tab ? "text-slate-900" : "text-slate-400 hover:text-slate-700"}`}
+                      >
+                        {tab}
+                        {activeTab === tab && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="pb-3 px-2">
+                    <NotificationBell
+                      pendingRequests={myEndorsements?.filter((e: any) => e.status === "pending") || []}
+                      onNavigateToEndorseTab={() => setActiveTab("Endorsements")}
+                      onRefresh={refetchEndorsements}
+                    />
+                  </div>
                 </div>
 
-                <div className="mt-6">
+                <div className="mt-6 flex-1 flex flex-col">
                   {activeTab === "Overview" && <OverviewTab />}
                   {activeTab === "Skills" && <SkillsTab onNavigateToEndorse={() => setActiveTab("Endorsements")} />}
                   {activeTab === "Endorsements" && <EndorsementsTab />}

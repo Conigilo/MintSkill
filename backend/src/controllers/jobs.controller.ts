@@ -1,4 +1,5 @@
 import * as JobsService from '../services/jobs.service'
+import * as SkillsService from '../services/skills.service'
 import { verifyToken } from '../middleware/auth.middleware'
 import { validateRequiredString, validateNumberRange } from '../utils/validators'
 import { AuthenticationError, NotFoundError } from '../utils/errors'
@@ -38,8 +39,11 @@ export async function getRecommendationsHandler({ headers, query, set }: any) {
         const decoded = await verifyToken(headers['authorization'] || null)
         const limit = query.limit ? validateNumberRange(parseInt(query.limit), 'Limit', 1, 50) : 20
         
-        // In a real app, we'd fetch user skills here
-        const jobs = await JobsService.getRecommendations([], limit)
+        // Fetch user skills from database
+        const userSkills = await SkillsService.getSkillsByUser(decoded.uid)
+        const skillNames = userSkills.map((s: any) => s.name)
+
+        const jobs = await JobsService.getRecommendations(skillNames, limit)
         
         return { 
             success: true,

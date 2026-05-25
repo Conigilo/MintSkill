@@ -14,7 +14,7 @@ export async function getSkillsByUser(userId: string) {
 /**
  * Update user's aggregate skill stats in the users collection
  */
-async function updateUserSkillStats(uid: string) {
+export async function updateUserSkillStats(uid: string) {
     const skillsSnap = await db.collection(Collections.SKILLS)
         .where('userId', '==', uid)
         .get()
@@ -38,12 +38,23 @@ export async function addSkill(
 ) {
     const { name, category, level } = data
 
+    // Count actual verified endorsements for this specific skill and user
+    const skillEndorsementsSnap = await db.collection(Collections.ENDORSEMENTS)
+        .where('toUserId', '==', uid)
+        .where('status', '==', 'verified')
+        .where('skills', 'array-contains', name)
+        .get()
+
+    const endorsementCount = skillEndorsementsSnap.size
+    const endorsementScore = Math.min(endorsementCount * 3, 6)
+
     const skillData = {
         userId: uid,
         name,
         category,
-        level: Math.min(5, Math.max(1, level || 1)),
-        endorsementCount: 0,
+        level: Math.min(5, Math.max(0, level || 0)),
+        endorsementCount,
+        endorsementScore,
         fromGitHub: false,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -52,13 +63,7 @@ export async function addSkill(
     const result = await db.collection(Collections.SKILLS).add(skillData)
 
     // Update user's skill count
-    const userDoc = await db.collection(Collections.USERS).doc(uid).get()
-    
-    if (userDoc.exists) {
-        await db.collection(Collections.USERS).doc(uid).update({
-            'stats.skillCount': (userDoc.data()?.stats?.skillCount || 0) + 1,
-        })
-    }
+    await updateUserSkillStats(uid)
 
     return { id: result.id, ...skillData }
 }
@@ -122,14 +127,8 @@ export async function deleteSkill(uid: string, skillId: string) {
 
     await skillDoc.ref.delete()
 
-    // Update user's skill count
-    const userRef = db.collection(Collections.USERS).doc(uid)
-    const userDoc = await userRef.get()
-    
-    if (userDoc.exists) {
-        const newCount = Math.max(0, (userDoc.data()?.stats?.skillCount || 1) - 1)
-        await userRef.update({ 'stats.skillCount': newCount })
-    }
+    // Update user's skill stats
+    await updateUserSkillStats(uid)
 
     return { ok: true }
 }
@@ -193,6 +192,7 @@ export async function submitSkillQuizAttempt(uid: string, skillId: string, score
     }
 
     await skillDoc.ref.update(updateData)
+    await updateUserSkillStats(uid)
     
     return { ok: true, updated: { ...skillData, ...updateData } }
 }

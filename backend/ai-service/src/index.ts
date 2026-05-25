@@ -2,6 +2,14 @@ import { Elysia, t } from 'elysia'
 import { cors } from '@elysiajs/cors'
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
+function cleanJsonText(rawText: string): string {
+    let cleaned = rawText.trim();
+    if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```(?:json)?/g, '').replace(/```$/g, '').trim();
+    }
+    return cleaned;
+}
+
 const app = new Elysia()
     .use(cors())
     .post('/generate-quiz', async ({ body, set }) => {
@@ -52,7 +60,8 @@ const app = new Elysia()
         try {
             const result = await model.generateContent(prompt)
             const text = result.response.text()
-            return JSON.parse(text)
+            const cleanedText = cleanJsonText(text)
+            return JSON.parse(cleanedText)
         } catch (error: any) {
             set.status = 500
             return { error: error.message }
@@ -61,6 +70,60 @@ const app = new Elysia()
         body: t.Object({
             skillName: t.String(),
             level: t.Number()
+        })
+    })
+    .post('/generate-roadmap', async ({ body, set }) => {
+        const { skillName, myLevel, targetLevel } = body
+        const apiKey = process.env.GEMINI_API_KEY || Bun.env.GEMINI_API_KEY
+
+        if (!apiKey) {
+            set.status = 500
+            return { error: "GEMINI_API_KEY not configured in AI Service" }
+        }
+
+        const genAI = new GoogleGenerativeAI(apiKey)
+        const model = genAI.getGenerativeModel({
+            model: "gemini-3.1-flash-lite-preview",
+            generationConfig: { responseMimeType: "application/json" }
+        })
+
+        const prompt = `คุณคือผู้เชี่ยวชาญด้านการจัดหลักสูตรและการเรียนรู้สาย Technical (Expert Technical Learning Coach)
+            จงสร้างแผนการเรียนรู้ระยะเวลา 4 สัปดาห์ (4-Week Learning Roadmap) เพื่ออุดช่องว่างทักษะและยกระดับความรู้ในเรื่อง "${skillName}"
+            โดยระดับปัจจุบันของผู้เรียนคือ ${myLevel}% และระดับเป้าหมายที่ต้องการพัฒนาขึ้นไปคือ ${targetLevel}%
+            แผนต้องแบ่งออกเป็นสัปดาห์ที่ 1 ถึง 4 อย่างเป็นขั้นตอน ชัดเจน ท้าทาย และเป็นไปได้จริง
+            ภาษาที่ใช้: ภาษาไทย โดยทับศัพท์คำศัพท์เฉพาะทางด้าน Programming เป็นภาษาอังกฤษตามความเหมาะสม
+
+            จงส่งคืนผลลัพธ์ในรูปแบบ Array ของ JSON objects ตามโครงสร้างนี้เท่านั้น (ห้ามมีข้อความเกริ่นนำหรือปิดท้ายใดๆ นอกเหนือจาก JSON):
+            [
+              {
+                "week": 1,
+                "title": "หัวข้อหลักประจำสัปดาห์",
+                "desc": "คำอธิบายวัตถุประสงค์สั้นๆ ของสัปดาห์นี้",
+                "tasks": [
+                  "งานหรือหัวข้อย่อยที่ต้องศึกษาและลงมือทำข้อที่ 1",
+                  "งานหรือหัวข้อย่อยที่ต้องศึกษาและลงมือทำข้อที่ 2",
+                  "งานหรือหัวข้อย่อยที่ต้องศึกษาและลงมือทำข้อที่ 3"
+                ],
+                "resources": [
+                  "ชื่อของคอร์สเรียนออนไลน์ ลิงก์เอกสาร หรือบทความแนะนำ"
+                ]
+              }
+            ]`
+
+        try {
+            const result = await model.generateContent(prompt)
+            const text = result.response.text()
+            const cleanedText = cleanJsonText(text)
+            return JSON.parse(cleanedText)
+        } catch (error: any) {
+            set.status = 500
+            return { error: error.message }
+        }
+    }, {
+        body: t.Object({
+            skillName: t.String(),
+            myLevel: t.Number(),
+            targetLevel: t.Number()
         })
     })
     .get('/list-models', async () => {
@@ -81,7 +144,7 @@ const app = new Elysia()
             models: availableModels
         };
     })
-    .listen(3002)
+    .listen(parseInt(process.env.PORT || Bun.env.PORT || '3002'))
 
-console.log(`AI Microservice READY at http://localhost:3002`)
+console.log(`AI Microservice READY at http://localhost:${app.server?.port || 3002}`)
 console.log(`Using GEMINI_API_KEY: ${process.env.GEMINI_API_KEY || Bun.env.GEMINI_API_KEY ? "Loaded ✅" : "Check .env ❌"}`)

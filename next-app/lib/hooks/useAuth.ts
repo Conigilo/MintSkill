@@ -16,6 +16,8 @@ import { auth } from '@/lib/utils/firebase';
 import { userService } from '../services/user.service';
 import { githubService } from '../services/github.service';
 
+let lastSyncedTime = 0;
+
 export const useAuth = () => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
@@ -26,16 +28,20 @@ export const useAuth = () => {
             setUser(currentUser);
 
             if (currentUser) {
-                // ถ้ายืนยันตัวตนผ่าน Firebase สำเร็จ -> ยิงไปทักทายหลังบ้าน Elysia
-                try {
-                    await userService.syncProfile({
-                        uid: currentUser.uid,
-                        email: currentUser.email,
-                        displayName: currentUser.displayName,
-                        photoURL: currentUser.photoURL,
-                    });
-                } catch (error) {
-                    console.error("ซิงค์ข้อมูลล้มเหลว (ไม่บัง Auth):", error);
+                const now = Date.now();
+                // ป้องกันการซิงค์ข้อมูลรัวๆ (Throttle) หากซิงค์ไปไม่เกิน 30 วินาทีก่อนหน้า
+                if (now - lastSyncedTime > 30000) {
+                    lastSyncedTime = now;
+                    try {
+                        await userService.syncProfile({
+                            uid: currentUser.uid,
+                            email: currentUser.email,
+                            displayName: currentUser.displayName,
+                            photoURL: currentUser.photoURL,
+                        });
+                    } catch (error) {
+                        console.error("ซิงค์ข้อมูลล้มเหลว (ไม่บัง Auth):", error);
+                    }
                 }
             }
             setLoading(false);

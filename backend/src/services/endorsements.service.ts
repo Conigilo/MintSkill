@@ -1,5 +1,6 @@
 import { db, Collections } from './firebase.service'
 import { randomBytes } from 'crypto'
+import { updateUserSkillStats } from './skills.service'
 
 /**
  * Update skill endorsement count and auto-mint badge if threshold met
@@ -37,6 +38,7 @@ async function updateSkillAndMintBadge(toUserId: string, skillName: string) {
 
         const updateData: any = { 
             endorsementScore,
+            endorsementCount,
             verified: newLevel > 0
         }
         
@@ -73,21 +75,23 @@ async function updateSkillAndMintBadge(toUserId: string, skillName: string) {
         
         // After updating the skill, sync the user's aggregate stats
         await updateUserEndorsementCount(toUserId)
+        await updateUserSkillStats(toUserId)
     } else {
-        // Initial Level Calculation for new skill
-        let initialLevel = 0;
-        if (endorsementScore >= 1) initialLevel = 1; // Assuming 0 quiz score for new skill via endorsement
-
         await db.collection(Collections.SKILLS).add({
             userId: toUserId,
             name: skillName,
             category: 'Other',
-            level: initialLevel || 1,
+            level: 0, // Starts at Level 0 (Beginner)
             endorsementScore,
+            endorsementCount,
             quizScore: 0,
-            verified: initialLevel > 0,
+            verified: false, // Must pass AI quiz to be verified
             createdAt: new Date(),
         })
+
+        // Sync the user's aggregate stats
+        await updateUserEndorsementCount(toUserId)
+        await updateUserSkillStats(toUserId)
     }
 }
 
@@ -218,6 +222,7 @@ export async function verifyEndorsementToken(token: string) {
 
     return {
         valid: true,
+        toUserId: endorsementData.toUserId,
         toUser: {
             displayName: userData?.displayName,
             avatarUrl: userData?.avatarUrl,
@@ -330,4 +335,171 @@ export async function directEndorse(fromUserId: string, body: any) {
     await Promise.all(skills.map((skillName: string) => updateSkillAndMintBadge(toUserId, skillName)))
 
     return { success: true, endorsementId: endorsementRef.id }
+}
+
+/**
+ * Create a direct endorsement request from one logged-in user to another user in the system
+ */
+export async function createDirectRequest(toUserId: string, fromUserId: string, body: any) {
+    const { message } = body
+
+    if (!toUserId || !fromUserId) {
+        throw new Error('MISSING_FIELDS')
+    }
+
+    if (toUserId === fromUserId) {
+        throw new Error('CANNOT_REQUEST_SELF')
+    }
+
+    // Check if there is already a pending request from this user to that user to prevent spam
+    const existingSnap = await db.collection(Collections.ENDORSEMENTS)
+        .where('toUserId', '==', toUserId)
+        .where('fromUserId', '==', fromUserId)
+        .where('status', '==', 'pending')
+        .limit(1)
+        .get()
+
+    if (!existingSnap.empty) {
+        throw new Error('DUPLICATE_PENDING_REQUEST')
+    }
+
+    // Also check if they have endorsed in the last 30 days
+    const recentSnap = await db.collection(Collections.ENDORSEMENTS)
+        .where('toUserId', '==', toUserId)
+        .where('fromUserId', '==', fromUserId)
+        .where('status', '==', 'verified')
+        .limit(1)
+        .get()
+
+    if (!recentSnap.empty) {
+        throw new Error('ALREADY_ENDORSED')
+    }
+
+    // Get to-user (requestor) info to cache on the endorsement for easy viewing
+    const toUserDoc = await db.collection(Collections.USERS).doc(toUserId).get()
+    const toUserData = toUserDoc.data()
+
+    const requestRef = await db.collection(Collections.ENDORSEMENTS).add({
+        toUserId,
+        toUserName: toUserData?.displayName || toUserData?.username || 'Anonymous Developer',
+        toUserAvatarUrl: toUserData?.avatarUrl || '',
+        fromUserId, // targeted endorser
+        fromName: '', // will be populated on approval
+        fromRole: '', // will be populated on approval
+        fromAvatarUrl: '', // will be populated on approval
+        message: message || 'ช่วยรับรองทักษะให้ฉันหน่อยครับ',
+        skills: [], // will be populated on approval
+        status: 'pending',
+        createdAt: new Date(),
+    })
+
+    return { success: true, requestId: requestRef.id }
+}
+
+/**
+ * Get all pending requests sent to a user (requests waiting for this user to endorse someone else)
+ */
+export async function getPendingRequestsForUser(userId: string) {
+    const querySnapshot = await db.collection(Collections.ENDORSEMENTS)
+        .where('fromUserId', '==', userId)
+        .where('status', '==', 'pending')
+        .get()
+
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    })).sort((a: any, b: any) => {
+        const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime()
+        const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime()
+        return timeB - timeA
+    })
+}
+
+/**
+ * Approve a pending direct endorsement request
+ */
+export async function approveEndorsementRequest(requestId: string, fromUserId: string, body: any) {
+    const { skills, message, fromRole } = body
+
+    if (!skills?.length || !message) {
+        throw new Error('MISSING_FIELDS')
+    }
+
+    const docRef = db.collection(Collections.ENDORSEMENTS).doc(requestId)
+    const doc = await docRef.get()
+
+    if (!doc.exists) {
+        throw new Error('REQUEST_NOT_FOUND')
+    }
+
+    const data = doc.data()
+    if (!data) {
+        throw new Error('REQUEST_NOT_FOUND')
+    }
+
+    if (data.status !== 'pending') {
+        throw new Error('ALREADY_PROCESSED')
+    }
+
+    // Ensure the approving user is indeed the requested target
+    if (data.fromUserId !== fromUserId) {
+        throw new Error('UNAUTHORIZED')
+    }
+
+    // Get approver's user profile to cache their details
+    const fromUserDoc = await db.collection(Collections.USERS).doc(fromUserId).get()
+    const fromUserData = fromUserDoc.data()
+
+    await docRef.update({
+        fromName: fromUserData?.displayName || 'Anonymous Colleague',
+        fromRole: fromRole || fromUserData?.title || 'Developer',
+        fromAvatarUrl: fromUserData?.avatarUrl || '',
+        message: message.trim(),
+        skills,
+        status: 'verified',
+        verifiedAt: new Date()
+    })
+
+    const toUserId = data.toUserId
+
+    // Update target user's endorsement count
+    await updateUserEndorsementCount(toUserId)
+
+    // Update per-skill counts and auto-mint badges
+    await Promise.all(skills.map((skillName: string) => updateSkillAndMintBadge(toUserId, skillName)))
+
+    return { success: true }
+}
+
+/**
+ * Decline/Dismiss a pending endorsement request (delete or mark as declined)
+ */
+export async function declineEndorsementRequest(requestId: string, fromUserId: string) {
+    const docRef = db.collection(Collections.ENDORSEMENTS).doc(requestId)
+    const doc = await docRef.get()
+
+    if (!doc.exists) {
+        throw new Error('REQUEST_NOT_FOUND')
+    }
+
+    const data = doc.data()
+    if (!data) {
+        throw new Error('REQUEST_NOT_FOUND')
+    }
+
+    // If it's a link request (fromUserId is null), we allow the recipient (toUserId) to delete it
+    // If it's a direct request (fromUserId is set), we allow the designated endorser (fromUserId) to decline/delete it
+    const isDirectRequest = data.fromUserId !== null && data.fromUserId !== undefined;
+    const isAuthorized = isDirectRequest 
+        ? data.fromUserId === fromUserId 
+        : data.toUserId === fromUserId; // For link requests, owner can delete it from history
+
+    if (!isAuthorized) {
+        throw new Error('UNAUTHORIZED')
+    }
+
+    // Deleting the document is cleaner to avoid storing rejected requests indefinitely
+    await docRef.delete()
+
+    return { success: true }
 }

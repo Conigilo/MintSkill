@@ -136,3 +136,80 @@ export interface SortOptions {
   field: 'name' | 'endorsements' | 'proficiency'
   order: 'asc' | 'desc'
 }
+
+// ── Skill types ที่ตรงกับ API จริง ──
+
+/** Skill จาก API พร้อมคะแนน quiz + endorsement (ใช้ใน Dashboard tabs) */
+export interface SkillWithScore {
+  id: string
+  name: string
+  cat: string
+  level: number
+  color: string
+  verified: boolean
+  quizScore: number
+  endorsementScore: number
+  endorsementCount: number
+}
+
+/** Skill จาก API (raw format ก่อน format) */
+export interface SkillFromAPI {
+  id?: string
+  name: string
+  category: string
+  level?: number
+  quizScore: number
+  endorsementScore?: number
+  endorsementCount?: number
+  endorsements?: number
+  verified?: boolean
+  createdAt?: string
+}
+
+/** Color map สำหรับ skill categories */
+export const CATEGORY_COLOR_MAP: Record<string, string> = {
+  "LANGUAGES": "bg-yellow-400",
+  "FRAMEWORKS & TOOLS": "bg-cyan-400",
+  "DATABASE": "bg-emerald-400",
+  "CLOUD": "bg-sky-400",
+} as const
+
+// ── Quiz types ──
+
+export type QuizStatus = "idle" | "correct" | "wrong" | "finished"
+
+export interface QuizQuestion {
+  question: string
+  options: string[]
+  correctIndex: number
+  explanation?: string
+}
+
+// ── Gap Analysis types ──
+
+export interface SkillRequirement {
+  name: string
+  req: number
+}
+
+export interface GapAnalysisRole {
+  desc: string
+  requirements: SkillRequirement[]
+}
+
+// ── Endorsement (full, ตรงกับ API) ──
+
+export interface EndorsementFull {
+  id: string
+  fromUserId?: string
+  fromUserName?: string
+  fromName?: string
+  fromRole?: string
+  fromAvatarUrl?: string
+  message?: string
+  skills?: string[]
+  skill?: string
+  status?: 'pending' | 'verified'
+  createdAt?: unknown
+  verifiedAt?: unknown
+}

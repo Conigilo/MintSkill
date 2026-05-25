@@ -296,27 +296,26 @@ async function autoAddLanguageSkills(
     const existingSkillNames = existingSkillsSnapshot.docs
         .map(doc => (doc.data().name as string).toLowerCase())
 
-    const newSkills: string[] = []
+    // Filter out languages that already exist (case-insensitive)
+    const newSkills = languages.filter(
+        lang => !existingSkillNames.includes(lang.toLowerCase())
+    )
 
-    // Add new language skills that don't already exist
-    for (const language of languages) {
-        if (existingSkillNames.includes(language.toLowerCase())) {
-            continue
-        }
-
-        await db.collection(Collections.SKILLS).add({
-            userId: uid,
-            name: language,
-            category: 'language',
-            level: 1,
-            endorsementCount: 0,
-            fromGitHub: true,
-            createdAt: timestamp,
-            updatedAt: timestamp,
-        })
-
-        newSkills.push(language)
-    }
+    // ✅ Concurrent — add all new skills in parallel instead of one-by-one
+    await Promise.all(
+        newSkills.map(language =>
+            db.collection(Collections.SKILLS).add({
+                userId: uid,
+                name: language,
+                category: 'language',
+                level: 1,
+                endorsementCount: 0,
+                fromGitHub: true,
+                createdAt: timestamp,
+                updatedAt: timestamp,
+            })
+        )
+    )
 
     // Update user's skill count if new skills were added
     if (newSkills.length > 0) {
