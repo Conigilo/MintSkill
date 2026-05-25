@@ -149,6 +149,7 @@ export interface SkillWithScore {
   verified: boolean
   quizScore: number
   endorsementScore: number
+  endorsementCount: number
 }
 
 /** Skill จาก API (raw format ก่อน format) */
@@ -159,6 +160,7 @@ export interface SkillFromAPI {
   level?: number
   quizScore: number
   endorsementScore?: number
+  endorsementCount?: number
   endorsements?: number
   verified?: boolean
   createdAt?: string

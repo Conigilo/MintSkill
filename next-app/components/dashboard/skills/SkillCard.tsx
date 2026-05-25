@@ -93,7 +93,7 @@ export default function SkillCard({ skill, onVerify, onBadge, onDelete }: SkillC
             {/* Small stat counters */}
             <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500 pt-1">
               <span className="flex items-center gap-1">⭐ Quiz: {skill.quizScore}/10</span>
-              <span className="flex items-center gap-1">👍 Endorse: {skill.endorsementScore}/5</span>
+              <span className="flex items-center gap-1">👍 Endorse: {skill.endorsementCount}/{currentLvl.level === 3 ? 2 : currentLvl.level === 2 ? 2 : 1}</span>
             </div>
           </>
         ) : (

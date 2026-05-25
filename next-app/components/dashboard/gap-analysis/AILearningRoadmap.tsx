@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { roadmapService, type UserRoadmap, type RoadmapWeek } from '@/lib/services/roadmap.service'
+import { useAuth } from '@/lib/hooks/useAuth'
 
 interface AILearningRoadmapProps {
   skillName: string
@@ -10,29 +11,44 @@ interface AILearningRoadmapProps {
   onClose: () => void
 }
 
+interface QuizQuestion {
+  q: string
+  opts: string[]
+  a: number
+  explanation: string
+}
+
 export default function AILearningRoadmap({
   skillName,
   myLevel,
   targetLevel,
   onClose,
 }: AILearningRoadmapProps) {
+  const { user } = useAuth()
   const [roadmap, setRoadmap] = useState<UserRoadmap | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null)
   const [expandedWeek, setExpandedWeek] = useState<number>(1)
 
+  // Quiz States
+  const [activeQuizWeek, setActiveQuizWeek] = useState<number | null>(null)
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([])
+  const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0)
+  const [selectedOption, setSelectedOption] = useState<number | null>(null)
+  const [showAnswerResult, setShowAnswerResult] = useState(false)
+  const [quizScore, setQuizScore] = useState(0)
+  const [quizFinished, setQuizFinished] = useState(false)
+
   // Load roadmap data
   const loadRoadmap = async () => {
     setLoading(true)
     setError(null)
     try {
-      // 1. Try to get existing
       const res = await roadmapService.getRoadmap(skillName)
       if (res.success && res.data) {
         setRoadmap(res.data)
       } else {
-        // If 404/not found, generate new
         const genRes = await roadmapService.generateRoadmap(skillName, myLevel, targetLevel)
         if (genRes.success && genRes.data) {
           setRoadmap(genRes.data)
@@ -41,7 +57,6 @@ export default function AILearningRoadmap({
         }
       }
     } catch (err: any) {
-      // Secondary fallback to generate new if get 404 error
       try {
         const genRes = await roadmapService.generateRoadmap(skillName, myLevel, targetLevel)
         if (genRes.success && genRes.data) {
@@ -59,7 +74,30 @@ export default function AILearningRoadmap({
 
   useEffect(() => {
     loadRoadmap()
+    // Reset quiz when skill changes
+    setActiveQuizWeek(null)
   }, [skillName])
+
+  // Get quiz status from localstorage
+  const isQuizPassed = (weekNum: number) => {
+    if (!user) return false
+    return localStorage.getItem(`roadmap_quiz_${user.uid}_${skillName}_w${weekNum}`) === "true"
+  }
+
+  // Unlocking mechanism
+  const isWeekUnlocked = (weekNum: number) => {
+    if (weekNum === 1) return true
+    if (!roadmap) return false
+    
+    // Previous week must have all tasks completed and quiz passed
+    const prevWeek = roadmap.weeks.find(w => w.week === weekNum - 1)
+    if (!prevWeek) return false
+
+    const prevWeekTasksDone = prevWeek.tasks.every(t => t.completed)
+    const prevWeekQuizDone = isQuizPassed(weekNum - 1)
+
+    return prevWeekTasksDone && prevWeekQuizDone
+  }
 
   // Handle task check/uncheck
   const handleToggleTask = async (weekIdx: number, taskIdx: number, currentCompleted: boolean) => {
@@ -84,6 +122,85 @@ export default function AILearningRoadmap({
     }
   }
 
+  // Local dynamically generated questions based on skillName and week title
+  const generateInlineQuestions = (skill: string, weekTitle: string): QuizQuestion[] => {
+    return [
+      {
+        q: `ในการพัฒนา ${skill} หัวข้อ "${weekTitle}" ข้อใดคือแนวปฏิบัติที่ดีที่สุด (Best Practice)?`,
+        opts: [
+          "เขียนโค้ดให้สั้นที่สุดโดยไม่สนใจความอ่านง่าย",
+          "แยกโค้ดเป็นส่วนๆ (Modular structure) และเขียนคำอธิบายที่เข้าใจง่าย",
+          "นำโค้ดทั้งหมดไปรวมกันในไฟล์เดียวเพื่อประหยัดจำนวนไฟล์",
+          "ใช้ตัวแปรแบบ Global ให้ได้มากที่สุด"
+        ],
+        a: 1,
+        explanation: "การแบ่งโมดูล (Modular) ช่วยให้โค้ดมีความเป็นระเบียบ อ่านง่าย บำรุงรักษาได้สะดวก และนำกลับมาใช้งานใหม่ได้ดีกว่า"
+      },
+      {
+        q: `แนวคิดหลักของการจัดการระบบงานในหัวข้อ "${weekTitle}" ของทักษะ ${skill} คือข้อใด?`,
+        opts: [
+          "การเพิ่มความถูกต้องของข้อมูลผ่านโครงสร้างการทำงานที่เป็นระบบและชัดเจน",
+          "การประมวลผลข้อมูลที่เร็วขึ้นโดยไม่มีขอบเขตจำกัด",
+          "การยกเลิกการเขียนโค้ดเช็กเงื่อนไขทั้งหมดเพื่อความเร็ว",
+          "การปิดกั้นไม่ให้ทีมงานคนอื่นมองเห็นโค้ดของเราได้"
+        ],
+        a: 0,
+        explanation: "การจัดการระบบงานที่ดีช่วยยกระดับความถูกต้องของข้อมูลผ่านระบบโครงสร้างที่แข็งแรงและลดบั๊กที่อาจเกิดขึ้น"
+      },
+      {
+        q: `ข้อใดกล่าวถึงประโยชน์หลักของการนำเทคนิค "${weekTitle}" ไปประยุกต์ใช้งานในโปรเจกต์จริงได้เหมาะสมที่สุด?`,
+        opts: [
+          "ช่วยลดความซับซ้อน ป้องกันข้อผิดพลาด (Technical Debt) ในระยะยาว และทำให้โค้ดเป็นมาตรฐานเดียวกัน",
+          "ทำให้โปรเจกต์ไม่จำเป็นต้องเขียนโค้ดสำหรับเชื่อมต่อ API หรือคลาวด์อีกเลย",
+          "ช่วยให้นักพัฒนาที่ไม่มีความรู้ในภาษา ${skill} สามารถดีบักระบบได้ทั้งหมด",
+          "ทำให้เว็บไซต์ทำงานได้โดยไม่ต้องรอดาวน์โหลดไฟล์ CSS หรือ JavaScript"
+        ],
+        a: 0,
+        explanation: "การลดความซับซ้อนของโค้ดช่วยควบคุมมาตรฐานของคุณภาพงาน ลดภาระทางเทคนิค และทำให้แก้ไขบั๊กได้ง่ายขึ้น"
+      }
+    ]
+  }
+
+  // Start quiz flow
+  const handleStartQuiz = (weekNum: number, weekTitle: string) => {
+    const questions = generateInlineQuestions(skillName, weekTitle)
+    setQuizQuestions(questions)
+    setCurrentQuestionIdx(0)
+    setSelectedOption(null)
+    setShowAnswerResult(false)
+    setQuizScore(0)
+    setQuizFinished(false)
+    setActiveQuizWeek(weekNum)
+  }
+
+  // Submit current answer
+  const handleSubmitAnswer = () => {
+    if (selectedOption === null) return
+    setShowAnswerResult(true)
+    
+    // Increment score if correct
+    if (selectedOption === quizQuestions[currentQuestionIdx].a) {
+      setQuizScore(prev => prev + 1)
+    }
+  }
+
+  // Go to next question or finish
+  const handleNextQuestion = () => {
+    setSelectedOption(null)
+    setShowAnswerResult(false)
+    
+    if (currentQuestionIdx < quizQuestions.length - 1) {
+      setCurrentQuestionIdx(prev => prev + 1)
+    } else {
+      setQuizFinished(true)
+      // Save state if passed (score >= 2 out of 3)
+      const passed = (quizScore + (selectedOption === quizQuestions[currentQuestionIdx].a ? 1 : 0)) >= 2
+      if (passed && user && activeQuizWeek) {
+        localStorage.setItem(`roadmap_quiz_${user.uid}_${skillName}_w${activeQuizWeek}`, "true")
+      }
+    }
+  }
+
   // Calculate overall progress percentage
   const getOverallProgress = () => {
     if (!roadmap) return 0
@@ -103,7 +220,7 @@ export default function AILearningRoadmap({
   const overallProgress = getOverallProgress()
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-white dark:bg-[#161b22] border border-slate-300 dark:border-[#30363d] rounded-3xl w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 bg-white dark:bg-[#161b22] border-b border-slate-200 dark:border-[#30363d] shrink-0">
@@ -117,7 +234,7 @@ export default function AILearningRoadmap({
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-[#21262d] dark:hover:bg-[#30363d] text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all focus:outline-none"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-[#21262d] dark:hover:bg-[#30363d] text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all focus:outline-none cursor-pointer font-bold text-xs"
           >
             ✕
           </button>
@@ -140,7 +257,7 @@ export default function AILearningRoadmap({
               </p>
               <button
                 onClick={loadRoadmap}
-                className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-all"
+                className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-all cursor-pointer"
               >
                 ลองใหม่อีกครั้ง
               </button>
@@ -158,7 +275,7 @@ export default function AILearningRoadmap({
                   </p>
                 </div>
 
-                {/* Ring progress or bar */}
+                {/* Progress bar */}
                 <div className="w-full md:w-48 space-y-1">
                   <div className="flex justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500">
                     <span>ความสำเร็จของหลักสูตร</span>
@@ -179,33 +296,45 @@ export default function AILearningRoadmap({
                   const isExpanded = expandedWeek === week.week
                   const completedTasksCount = week.tasks.filter(t => t.completed).length
                   const totalTasksCount = week.tasks.length
-                  const isWeekFinished = completedTasksCount === totalTasksCount && totalTasksCount > 0
+                  const isTasksFinished = completedTasksCount === totalTasksCount && totalTasksCount > 0
+                  const isQuizDone = isQuizPassed(week.week)
+                  const isWeekFinished = isTasksFinished && isQuizDone
+                  const isUnlocked = isWeekUnlocked(week.week)
 
                   return (
                     <div
                       key={week.week}
                       className={`border rounded-2xl overflow-hidden transition-all duration-300 ${
-                        isExpanded
-                          ? 'border-slate-300 dark:border-slate-700 shadow-sm bg-white dark:bg-[#1c212a]/30'
-                          : 'border-slate-200/80 dark:border-[#30363d] hover:bg-slate-50/50 dark:hover:bg-[#21262d]/20'
+                        !isUnlocked
+                          ? 'border-slate-100 dark:border-slate-800 bg-slate-50/20 dark:bg-[#161b22]/10 opacity-60'
+                          : isExpanded
+                            ? 'border-slate-300 dark:border-slate-700 shadow-sm bg-white dark:bg-[#1c212a]/30'
+                            : 'border-slate-200/80 dark:border-[#30363d] hover:bg-slate-50/50 dark:hover:bg-[#21262d]/20'
                       }`}
                     >
                       {/* Week Header */}
                       <div
-                        onClick={() => setExpandedWeek(isExpanded ? 0 : week.week)}
-                        className="px-5 py-4 flex items-center justify-between cursor-pointer select-none"
+                        onClick={() => {
+                          if (isUnlocked) {
+                            setExpandedWeek(isExpanded ? 0 : week.week)
+                          }
+                        }}
+                        className={`px-5 py-4 flex items-center justify-between select-none ${isUnlocked ? 'cursor-pointer' : 'cursor-not-allowed'}`}
                       >
                         <div className="flex items-center gap-3">
                           <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                            isWeekFinished
-                              ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                              : 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
+                            !isUnlocked
+                              ? 'bg-slate-100 text-slate-400 border border-slate-200'
+                              : isWeekFinished
+                                ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                : 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
                           }`}>
-                            W{week.week}
+                            {isWeekFinished ? '✓' : !isUnlocked ? '🔒' : `W${week.week}`}
                           </span>
                           <div>
-                            <h4 className="text-sm font-bold text-slate-800 dark:text-white leading-tight">
+                            <h4 className="text-sm font-bold text-slate-800 dark:text-white leading-tight flex items-center gap-1.5">
                               {week.title}
+                              {!isUnlocked && <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">(Locked 🔒)</span>}
                             </h4>
                             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-0.5">
                               {week.desc}
@@ -215,25 +344,34 @@ export default function AILearningRoadmap({
 
                         {/* Expand status */}
                         <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-[#21262d] text-slate-400 dark:text-[#8b949e]">
-                            เสร็จ {completedTasksCount}/{totalTasksCount}
-                          </span>
-                          <svg
-                            className={`w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300 ${
-                              isExpanded ? 'rotate-180 text-blue-500' : ''
-                            }`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
-                          </svg>
+                          {isUnlocked ? (
+                            <>
+                              <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-[#21262d] text-slate-400 dark:text-[#8b949e]">
+                                {isWeekFinished ? "ผ่านด่านสัปดาห์นี้แล้ว 🎉" : `ภารกิจ ${completedTasksCount}/${totalTasksCount}`}
+                              </span>
+                              <svg
+                                className={`w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300 ${
+                                  isExpanded ? 'rotate-180 text-blue-500' : ''
+                                }`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </>
+                          ) : (
+                            <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-[#21262d] text-slate-400">
+                              ต้องผ่านสัปดาห์ก่อนหน้า
+                            </span>
+                          )}
                         </div>
                       </div>
 
                       {/* Week Tasks checklist */}
-                      {isExpanded && (
+                      {isUnlocked && isExpanded && (
                         <div className="px-5 pb-5 pt-1 border-t border-slate-100 dark:border-[#21262d] space-y-4 animate-in slide-in-from-top-1 duration-200">
+                          
                           {/* Checklist */}
                           <div className="space-y-2">
                             <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2">
@@ -251,7 +389,7 @@ export default function AILearningRoadmap({
                                   <input
                                     type="checkbox"
                                     checked={task.completed}
-                                    disabled={isUpdating}
+                                    disabled={isUpdating || isQuizDone}
                                     onChange={() => handleToggleTask(wIdx, tIdx, task.completed)}
                                     className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-[#30363d] cursor-pointer mt-0.5"
                                   />
@@ -263,6 +401,135 @@ export default function AILearningRoadmap({
                                 </label>
                               )
                             })}
+                          </div>
+
+                          {/* 🎯 Weekly Challenge Section */}
+                          <div className="pt-2 border-t border-slate-100 dark:border-[#21262d]">
+                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-3">
+                              ควิซผ่านด่านประจำสัปดาห์ (Weekly Challenge)
+                            </span>
+
+                            {isQuizDone ? (
+                              <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center gap-3">
+                                <span className="text-xl">🏆</span>
+                                <div>
+                                  <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">ผ่านการประเมินประจำสัปดาห์เรียบร้อยแล้ว!</p>
+                                  <p className="text-[10px] text-emerald-500/80">เนื้อหาในสัปดาห์ถัดไปได้รับการปลดล็อกแล้ว</p>
+                                </div>
+                              </div>
+                            ) : !isTasksFinished ? (
+                              <div className="p-4 bg-slate-50 dark:bg-[#161b22]/50 border border-slate-200/50 dark:border-[#30363d]/50 rounded-2xl">
+                                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">🔒 กรุณาติ๊กทำภารกิจด้านบนให้ครบ 100% เพื่อเปิดสิทธิ์ในการสอบควิซผ่านด่าน</p>
+                              </div>
+                            ) : activeQuizWeek === week.week ? (
+                              /* Active Quiz Frame */
+                              <div className="p-5 bg-slate-50 dark:bg-[#0d1117]/30 border border-slate-200 dark:border-[#30363d] rounded-2xl space-y-4">
+                                {quizFinished ? (
+                                  <div className="text-center space-y-3">
+                                    <span className="text-3xl">{(quizScore >= 2) ? '🎉' : '😢'}</span>
+                                    <h5 className="text-sm font-bold text-slate-900 dark:text-white">
+                                      {(quizScore >= 2) ? 'สอบผ่านเกณฑ์!' : 'สอบไม่ผ่านเกณฑ์'}
+                                    </h5>
+                                    <p className="text-xs text-slate-500">คุณตอบถูก {quizScore} จาก 3 ข้อ (เกณฑ์ผ่านคือ 2 ข้อขึ้นไป)</p>
+                                    <div className="flex gap-2 justify-center pt-2">
+                                      {quizScore >= 2 ? (
+                                        <button
+                                          onClick={() => {
+                                            setActiveQuizWeek(null)
+                                            // Trigger state update
+                                            loadRoadmap()
+                                          }}
+                                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl cursor-pointer"
+                                        >
+                                          เสร็จสิ้น & ปลดล็อก Week ถัดไป
+                                        </button>
+                                      ) : (
+                                        <button
+                                          onClick={() => handleStartQuiz(week.week, week.title)}
+                                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl cursor-pointer"
+                                        >
+                                          ลองใหม่อีกครั้ง
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="space-y-4">
+                                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-400">
+                                      <span>ประเมินทักษะควิซ: {week.title}</span>
+                                      <span>ข้อที่ {currentQuestionIdx + 1}/3</span>
+                                    </div>
+                                    <p className="text-xs font-bold text-slate-800 dark:text-white leading-relaxed">
+                                      {quizQuestions[currentQuestionIdx]?.q}
+                                    </p>
+                                    
+                                    {/* Options */}
+                                    <div className="space-y-2">
+                                      {quizQuestions[currentQuestionIdx]?.opts.map((opt, oIdx) => {
+                                        const isSelected = selectedOption === oIdx
+                                        const isCorrect = oIdx === quizQuestions[currentQuestionIdx].a
+                                        return (
+                                          <button
+                                            key={oIdx}
+                                            disabled={showAnswerResult}
+                                            onClick={() => setSelectedOption(oIdx)}
+                                            className={`w-full text-left p-3 rounded-xl border text-xs font-medium transition-all flex justify-between items-center cursor-pointer ${
+                                              showAnswerResult
+                                                ? isCorrect
+                                                  ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600'
+                                                  : isSelected
+                                                    ? 'border-red-500 bg-red-500/10 text-red-600'
+                                                    : 'border-slate-100 text-slate-400'
+                                                : isSelected
+                                                  ? 'border-indigo-600 bg-indigo-500/5 text-indigo-600'
+                                                  : 'border-slate-200 hover:border-slate-300 text-slate-700 dark:text-slate-300'
+                                            }`}
+                                          >
+                                            <span>{opt}</span>
+                                            {showAnswerResult && isCorrect && <span className="text-emerald-500">✓</span>}
+                                            {showAnswerResult && isSelected && !isCorrect && <span className="text-red-500">✗</span>}
+                                          </button>
+                                        )
+                                      })}
+                                    </div>
+
+                                    {/* Result explanation */}
+                                    {showAnswerResult && (
+                                      <div className="p-3 bg-indigo-500/5 border border-indigo-500/10 rounded-xl text-[11px] text-slate-500 leading-relaxed font-medium">
+                                        💡 <strong>คำอธิบาย:</strong> {quizQuestions[currentQuestionIdx].explanation}
+                                      </div>
+                                    )}
+
+                                    {/* Action button */}
+                                    <div className="flex justify-end pt-2">
+                                      {!showAnswerResult ? (
+                                        <button
+                                          onClick={handleSubmitAnswer}
+                                          disabled={selectedOption === null}
+                                          className="px-4 py-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white text-xs font-bold rounded-xl cursor-pointer"
+                                        >
+                                          ส่งคำตอบ
+                                        </button>
+                                      ) : (
+                                        <button
+                                          onClick={handleNextQuestion}
+                                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl cursor-pointer"
+                                        >
+                                          {currentQuestionIdx < quizQuestions.length - 1 ? "ข้อถัดไป" : "ดูผลลัพธ์"}
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => handleStartQuiz(week.week, week.title)}
+                                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all active:scale-[0.98] cursor-pointer"
+                              >
+                                📝 เริ่มทดสอบควิซวัดความรู้ประจำสัปดาห์
+                              </button>
+                            )}
                           </div>
 
                           {/* Resources */}

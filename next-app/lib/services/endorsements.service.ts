@@ -49,6 +49,38 @@ export const endorsementService = {
     });
   },
 
+  // ขอคำรับรองโดยตรงจากผู้ใช้ในระบบ
+  requestDirectEndorsement: async (fromUserId: string, message: string) => {
+    return await fetchAPI('/endorsements/request/direct', {
+      method: 'POST',
+      body: JSON.stringify({ fromUserId, message }),
+    });
+  },
+
+  // ดึงรายการคำขอที่ส่งถึงตัวเรา
+  getPendingEndorsementRequests: async () => {
+    return await fetchAPI('/endorsements/pending-requests', { method: 'GET' });
+  },
+
+  // อนุมัติการรับรองทักษะ
+  approveEndorsementRequest: async (requestId: string, payload: {
+    skills: string[];
+    message: string;
+    fromRole?: string;
+  }) => {
+    return await fetchAPI(`/endorsements/approve/${requestId}`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  // ปฏิเสธหรือลบคำขอรับรองทักษะ
+  declineEndorsementRequest: async (requestId: string) => {
+    return await fetchAPI(`/endorsements/decline/${requestId}`, {
+      method: 'POST',
+    });
+  },
+
   // ดึง skills ของ user คนอื่น (สำหรับ populate ใน modal)
   getUserSkills: async (userId: string) => {
     const data = await fetchAPI(`/skills/${userId}`);

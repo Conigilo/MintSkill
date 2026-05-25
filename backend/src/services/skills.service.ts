@@ -38,12 +38,23 @@ export async function addSkill(
 ) {
     const { name, category, level } = data
 
+    // Count actual verified endorsements for this specific skill and user
+    const skillEndorsementsSnap = await db.collection(Collections.ENDORSEMENTS)
+        .where('toUserId', '==', uid)
+        .where('status', '==', 'verified')
+        .where('skills', 'array-contains', name)
+        .get()
+
+    const endorsementCount = skillEndorsementsSnap.size
+    const endorsementScore = Math.min(endorsementCount * 3, 6)
+
     const skillData = {
         userId: uid,
         name,
         category,
-        level: Math.min(5, Math.max(1, level || 1)),
-        endorsementCount: 0,
+        level: Math.min(5, Math.max(0, level || 0)),
+        endorsementCount,
+        endorsementScore,
         fromGitHub: false,
         createdAt: new Date(),
         updatedAt: new Date(),

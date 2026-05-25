@@ -42,6 +42,7 @@ export function useSkillsData() {
           verified: s.verified || false,
           quizScore: s.quizScore || 0,
           endorsementScore: s.endorsementScore || 0,
+          endorsementCount: s.endorsementCount || 0,
         }))
         setSkills(formatted)
       }

@@ -27,9 +27,9 @@ export default function SkillVerifyModal({
 }: SkillVerifyModalProps) {
   const currentLvl = getCurrentLevel(skill.quizScore, skill.endorsementScore)
 
-  // คำนวณความคืบหน้าของคะแนน (Progress Percentage)
-  const endoTarget = currentLvl.level === 3 ? 5 : (currentLvl.nextEndorse || 5)
-  const endoPercent = Math.min(100, (skill.endorsementScore / endoTarget) * 100)
+  // คำนวณความคืบหน้าของจำนวนคนรับรองจริง (peopleTarget)
+  const peopleTarget = currentLvl.level === 3 ? 2 : (currentLvl.level === 2 ? 2 : 1)
+  const endoPercent = Math.min(100, ((skill.endorsementCount || 0) / peopleTarget) * 100)
 
   const quizTarget = currentLvl.level === 3 ? 10 : (currentLvl.nextQuiz || 10)
   const quizPercent = Math.min(100, (skill.quizScore / quizTarget) * 100)
@@ -128,11 +128,11 @@ export default function SkillVerifyModal({
                 <div>
                   <h4 className="text-slate-900 dark:text-white font-bold text-sm">Endorsement Verification</h4>
                   <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                    {currentLvl.level === 3 ? "ยืนยันการรับรองครบสมบูรณ์แล้ว" : `ต้องการอีก ${Math.max(0, currentLvl.nextEndorse! - skill.endorsementScore)} ผู้รับรองเพื่อเลื่อนขั้น`}
+                    {currentLvl.level === 3 ? "ยืนยันการรับรองครบสมบูรณ์แล้ว" : `ต้องการอีก ${Math.max(0, peopleTarget - (skill.endorsementCount || 0))} ผู้รับรองเพื่อเลื่อนขั้น`}
                   </p>
                 </div>
                 <span className="text-base font-black text-emerald-500 dark:text-emerald-400 font-mono">
-                  {skill.endorsementScore}<span className="text-xs text-slate-400">/{currentLvl.level === 3 ? 5 : currentLvl.nextEndorse}</span>
+                  {skill.endorsementCount || 0}<span className="text-xs text-slate-400">/{peopleTarget}</span>
                 </span>
               </div>
               

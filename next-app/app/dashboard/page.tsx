@@ -37,7 +37,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   const { skills } = useUserSkills(user?.uid);
-  const { endorsements: myEndorsements } = useMyEndorsements();
+  const { endorsements: myEndorsements, refetch: refetchEndorsements } = useMyEndorsements();
   const { badges } = useUserBadges(user?.uid);
 
   const refreshProfile = () => {
@@ -236,6 +236,7 @@ export default function DashboardPage() {
                     <NotificationBell
                       pendingRequests={myEndorsements?.filter((e: any) => e.status === "pending") || []}
                       onNavigateToEndorseTab={() => setActiveTab("Endorsements")}
+                      onRefresh={refetchEndorsements}
                     />
                   </div>
                 </div>

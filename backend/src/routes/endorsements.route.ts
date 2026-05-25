@@ -45,6 +45,42 @@ export const endorsementsRoute = new Elysia({ prefix: '/endorsements', tags: ['E
         }
     })
 
+    // POST /endorsements/request/direct — request endorsement from another user directly
+    .post('/request/direct', EndorsementsController.createDirectRequestHandler, {
+        detail: {
+            summary: 'Request Direct Endorsement',
+            description: 'ส่งคำขอการรับรองตรงถึงผู้ใช้อื่นในระบบ (ต้อง login)',
+            security: [{ bearerAuth: [] }],
+        }
+    })
+
+    // GET /endorsements/pending-requests — get pending requests sent to current user
+    .get('/pending-requests', EndorsementsController.getPendingRequestsHandler, {
+        detail: {
+            summary: 'Get Pending Requests',
+            description: 'ดึงรายการคำขอการรับรองทักษะทั้งหมดที่ค้างส่งถึงเรา (ต้อง login)',
+            security: [{ bearerAuth: [] }],
+        }
+    })
+
+    // POST /endorsements/approve/:requestId — approve a pending request
+    .post('/approve/:requestId', EndorsementsController.approveRequestHandler, {
+        detail: {
+            summary: 'Approve Endorsement Request',
+            description: 'กดยืนยันการรับรองให้เพื่อนจากคำขอ (ต้อง login)',
+            security: [{ bearerAuth: [] }],
+        }
+    })
+
+    // POST /endorsements/decline/:requestId — decline/delete a pending request
+    .post('/decline/:requestId', EndorsementsController.declineRequestHandler, {
+        detail: {
+            summary: 'Decline Endorsement Request',
+            description: 'ปฏิเสธหรือลบคำขอการรับรองทักษะออกจากระบบ (ต้อง login)',
+            security: [{ bearerAuth: [] }],
+        }
+    })
+
     // GET /endorsements/:userId — ต้องอยู่สุดท้ายเสมอ (dynamic param)
     .get('/:userId', EndorsementsController.getEndorsementsHandler, {
         detail: {
