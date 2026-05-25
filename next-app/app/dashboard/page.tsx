@@ -71,19 +71,19 @@ export default function DashboardPage() {
 
           {/*Alert Message Area */}
           {error && (
-            <div className="max-w-7xl mx-auto mt-24 px-8 mb-[-2rem] animate-in slide-in-from-top-4 duration-300">
+            <div className="max-w-[1440px] mx-auto mt-24 px-8 mb-[-2rem] animate-in slide-in-from-top-4 duration-300">
               <Alert
                 type="error"
                 message={error}
-                onClose={() => setError(null)} 
+                onClose={() => setError(null)}
               />
             </div>
           )}
 
           {/* Main Dashboard Layout */}
-          <div className="max-w-7xl mx-auto mt-8 px-8 relative z-10">
+          <div className="max-w-[1440px] mx-auto mt-8 px-8 relative z-10">
             {/* Profile + Tabs Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12 mt-14">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12 mt-14 items-stretch">
               {/* Left Column: Profile Card + GitHub */}
               <div className="lg:col-span-4 space-y-6">
                 {/* Profile Card */}
@@ -218,7 +218,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Right Column: Tabs */}
-              <div className="lg:col-span-8 space-y-6">
+              <div className="lg:col-span-7 space flex flex-col h-full">
                 <div className="flex justify-between items-center border-b border-slate-200/50">
                   <div className="flex gap-6 overflow-x-auto no-scrollbar">
                     {TABS.map((tab) => (
@@ -241,7 +241,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="mt-6">
+                <div className="mt-6 flex-1 flex flex-col">
                   {activeTab === "Overview" && <OverviewTab />}
                   {activeTab === "Skills" && <SkillsTab onNavigateToEndorse={() => setActiveTab("Endorsements")} />}
                   {activeTab === "Endorsements" && <EndorsementsTab />}
