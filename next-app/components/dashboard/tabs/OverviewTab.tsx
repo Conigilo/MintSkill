@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useUserSkills, useUserBadges, useMyEndorsements } from '@/lib/hooks/useProfileData'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useUserSkills, useUserBadges } from '@/lib/hooks/useProfileData'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { githubService } from '@/lib/services/github.service'
 import { Star, Github, ExternalLink, RefreshCw, Award, Code, FolderGit2 } from 'lucide-react'
@@ -11,8 +11,7 @@ export default function OverviewTab() {
   const { user, loading } = useAuth()
   const uid = user?.uid
   const { skills, isLoading: skillsLoading } = useUserSkills(uid)
-  const { badges, isLoading: badgesLoading } = useUserBadges(uid)
-  const { endorsements } = useMyEndorsements()
+  const { badges } = useUserBadges(uid)
   const [badgeModal, setBadgeModal] = useState<{ isOpen: boolean; badge: any | null }>({ isOpen: false, badge: null })
   const [profile, setProfile] = useState<{
     uid?: string,
@@ -36,31 +35,33 @@ export default function OverviewTab() {
   } | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
 
-  const stats = {
+  // ⚡ Cache stats calculations to avoid re-creating object reference on each render
+  const stats = useMemo(() => ({
     verifiedSkills: profile?.stats?.verifiedSkills || 0,
     endorsements: profile?.stats?.endorsementCount || 0,
     contributions: profile?.stats?.contributions || 0,
     projects: profile?.stats?.projectCount || 0,
-  }
+  }), [profile])
 
-  const loadProfile = async () => {
+  // ⚡ Cache loadProfile function to maintain functional reference
+  const loadProfile = useCallback(async () => {
     if (!uid) return
     try {
-      // Use getDashboard to get everything including recentRepos
       const data = await githubService.getDashboard()
       setProfile(data?.data || data)
     } catch (error) {
       console.error('Error loading profile:', error)
     }
-  }
+  }, [uid])
 
   useEffect(() => {
     if (!loading && uid) {
       loadProfile()
     }
-  }, [uid, loading])
+  }, [uid, loading, loadProfile])
 
-  const handleSync = async () => {
+  // ⚡ Cache event handler callback functions
+  const handleSync = useCallback(async () => {
     setIsSyncing(true)
     try {
       await githubService.syncGitHub()
@@ -70,9 +71,9 @@ export default function OverviewTab() {
     } finally {
       setIsSyncing(false)
     }
-  }
+  }, [loadProfile])
 
-  const toggleSpotlight = async (repoId: string) => {
+  const toggleSpotlight = useCallback(async (repoId: string) => {
     try {
       await githubService.toggleSpotlight(repoId)
       // Optimistic update
@@ -88,10 +89,11 @@ export default function OverviewTab() {
     } catch (err) {
       console.error(err)
     }
-  }
+  }, [])
 
-  const topSkills = skills?.slice(0, 5) || []
-  const recentRepos = profile?.recentRepos || []
+  // ⚡ Cache array operations to avoid array re-allocation on every render
+  const topSkills = useMemo(() => skills?.slice(0, 5) || [], [skills])
+  const recentRepos = useMemo(() => profile?.recentRepos || [], [profile])
 
   return (
     <div className="space-y-6 select-none animate-in fade-in duration-300">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { userService } from "@/lib/services/user.service";
@@ -11,7 +11,7 @@ import EndorsementsTab from "@/components/dashboard/tabs/EndorsementsTab";
 import GapAnalysisTab from "@/components/dashboard/tabs/GapAnalysisTab";
 import ExportPortfolioTab from "@/components/dashboard/tabs/exportPortfolioTab";
 import SidebarLayout from "@/components/dashboard/SidebarLayout";
-import { useUserSkills, useMyEndorsements, useUserBadges } from "@/lib/hooks/useProfileData";
+import { useUserSkills, useMyEndorsements } from "@/lib/hooks/useProfileData";
 import CVTemplate from "@/components/dashboard/CVTemplate";
 import Image from "next/image";
 import { GitHubCalendar } from "react-github-calendar";
@@ -38,19 +38,18 @@ export default function DashboardPage() {
 
   const { skills } = useUserSkills(user?.uid);
   const { endorsements: myEndorsements, refetch: refetchEndorsements } = useMyEndorsements();
-  const { badges } = useUserBadges(user?.uid);
 
-  const refreshProfile = () => {
+  const refreshProfile = useCallback(() => {
     userService.getProfile().then((res) => {
       const data = res?.data || res?.user || res;
       if (data?.uid || data?.displayName) setProfile(data);
     }).catch(() => { });
-  };
+  }, []);
 
   useEffect(() => {
     if (authLoading || !user) return;
     refreshProfile();
-  }, [user, authLoading]);
+  }, [user, authLoading, refreshProfile]);
 
   // Support redirecting to specific tab from other pages (like Jobs)
   useEffect(() => {
