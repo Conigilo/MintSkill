@@ -17,6 +17,7 @@ interface SkillGapCardProps {
   resourceLink: string | undefined
   isExpanded: boolean
   onToggle: () => void
+  onOpenRoadmap?: () => void
 }
 
 export default function SkillGapCard({
@@ -29,6 +30,7 @@ export default function SkillGapCard({
   resourceLink,
   isExpanded,
   onToggle,
+  onOpenRoadmap,
 }: SkillGapCardProps) {
   // Determine clean status properties
   let statusText = ''
@@ -193,8 +195,20 @@ export default function SkillGapCard({
           </div>
 
           {/* Action button */}
-          {resourceLink && (
-            <div className="pt-1 flex justify-end">
+          <div className="pt-1 flex justify-end gap-2">
+            {!isReady && onOpenRoadmap && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenRoadmap();
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[11px] font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition-all active:scale-95 shadow-sm"
+              >
+                ✨ แผนการเรียนรู้ AI
+              </button>
+            )}
+
+            {resourceLink && (
               <a
                 href={resourceLink}
                 target="_blank"
@@ -206,8 +220,8 @@ export default function SkillGapCard({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
               </a>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </div>

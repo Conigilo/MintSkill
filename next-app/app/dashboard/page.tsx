@@ -52,6 +52,15 @@ export default function DashboardPage() {
     refreshProfile();
   }, [user, authLoading]);
 
+  // Support redirecting to specific tab from other pages (like Jobs)
+  useEffect(() => {
+    const redirectTab = localStorage.getItem('activeDashboardTab');
+    if (redirectTab) {
+      setActiveTab(redirectTab);
+      localStorage.removeItem('activeDashboardTab');
+    }
+  }, []);
+
   return (
     <>
       <SidebarLayout activePage="profile">

@@ -14,6 +14,7 @@ import { useState, useEffect } from 'react'
 import { rolesData, skillResources, skillDetails } from '@/lib/constants/gap-analysis-data'
 import RadialProgress from '@/components/dashboard/gap-analysis/RadialProgress'
 import SkillGapCard from '@/components/dashboard/gap-analysis/SkillGapCard'
+import AILearningRoadmap from '@/components/dashboard/gap-analysis/AILearningRoadmap'
 
 interface GapAnalysisTabProps {
   skills: Array<{ name: string; level?: number; quizScore?: number; endorsementScore?: number; [key: string]: any }>
@@ -24,6 +25,7 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
   const [activeFilter, setActiveFilter] = useState<"all" | "gaps" | "ready">("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [expandedSkill, setExpandedSkill] = useState<string | null>(null)
+  const [activeRoadmapSkill, setActiveRoadmapSkill] = useState<string | null>(null)
   const [animateIn, setAnimateIn] = useState(false)
 
   useEffect(() => {
@@ -334,6 +336,7 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
                 resourceLink={skillResources[req.name]}
                 isExpanded={expandedSkill === req.name}
                 onToggle={() => toggleExpandSkill(req.name)}
+                onOpenRoadmap={() => setActiveRoadmapSkill(req.name)}
               />
             ))}
           </div>
@@ -372,6 +375,16 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
           </div>
         </div>
       </div>
+
+      {/* AI Learning Roadmap Overlay */}
+      {activeRoadmapSkill && (
+        <AILearningRoadmap
+          skillName={activeRoadmapSkill}
+          myLevel={mySkills[activeRoadmapSkill] || 0}
+          targetLevel={currentRole.requirements.find(r => r.name === activeRoadmapSkill)?.req || 100}
+          onClose={() => setActiveRoadmapSkill(null)}
+        />
+      )}
 
     </div>
   )

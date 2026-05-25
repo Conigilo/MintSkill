@@ -72,6 +72,60 @@ const app = new Elysia()
             level: t.Number()
         })
     })
+    .post('/generate-roadmap', async ({ body, set }) => {
+        const { skillName, myLevel, targetLevel } = body
+        const apiKey = process.env.GEMINI_API_KEY || Bun.env.GEMINI_API_KEY
+
+        if (!apiKey) {
+            set.status = 500
+            return { error: "GEMINI_API_KEY not configured in AI Service" }
+        }
+
+        const genAI = new GoogleGenerativeAI(apiKey)
+        const model = genAI.getGenerativeModel({
+            model: "gemini-3.1-flash-lite-preview",
+            generationConfig: { responseMimeType: "application/json" }
+        })
+
+        const prompt = `คุณคือผู้เชี่ยวชาญด้านการจัดหลักสูตรและการเรียนรู้สาย Technical (Expert Technical Learning Coach)
+            จงสร้างแผนการเรียนรู้ระยะเวลา 4 สัปดาห์ (4-Week Learning Roadmap) เพื่ออุดช่องว่างทักษะและยกระดับความรู้ในเรื่อง "${skillName}"
+            โดยระดับปัจจุบันของผู้เรียนคือ ${myLevel}% และระดับเป้าหมายที่ต้องการพัฒนาขึ้นไปคือ ${targetLevel}%
+            แผนต้องแบ่งออกเป็นสัปดาห์ที่ 1 ถึง 4 อย่างเป็นขั้นตอน ชัดเจน ท้าทาย และเป็นไปได้จริง
+            ภาษาที่ใช้: ภาษาไทย โดยทับศัพท์คำศัพท์เฉพาะทางด้าน Programming เป็นภาษาอังกฤษตามความเหมาะสม
+
+            จงส่งคืนผลลัพธ์ในรูปแบบ Array ของ JSON objects ตามโครงสร้างนี้เท่านั้น (ห้ามมีข้อความเกริ่นนำหรือปิดท้ายใดๆ นอกเหนือจาก JSON):
+            [
+              {
+                "week": 1,
+                "title": "หัวข้อหลักประจำสัปดาห์",
+                "desc": "คำอธิบายวัตถุประสงค์สั้นๆ ของสัปดาห์นี้",
+                "tasks": [
+                  "งานหรือหัวข้อย่อยที่ต้องศึกษาและลงมือทำข้อที่ 1",
+                  "งานหรือหัวข้อย่อยที่ต้องศึกษาและลงมือทำข้อที่ 2",
+                  "งานหรือหัวข้อย่อยที่ต้องศึกษาและลงมือทำข้อที่ 3"
+                ],
+                "resources": [
+                  "ชื่อของคอร์สเรียนออนไลน์ ลิงก์เอกสาร หรือบทความแนะนำ"
+                ]
+              }
+            ]`
+
+        try {
+            const result = await model.generateContent(prompt)
+            const text = result.response.text()
+            const cleanedText = cleanJsonText(text)
+            return JSON.parse(cleanedText)
+        } catch (error: any) {
+            set.status = 500
+            return { error: error.message }
+        }
+    }, {
+        body: t.Object({
+            skillName: t.String(),
+            myLevel: t.Number(),
+            targetLevel: t.Number()
+        })
+    })
     .get('/list-models', async () => {
         let apiKey = process.env.GEMINI_API_KEY || Bun.env.GEMINI_API_KEY;
 

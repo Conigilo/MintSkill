@@ -7,22 +7,75 @@ import { skillsService } from "@/lib/services/skills.service";
 import SidebarLayout from "@/components/dashboard/SidebarLayout";
 
 // Match calculation helper
-function calcMatch(userSkills: string[], job: any) {
-  const normalizedUserSkills = userSkills.map((s) => s.toLowerCase());
+function calcMatch(userSkills: any[], job: any) {
+  const calculateProficiency = (skillName: string): { proficiency: number; has: boolean; detail?: any } => {
+    const userSkill = userSkills.find(
+      (us) => us.name.toLowerCase() === skillName.toLowerCase()
+    );
+    if (!userSkill) return { proficiency: 0, has: false }; // ไม่มีทักษะนี้เลย
 
-  const matched = job.requiredSkills.filter((s: string) =>
-    normalizedUserSkills.includes(s.toLowerCase())
-  );
-  const matchedPreferred = (job.preferredSkills || []).filter((s: string) =>
-    normalizedUserSkills.includes(s.toLowerCase())
-  );
+    const quiz = userSkill.quizScore || 0;
+    const endo = userSkill.endorsementScore || (userSkill.endorsements ? Math.min(userSkill.endorsements * 20, 100) : 0);
+    
+    let proficiency = 30; // คะแนนฐาน 30% ถ้าแอดไว้แต่ไม่มีคะแนน
+    if (quiz > 0 || endo > 0) {
+      proficiency = (quiz * 0.5) + (endo * 0.5);
+    } else if (userSkill.level) {
+      proficiency = userSkill.level * 10;
+    }
+    
+    return { 
+      proficiency: Math.min(100, Math.max(0, proficiency)), 
+      has: true, 
+      detail: userSkill 
+    };
+  };
 
-  // Required = 80% weight, Preferred = 20% weight
-  const reqScore = job.requiredSkills.length > 0 ? (matched.length / job.requiredSkills.length) * 80 : 0;
-  const prefScore = (job.preferredSkills || []).length > 0 ? (matchedPreferred.length / job.preferredSkills!.length) * 20 : 0;
+  // คำนวณความเข้ากันได้ของ Required Skills (น้ำหนัก 80%)
+  let reqTotalProficiency = 0;
+  const matchedRequired: string[] = [];
+  const lowProficiencyRequired: string[] = [];
+  const missingRequired: string[] = [];
+
+  job.requiredSkills.forEach((s: string) => {
+    const result = calculateProficiency(s);
+    if (result.has) {
+      reqTotalProficiency += result.proficiency / 100; // คิดเป็นสัดส่วน 0.0 - 1.0
+      if (result.proficiency >= 50) {
+        matchedRequired.push(s);
+      } else {
+        lowProficiencyRequired.push(s);
+      }
+    } else {
+      missingRequired.push(s);
+    }
+  });
+
+  // คำนวณความเข้ากันได้ของ Preferred Skills (น้ำหนัก 20%)
+  let prefTotalProficiency = 0;
+  const matchedPreferred: string[] = [];
+  const preferred = job.preferredSkills || [];
+
+  preferred.forEach((s: string) => {
+    const result = calculateProficiency(s);
+    if (result.has) {
+      prefTotalProficiency += result.proficiency / 100;
+      matchedPreferred.push(s);
+    }
+  });
+
+  const reqScore = job.requiredSkills.length > 0 ? (reqTotalProficiency / job.requiredSkills.length) * 80 : 0;
+  const prefScore = preferred.length > 0 ? (prefTotalProficiency / preferred.length) * 20 : 0;
   const score = Math.round(reqScore + prefScore);
 
-  return { score, matched, matchedPreferred, missing: job.requiredSkills.filter((s: string) => !normalizedUserSkills.includes(s.toLowerCase())) };
+  return {
+    score,
+    matchedRequired,
+    lowProficiencyRequired,
+    missingRequired,
+    matchedPreferred,
+    calculateProficiency
+  };
 }
 
 // Sub-component: Match ring
@@ -53,7 +106,7 @@ function MatchRing({ score }: { score: number }) {
 // Main Page
 export default function JobsPage() {
   const { user, loading: authLoading } = useAuth();
-  const [userSkills, setUserSkills] = useState<string[]>([]);
+  const [userSkills, setUserSkills] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "high" | "medium" | "low">("all");
@@ -67,12 +120,10 @@ export default function JobsPage() {
       setLoading(true);
       try {
         // 1. Get skills
-        let currentSkills: string[] = [];
         if (user) {
           const skillsData = await skillsService.getMySkills();
           if (skillsData) {
-            currentSkills = skillsData.map((s: any) => s.name);
-            setUserSkills(currentSkills);
+            setUserSkills(skillsData);
           }
         }
 
@@ -203,7 +254,7 @@ export default function JobsPage() {
               </div>
             ) : (
               filteredJobs.map((job) => {
-                const { score, matched, missing } = job.match;
+                const { score, matchedRequired, lowProficiencyRequired, missingRequired, calculateProficiency } = job.match;
                 const isSelected = selectedJobId === job.id;
 
                 return (
@@ -249,16 +300,24 @@ export default function JobsPage() {
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-3">Required Skills Match</p>
                       <div className="flex flex-wrap gap-1.5">
                         {job.requiredSkills.map((s: string) => {
-                          const has = userSkills.map((u) => u.toLowerCase()).includes(s.toLowerCase());
+                          const result = calculateProficiency(s);
                           return (
                             <span
                               key={s}
-                              className={`text-[10px] px-2.5 py-1 rounded-md border font-bold transition-colors ${has
-                                ? "bg-emerald-50 border-emerald-100 text-emerald-600"
+                              className={`text-[10px] px-2.5 py-1 rounded-md border font-bold transition-colors ${result.has
+                                ? result.proficiency >= 50
+                                  ? "bg-emerald-50 border-emerald-100 text-emerald-600"
+                                  : "bg-amber-50 border-amber-100 text-amber-600"
                                 : "bg-slate-50 border-slate-100 text-slate-300"
                                 }`}
                             >
-                              {has ? "✓" : "✗"} {s}
+                              {result.has ? (
+                                result.proficiency >= 50 
+                                  ? `✓ ${s} (${Math.round(result.proficiency)}%)` 
+                                  : `⚠ ${s} (${Math.round(result.proficiency)}%)`
+                              ) : (
+                                `✗ ${s}`
+                              )}
                             </span>
                           );
                         })}
@@ -276,9 +335,9 @@ export default function JobsPage() {
               }`}
           >
             {selectedJob && (() => {
-              const { score, matched, matchedPreferred, missing } = selectedJob.match;
+              const { score, matchedRequired, lowProficiencyRequired, missingRequired, calculateProficiency } = selectedJob.match;
               const matchLabel = score >= 75 ? "Excellent Match" : score >= 40 ? "Potential Role" : "Skill Gap Identified";
-              const matchColor = score >= 75 ? "text-indigo-600" : "text-slate-400";
+              const matchColor = score >= 75 ? "text-emerald-600" : score >= 40 ? "text-amber-500" : "text-rose-500";
               return (
                 <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                   {/* Title */}
@@ -315,18 +374,61 @@ export default function JobsPage() {
                   <div className="space-y-6">
                     <div>
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-4">Core Competencies</p>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {selectedJob.requiredSkills.map((s: string) => {
-                          const has = userSkills.map((u: string) => u.toLowerCase()).includes(s.toLowerCase());
+                          const result = calculateProficiency(s);
                           return (
-                            <div key={s} className="flex items-center justify-between group">
-                              <span className={`text-sm font-medium ${has ? "text-slate-900" : "text-slate-300"}`}>{s}</span>
-                              {has ? (
-                                <span className="w-5 h-5 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17L4 12" /></svg>
-                                </span>
-                              ) : (
-                                <span className="text-[10px] text-slate-200 font-bold uppercase">Missing</span>
+                            <div key={s} className="flex flex-col gap-1.5 p-3 rounded-xl border border-slate-100/80 hover:border-slate-200 transition-colors">
+                              <div className="flex items-center justify-between">
+                                <span className={`text-sm font-bold ${result.has ? "text-slate-800" : "text-slate-400"}`}>{s}</span>
+                                {result.has ? (
+                                  result.proficiency >= 50 ? (
+                                    <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17L4 12" /></svg>
+                                      {Math.round(result.proficiency)}% Match
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full font-bold">
+                                      ⚠ {Math.round(result.proficiency)}% (Low)
+                                    </span>
+                                  )
+                                ) : (
+                                  <span className="text-[10px] bg-slate-50 text-slate-400 px-2 py-0.5 rounded-full font-bold">Missing</span>
+                                )}
+                              </div>
+                              
+                              {/* Proficiency gauge bar */}
+                              {result.has && (
+                                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-1">
+                                  <div 
+                                    className={`h-full rounded-full transition-all duration-500 ${result.proficiency >= 50 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                                    style={{ width: `${result.proficiency}%` }}
+                                  />
+                                </div>
+                              )}
+
+                              {/* Upgrade/Verification Shortcuts */}
+                              {(!result.has || result.proficiency < 50) && (
+                                <div className="flex gap-2 mt-2">
+                                  <button
+                                    onClick={() => {
+                                      localStorage.setItem('activeDashboardTab', 'Skills');
+                                      router.push('/dashboard');
+                                    }}
+                                    className="flex-1 text-[10px] bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 font-bold py-1.5 px-2 rounded-lg transition-colors border border-blue-500/20 flex items-center justify-center gap-1"
+                                  >
+                                    📝 สอบควิซพัฒนาสกิล
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      localStorage.setItem('activeDashboardTab', 'Endorsements');
+                                      router.push('/dashboard');
+                                    }}
+                                    className="flex-1 text-[10px] bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 font-bold py-1.5 px-2 rounded-lg transition-colors border border-emerald-500/20 flex items-center justify-center gap-1"
+                                  >
+                                    🤝 ขอคำรับรอง
+                                  </button>
+                                </div>
                               )}
                             </div>
                           );

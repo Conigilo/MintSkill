@@ -1,0 +1,307 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { roadmapService, type UserRoadmap, type RoadmapWeek } from '@/lib/services/roadmap.service'
+
+interface AILearningRoadmapProps {
+  skillName: string
+  myLevel: number
+  targetLevel: number
+  onClose: () => void
+}
+
+export default function AILearningRoadmap({
+  skillName,
+  myLevel,
+  targetLevel,
+  onClose,
+}: AILearningRoadmapProps) {
+  const [roadmap, setRoadmap] = useState<UserRoadmap | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null)
+  const [expandedWeek, setExpandedWeek] = useState<number>(1)
+
+  // Load roadmap data
+  const loadRoadmap = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      // 1. Try to get existing
+      const res = await roadmapService.getRoadmap(skillName)
+      if (res.success && res.data) {
+        setRoadmap(res.data)
+      } else {
+        // If 404/not found, generate new
+        const genRes = await roadmapService.generateRoadmap(skillName, myLevel, targetLevel)
+        if (genRes.success && genRes.data) {
+          setRoadmap(genRes.data)
+        } else {
+          setError('ไม่สามารถสร้างแผนการเรียนรู้ได้ในขณะนี้')
+        }
+      }
+    } catch (err: any) {
+      // Secondary fallback to generate new if get 404 error
+      try {
+        const genRes = await roadmapService.generateRoadmap(skillName, myLevel, targetLevel)
+        if (genRes.success && genRes.data) {
+          setRoadmap(genRes.data)
+        } else {
+          setError('ระบบ AI ขัดข้องในการสร้างแผนการเรียนรู้')
+        }
+      } catch (genErr: any) {
+        setError(genErr.message || 'เกิดข้อผิดพลาดในการดึงข้อมูลแผนการเรียนรู้')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadRoadmap()
+  }, [skillName])
+
+  // Handle task check/uncheck
+  const handleToggleTask = async (weekIdx: number, taskIdx: number, currentCompleted: boolean) => {
+    if (!roadmap) return
+    const taskId = `${weekIdx}-${taskIdx}`
+    setUpdatingTaskId(taskId)
+
+    // Optimistic update
+    const updatedWeeks = [...roadmap.weeks]
+    updatedWeeks[weekIdx].tasks[taskIdx].completed = !currentCompleted
+    setRoadmap({ ...roadmap, weeks: updatedWeeks })
+
+    try {
+      await roadmapService.updateTaskStatus(skillName, weekIdx, taskIdx, !currentCompleted)
+    } catch (err) {
+      console.error('Failed to update task status in database:', err)
+      // Rollback on error
+      updatedWeeks[weekIdx].tasks[taskIdx].completed = currentCompleted
+      setRoadmap({ ...roadmap, weeks: updatedWeeks })
+    } finally {
+      setUpdatingTaskId(null)
+    }
+  }
+
+  // Calculate overall progress percentage
+  const getOverallProgress = () => {
+    if (!roadmap) return 0
+    let totalTasks = 0
+    let completedTasks = 0
+    
+    roadmap.weeks.forEach(w => {
+      w.tasks.forEach(t => {
+        totalTasks++
+        if (t.completed) completedTasks++
+      })
+    })
+
+    return totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+  }
+
+  const overallProgress = getOverallProgress()
+
+  return (
+    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-[#161b22] border border-slate-300 dark:border-[#30363d] rounded-3xl w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 bg-white dark:bg-[#161b22] border-b border-slate-200 dark:border-[#30363d] shrink-0">
+          <div>
+            <span className="text-[10px] font-black text-blue-500 dark:text-blue-400 uppercase tracking-widest">
+              AI LEARNING PATHWAY
+            </span>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
+              แผนพัฒนาเพื่อเพิ่มระดับทักษะ: {skillName}
+            </h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-[#21262d] dark:hover:bg-[#30363d] text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all focus:outline-none"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Content Body */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest animate-pulse">
+                กำลังวิเคราะห์และเรียบเรียงแผนพัฒนาทักษะโดย AI...
+              </p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12 bg-red-500/10 border border-red-500/20 rounded-2xl">
+              <span className="text-2xl">⚠️</span>
+              <p className="text-xs font-bold text-red-500 dark:text-red-400 mt-2">
+                {error}
+              </p>
+              <button
+                onClick={loadRoadmap}
+                className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-all"
+              >
+                ลองใหม่อีกครั้ง
+              </button>
+            </div>
+          ) : roadmap ? (
+            <>
+              {/* Progress Summary Card */}
+              <div className="bg-[#f8fafc] dark:bg-[#0d1117] border border-slate-200/50 dark:border-[#21262d] rounded-2xl p-5 flex flex-col md:flex-row justify-between items-center gap-4 shrink-0 shadow-sm">
+                <div className="space-y-1 text-center md:text-left">
+                  <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    เป้าหมายการยกระดับ
+                  </p>
+                  <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
+                    พัฒนาจากระดับเริ่มต้น <strong className="text-slate-900 dark:text-white">{myLevel}%</strong> ไปสู่ระดับเป้าหมาย <strong className="text-blue-500 dark:text-blue-400">{targetLevel}%</strong>
+                  </p>
+                </div>
+
+                {/* Ring progress or bar */}
+                <div className="w-full md:w-48 space-y-1">
+                  <div className="flex justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                    <span>ความสำเร็จของหลักสูตร</span>
+                    <span>{overallProgress}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-200 dark:bg-[#21262d] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500"
+                      style={{ width: `${overallProgress}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 4-Week List */}
+              <div className="space-y-3">
+                {roadmap.weeks.map((week, wIdx) => {
+                  const isExpanded = expandedWeek === week.week
+                  const completedTasksCount = week.tasks.filter(t => t.completed).length
+                  const totalTasksCount = week.tasks.length
+                  const isWeekFinished = completedTasksCount === totalTasksCount && totalTasksCount > 0
+
+                  return (
+                    <div
+                      key={week.week}
+                      className={`border rounded-2xl overflow-hidden transition-all duration-300 ${
+                        isExpanded
+                          ? 'border-slate-300 dark:border-slate-700 shadow-sm bg-white dark:bg-[#1c212a]/30'
+                          : 'border-slate-200/80 dark:border-[#30363d] hover:bg-slate-50/50 dark:hover:bg-[#21262d]/20'
+                      }`}
+                    >
+                      {/* Week Header */}
+                      <div
+                        onClick={() => setExpandedWeek(isExpanded ? 0 : week.week)}
+                        className="px-5 py-4 flex items-center justify-between cursor-pointer select-none"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                            isWeekFinished
+                              ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                              : 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
+                          }`}>
+                            W{week.week}
+                          </span>
+                          <div>
+                            <h4 className="text-sm font-bold text-slate-800 dark:text-white leading-tight">
+                              {week.title}
+                            </h4>
+                            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-0.5">
+                              {week.desc}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Expand status */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-[#21262d] text-slate-400 dark:text-[#8b949e]">
+                            เสร็จ {completedTasksCount}/{totalTasksCount}
+                          </span>
+                          <svg
+                            className={`w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300 ${
+                              isExpanded ? 'rotate-180 text-blue-500' : ''
+                            }`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
+
+                      {/* Week Tasks checklist */}
+                      {isExpanded && (
+                        <div className="px-5 pb-5 pt-1 border-t border-slate-100 dark:border-[#21262d] space-y-4 animate-in slide-in-from-top-1 duration-200">
+                          {/* Checklist */}
+                          <div className="space-y-2">
+                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2">
+                              รายการภารกิจที่ต้องทำ (Tasks)
+                            </span>
+                            {week.tasks.map((task, tIdx) => {
+                              const isUpdating = updatingTaskId === `${wIdx}-${tIdx}`
+                              return (
+                                <label
+                                  key={tIdx}
+                                  className={`flex items-start gap-3 p-3 rounded-xl border border-slate-200/50 dark:border-[#30363d]/50 bg-slate-50/30 dark:bg-[#0d1117]/10 hover:bg-slate-50 dark:hover:bg-[#21262d]/40 transition-all cursor-pointer ${
+                                    task.completed ? 'opacity-65' : ''
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={task.completed}
+                                    disabled={isUpdating}
+                                    onChange={() => handleToggleTask(wIdx, tIdx, task.completed)}
+                                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-[#30363d] cursor-pointer mt-0.5"
+                                  />
+                                  <span className={`text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium select-none ${
+                                    task.completed ? 'line-through text-slate-400 dark:text-slate-500' : ''
+                                  }`}>
+                                    {task.text}
+                                  </span>
+                                </label>
+                              )
+                            })}
+                          </div>
+
+                          {/* Resources */}
+                          {week.resources && week.resources.length > 0 && (
+                            <div className="bg-slate-50 dark:bg-[#0d1117]/30 border border-slate-200/60 dark:border-[#30363d]/50 rounded-xl p-3.5">
+                              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2">
+                                ทรัพยากรศึกษาเพิ่มเติม (Learning Resources)
+                              </span>
+                              <div className="space-y-1.5">
+                                {week.resources.map((res, rIdx) => (
+                                  <div key={rIdx} className="text-xs text-slate-600 dark:text-slate-300 flex items-start gap-2">
+                                    <span className="text-blue-500 font-bold">•</span>
+                                    {res.startsWith('http') ? (
+                                      <a
+                                        href={res}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-blue-600 dark:text-blue-400 hover:underline font-medium break-all"
+                                      >
+                                        {res}
+                                      </a>
+                                    ) : (
+                                      <span className="font-medium">{res}</span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  )
+}
