@@ -80,7 +80,19 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
         const data = localStorage.getItem('skill-wallet-resume')
         if (data) {
           const parsed = JSON.parse(data)
-          savedResume = parsed.resume
+          if (parsed.resume) {
+            const raw = parsed.resume
+            savedResume = {
+              ...raw,
+              education: Array.isArray(raw.education)
+                ? raw.education.map((edu: any) => `${edu.degree || ''} ${edu.school || ''} ${edu.year ? `(${edu.year})` : ''}`.trim()).filter(Boolean).join('\n')
+                : (typeof raw.education === 'string' ? raw.education : ''),
+              experience: Array.isArray(raw.experience)
+                ? raw.experience.map((exp: any) => `${exp.role || exp.company || ''} ${exp.year ? `(${exp.year})` : ''}`.trim()).filter(Boolean).join('\n')
+                : (typeof raw.experience === 'string' ? raw.experience : ''),
+              projects: Array.isArray(raw.projects) ? raw.projects : []
+            }
+          }
           if (parsed.template) setSelectedTemplate(parsed.template)
         }
       } catch (e) {

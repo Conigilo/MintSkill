@@ -35,9 +35,9 @@ export default function CVTemplate({ user, skills }: CVTemplateProps) {
 
     const education = resumeData?.education || [];
     const experience = resumeData?.experience || [];
-    const activities = resumeData?.activities || [];
-    const projects = resumeData?.projects || [];
-    const strengths = resumeData?.strengths || [];
+    const activities = Array.isArray(resumeData?.activities) ? resumeData.activities : [];
+    const projects = Array.isArray(resumeData?.projects) ? resumeData.projects : [];
+    const strengths = Array.isArray(resumeData?.strengths) ? resumeData.strengths : [];
 
     return (
         // สำคัญมาก: ต้องมีคลาส `print-visible` เพื่อให้ทะลุการซ่อน (visibility: hidden) ใน globals.css
