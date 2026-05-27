@@ -27,7 +27,7 @@
     --green: #10b981;
   }
 
-  .dark {
+  html.dark {
     --background: #0d1117;
     --card: #161b22;
     --border: #30363d;
@@ -734,12 +734,9 @@
   }
 }
 
-/* ══════════════════════════════════════════
-   DARK MODE — GitHub Dimmed Theme
-   ══════════════════════════════════════════ */
 
 /* ── Dark Mode CSS Variables ── */
-.dark {
+html.dark {
   --background: #0d1117;
   --card: #161b22;
   --border: #30363d;

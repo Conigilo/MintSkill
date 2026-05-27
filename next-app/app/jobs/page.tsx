@@ -96,9 +96,9 @@ function MatchRing({ score }: { score: number }) {
           transform="rotate(-90 30 30)"
           style={{ transition: "stroke-dashoffset 0.8s ease" }}
         />
-        <text x="30" y="35" textAnchor="middle" fill={color} fontSize="13" fontWeight="600">{score}%</text>
+        <text x="30" y="35" textAnchor="middle" fill={color} fontSize="14" fontWeight="600">{score}%</text>
       </svg>
-      <span className="text-[8px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 mt-0.5">Match</span>
+      <span className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 mt-0.5">Match</span>
     </div>
   );
 }
@@ -212,10 +212,10 @@ export default function JobsPage() {
 
         {/* Fixed Header Section */}
         <div className="px-10 pt-8 pb-5 shrink-0 bg-white dark:bg-[#161b22] border-b border-slate-100 dark:border-[#21262d] z-20">
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
             Job Opportunities ({enrichedJobs.length} positions)
           </h1>
-          <p className="text-slate-500 dark:text-[#8b949e] text-xs mt-1 mb-5">Discover roles that match your verified skill set.</p>
+          <p className="text-slate-500 dark:text-[#8b949e] text-base mt-1 mb-5">Discover roles that match your verified skill set.</p>
 
           {/* Filters */}
           <div className="flex gap-2">
@@ -227,7 +227,7 @@ export default function JobsPage() {
               <button
                 key={f.key}
                 onClick={() => setFilter(f.key)}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer ${filter === f.key
+                className={`px-4 py-1.5 rounded-full text-base font-semibold transition-colors cursor-pointer ${filter === f.key
                   ? "bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950"
                   : "bg-slate-100 dark:bg-[#0d1117] text-slate-600 dark:text-[#8b949e] hover:bg-slate-200 dark:hover:bg-[#161b22]"
                   }`}
@@ -244,11 +244,11 @@ export default function JobsPage() {
           {loading ? (
             <div className="flex flex-col items-center justify-center h-64 text-slate-400">
               <div className="w-6 h-6 border-2 border-slate-400 border-t-transparent rounded-full animate-spin mb-3"></div>
-              <p className="text-xs font-semibold uppercase tracking-wider">Searching opportunities...</p>
+              <p className="text-sm font-semibold uppercase tracking-wider">Searching opportunities...</p>
             </div>
           ) : filteredJobs.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-              <p className="text-xs font-semibold uppercase tracking-wider">No jobs found matching your criteria</p>
+              <p className="text-sm font-semibold uppercase tracking-wider">No jobs found matching your criteria</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -264,21 +264,21 @@ export default function JobsPage() {
                       {/* Top Info: Logo, Company & Match Ring */}
                       <div className="flex items-start justify-between gap-3 mb-4">
                         <div className="flex gap-2.5 min-w-0">
-                          <div className="w-9 h-9 shrink-0 rounded bg-slate-100 dark:bg-[#21262d] flex items-center justify-center text-xl">
+                          <div className="w-10 h-10 shrink-0 rounded bg-slate-100 dark:bg-[#21262d] flex items-center justify-center text-2xl">
                             {job.logo}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-xs font-semibold text-slate-600 dark:text-[#8b949e] truncate leading-tight">{job.company}</p>
-                            <p className="text-[11px] text-slate-400 dark:text-[#8b949e]/60 mt-1">{job.location}</p>
+                            <p className="text-base font-semibold text-slate-600 dark:text-[#8b949e] truncate leading-tight">{job.company}</p>
+                            <p className="text-sm text-slate-400 dark:text-[#8b949e]/60 mt-1">{job.location}</p>
                           </div>
                         </div>
-                        <div className="shrink-0 scale-90">
+                        <div className="shrink-0 scale-95">
                           <MatchRing score={score} />
                         </div>
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white tracking-tight mb-3 line-clamp-2 min-h-[40px] leading-snug">
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight mb-3 line-clamp-2 min-h-[52px] leading-snug">
                         {job.title}
                       </h3>
                     </div>
@@ -287,10 +287,10 @@ export default function JobsPage() {
                     <div className="space-y-3.5 mt-auto pt-3.5 border-t border-slate-100 dark:border-[#21262d]">
                       {/* Meta Tags */}
                       <div className="flex flex-wrap gap-1.5">
-                        <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-500/20 font-semibold uppercase tracking-wider">
+                        <span className="text-xs px-2.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-500/20 font-semibold uppercase tracking-wider">
                           {job.type}
                         </span>
-                        <span className="text-[9px] px-2 py-0.5 rounded bg-slate-100 dark:bg-[#21262d] text-slate-600 dark:text-[#8b949e] border border-slate-100/50 dark:border-transparent font-medium">
+                        <span className="text-xs px-2.5 py-0.5 rounded bg-slate-100 dark:bg-[#21262d] text-slate-600 dark:text-[#8b949e] border border-slate-100/50 dark:border-transparent font-medium">
                           {job.salary}
                         </span>
                       </div>
@@ -300,7 +300,7 @@ export default function JobsPage() {
                         {job.requiredSkills.slice(0, 3).map((s: string) => {
                           const result = calculateProficiency(s);
                           return (
-                            <span key={s} className="inline-flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-[#8b949e]">
+                            <span key={s} className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-[#8b949e]">
                               <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                                 result.has
                                   ? result.proficiency >= 50
@@ -313,7 +313,7 @@ export default function JobsPage() {
                           );
                         })}
                         {job.requiredSkills.length > 3 && (
-                          <span className="text-[10px] text-slate-400 dark:text-[#8b949e]/60 font-medium">
+                          <span className="text-sm text-slate-400 dark:text-[#8b949e]/60 font-medium">
                             +{job.requiredSkills.length - 3} more
                           </span>
                         )}
@@ -351,7 +351,7 @@ export default function JobsPage() {
                 
                 {/* Drawer Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-[#21262d]">
-                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Job Details</span>
+                  <span className="text-base font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Job Details</span>
                   <button 
                     onClick={() => setSelectedJobId(null)}
                     className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#21262d] transition-colors cursor-pointer"
@@ -366,23 +366,23 @@ export default function JobsPage() {
                 <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
                   {/* Logo & Company info */}
                   <div className="flex items-start gap-4 pb-5 border-b border-slate-100 dark:border-[#21262d]">
-                    <div className="w-12 h-12 rounded bg-slate-100 dark:bg-[#161b22] border border-transparent dark:border-[#30363d] flex items-center justify-center text-2xl shrink-0">
+                    <div className="w-14 h-14 rounded bg-slate-100 dark:bg-[#161b22] border border-transparent dark:border-[#30363d] flex items-center justify-center text-3xl shrink-0">
                       {selectedJob.logo}
                     </div>
                     <div className="min-w-0">
-                      <h2 className="text-base font-semibold text-slate-900 dark:text-white leading-snug">{selectedJob.title}</h2>
-                      <p className="text-xs font-medium text-slate-500 dark:text-[#8b949e] mt-1">{selectedJob.company} • {selectedJob.location}</p>
+                      <h2 className="text-xl font-semibold text-slate-900 dark:text-white leading-snug">{selectedJob.title}</h2>
+                      <p className="text-base font-medium text-slate-500 dark:text-[#8b949e] mt-1">{selectedJob.company} • {selectedJob.location}</p>
                     </div>
                   </div>
 
                   {/* Match Analysis Box */}
                   <div className="flex items-center justify-between bg-slate-50/50 dark:bg-[#161b22]/40 rounded-xl p-4 border border-slate-100 dark:border-[#21262d]">
                     <div className="min-w-0">
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider">Analysis</p>
-                      <p className={`text-sm font-semibold mt-1 ${matchColor}`}>{matchLabel}</p>
-                      <p className="text-xs text-slate-500 dark:text-[#8b949e] mt-0.5">{score}% of skills requirements met</p>
+                      <p className="text-sm text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider">Analysis</p>
+                      <p className={`text-lg font-semibold mt-1 ${matchColor}`}>{matchLabel}</p>
+                      <p className="text-sm text-slate-500 dark:text-[#8b949e] mt-0.5">{score}% of skills requirements met</p>
                     </div>
-                    <div className="shrink-0 scale-90">
+                    <div className="shrink-0 scale-95">
                       <MatchRing score={score} />
                     </div>
                   </div>
@@ -390,18 +390,18 @@ export default function JobsPage() {
                   {/* Specs Grid */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-slate-50/30 dark:bg-[#161b22]/20 border border-slate-100 dark:border-[#21262d]/60 rounded-lg p-3">
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">Contract Type</p>
-                      <p className="text-xs text-slate-700 dark:text-[#f0f6fc] font-semibold mt-0.5">{selectedJob.type}</p>
+                      <p className="text-sm text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">Contract Type</p>
+                      <p className="text-base text-slate-700 dark:text-[#f0f6fc] font-semibold mt-0.5">{selectedJob.type}</p>
                     </div>
                     <div className="bg-slate-50/30 dark:bg-[#161b22]/20 border border-slate-100 dark:border-[#21262d]/60 rounded-lg p-3">
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">Compensation</p>
-                      <p className="text-xs text-slate-700 dark:text-[#f0f6fc] font-semibold mt-0.5">{selectedJob.salary}</p>
+                      <p className="text-sm text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">Compensation</p>
+                      <p className="text-base text-slate-700 dark:text-[#f0f6fc] font-semibold mt-0.5">{selectedJob.salary}</p>
                     </div>
                   </div>
 
                   {/* Core Competencies Comparison */}
                   <div className="space-y-3.5">
-                    <p className="text-[10px] text-slate-500 dark:text-[#8b949e] font-semibold uppercase tracking-wider">Core Competencies</p>
+                    <p className="text-sm text-slate-500 dark:text-[#8b949e] font-semibold uppercase tracking-wider">Core Competencies</p>
                     
                     {/* Unified skills box */}
                     <div className="space-y-3.5 bg-slate-50/50 dark:bg-[#161b22]/40 border border-slate-100 dark:border-[#21262d] rounded-xl p-4">
@@ -410,19 +410,19 @@ export default function JobsPage() {
                         return (
                           <div key={s} className="space-y-1.5">
                             <div className="flex items-center justify-between">
-                              <span className={`text-xs font-semibold ${result.has ? "text-slate-800 dark:text-slate-200" : "text-slate-400 dark:text-slate-500"}`}>{s}</span>
+                              <span className={`text-base font-semibold ${result.has ? "text-slate-800 dark:text-slate-200" : "text-slate-400 dark:text-slate-500"}`}>{s}</span>
                               {result.has ? (
                                 result.proficiency >= 50 ? (
-                                  <span className="text-[9px] bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 px-2 py-0.5 rounded font-medium flex items-center gap-1 border border-emerald-100/50 dark:border-emerald-500/20">
+                                  <span className="text-xs bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 px-2 py-0.5 rounded font-medium flex items-center gap-1 border border-emerald-100/50 dark:border-emerald-500/20">
                                     ✓ {Math.round(result.proficiency)}%
                                   </span>
                                 ) : (
-                                  <span className="text-[9px] bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 px-2 py-0.5 rounded font-medium border border-amber-100/50 dark:border-amber-500/20">
+                                  <span className="text-xs bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 px-2 py-0.5 rounded font-medium border border-amber-100/50 dark:border-amber-500/20">
                                     ⚠ {Math.round(result.proficiency)}%
                                   </span>
                                 )
                               ) : (
-                                <span className="text-[9px] bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 px-2 py-0.5 rounded font-medium">Missing</span>
+                                <span className="text-xs bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 px-2 py-0.5 rounded font-medium">Missing</span>
                               )}
                             </div>
 
@@ -444,10 +444,10 @@ export default function JobsPage() {
                     {hasGaps && (
                       <div className="p-3.5 bg-slate-50/30 dark:bg-[#161b22]/20 border border-slate-150/60 dark:border-[#21262d]/50 rounded-xl space-y-2.5">
                         <div className="flex items-start gap-2">
-                          <span className="text-amber-500 text-xs mt-0.5">💡</span>
+                          <span className="text-amber-500 text-sm mt-0.5">💡</span>
                           <div>
-                            <h4 className="text-[11px] font-semibold text-slate-700 dark:text-[#f0f6fc]">Improve Your Skills Match</h4>
-                            <p className="text-[10px] text-slate-500 dark:text-[#8b949e] leading-relaxed">
+                            <h4 className="text-sm font-semibold text-slate-700 dark:text-[#f0f6fc]">Improve Your Skills Match</h4>
+                            <p className="text-sm text-slate-500 dark:text-[#8b949e] leading-relaxed">
                               You have missing or low-level skills for this position. Take a quiz or request endorsements to boost your score.
                             </p>
                           </div>
@@ -458,7 +458,7 @@ export default function JobsPage() {
                               localStorage.setItem('activeDashboardTab', 'Skills');
                               router.push('/dashboard');
                             }}
-                            className="flex-1 text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-[#21262d] dark:hover:bg-[#30363d] text-slate-700 dark:text-[#8b949e] font-semibold py-1.5 px-2 rounded-lg transition-colors border border-slate-200/60 dark:border-[#30363d] flex items-center justify-center cursor-pointer"
+                            className="flex-1 text-sm bg-slate-100 hover:bg-slate-200 dark:bg-[#21262d] dark:hover:bg-[#30363d] text-slate-700 dark:text-[#8b949e] font-semibold py-1.5 px-2 rounded-lg transition-colors border border-slate-200/60 dark:border-[#30363d] flex items-center justify-center cursor-pointer"
                           >
                             สอบควิซพัฒนาสกิล
                           </button>
@@ -467,7 +467,7 @@ export default function JobsPage() {
                               localStorage.setItem('activeDashboardTab', 'Endorsements');
                               router.push('/dashboard');
                             }}
-                            className="flex-1 text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-[#21262d] dark:hover:bg-[#30363d] text-slate-700 dark:text-[#8b949e] font-semibold py-1.5 px-2 rounded-lg transition-colors border border-slate-200/60 dark:border-[#30363d] flex items-center justify-center cursor-pointer"
+                            className="flex-1 text-sm bg-slate-100 hover:bg-slate-200 dark:bg-[#21262d] dark:hover:bg-[#30363d] text-slate-700 dark:text-[#8b949e] font-semibold py-1.5 px-2 rounded-lg transition-colors border border-slate-200/60 dark:border-[#30363d] flex items-center justify-center cursor-pointer"
                           >
                             ขอคำรับรอง
                           </button>
@@ -478,8 +478,8 @@ export default function JobsPage() {
 
                   {/* About the Role */}
                   <div className="pt-5 border-t border-slate-100 dark:border-[#21262d]">
-                    <p className="text-[10px] text-slate-500 dark:text-[#8b949e] font-semibold uppercase tracking-wider mb-2">About the Role</p>
-                    <p className="text-xs text-slate-600 dark:text-[#8b949e] leading-relaxed font-normal">{selectedJob.description}</p>
+                    <p className="text-sm text-slate-500 dark:text-[#8b949e] font-semibold uppercase tracking-wider mb-2">About the Role</p>
+                    <p className="text-base text-slate-600 dark:text-[#8b949e] leading-relaxed font-normal">{selectedJob.description}</p>
                   </div>
                 </div>
 
@@ -488,7 +488,7 @@ export default function JobsPage() {
                   <button
                     onClick={() => handleApply(selectedJob.id)}
                     disabled={applying}
-                    className={`w-full text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer ${applying ? "bg-slate-300 dark:bg-slate-700 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-400"
+                    className={`w-full text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 text-base uppercase tracking-wider cursor-pointer ${applying ? "bg-slate-300 dark:bg-slate-700 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-400"
                       }`}
                   >
                     {applying ? (
