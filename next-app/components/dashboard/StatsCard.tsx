@@ -11,12 +11,12 @@ interface StatItemProps {
 const StatItem = memo(({ label, value, colorVar = 'var(--accent)' }: StatItemProps) => (
   <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[10px] p-4">
     <div 
-      className="font-serif text-[28px] font-semibold leading-none mb-1"
+      className="font-serif text-3xl font-semibold leading-none mb-1.5"
       style={{ color: colorVar }}
     >
       {value}
     </div>
-    <div className="text-[11px] text-[var(--muted)] uppercase tracking-wider">{label}</div>
+    <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">{label}</div>
   </div>
 ))
 
