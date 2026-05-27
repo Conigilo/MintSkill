@@ -282,13 +282,13 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">คลิกที่การ์ดเพื่อขยายดูแผนพัฒนาการเรียนรู้รายบุคคล</p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col items-end md:flex-row md:items-center gap-3">
             {/* Search */}
             <div className="relative">
               <input
                 type="text"
                 placeholder="ค้นหาชื่อวิชา..."
-                className="w-full md:w-48 bg-[#f8fafc] border border-slate-200 dark:bg-[#0d1117] dark:border-[#30363d] text-slate-800 dark:text-[#f0f6fc] text-xs font-medium pl-8 pr-3 py-2 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-48 bg-[#f8fafc] border border-slate-200 dark:bg-[#0d1117] dark:border-[#30363d] text-slate-800 dark:text-[#f0f6fc] text-xs font-medium pl-8 pr-3 py-2 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
