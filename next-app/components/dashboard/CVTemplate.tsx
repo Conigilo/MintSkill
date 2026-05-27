@@ -34,6 +34,7 @@ export default function CVTemplate({ user, skills }: CVTemplateProps) {
     ].filter(Boolean).join(' • ');
 
     const education = resumeData?.education || [];
+    const experience = resumeData?.experience || [];
     const activities = resumeData?.activities || [];
     const projects = resumeData?.projects || [];
     const strengths = resumeData?.strengths || [];
@@ -50,18 +51,44 @@ export default function CVTemplate({ user, skills }: CVTemplateProps) {
             </div>
 
             {/* Section: Education */}
-            {education.length > 0 && <div className="mb-6">
-                <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-3">Education</h2>
-                {education.map((edu: any, index: number) => (
-                    <div key={index} className="mb-3">
-                        <div className="flex justify-between items-start">
-                            <h3 className="font-bold">{edu.school || 'University Name'}</h3>
-                            <span className="font-bold">{edu.year}</span>
-                        </div>
-                        {edu.degree && <p className="text-sm mt-1">{edu.degree} {edu.gpax && `(GPAX: ${edu.gpax})`}</p>}
-                    </div>
-                ))}
-            </div>}
+            {education && (Array.isArray(education) ? education.length > 0 : String(education).trim().length > 0) && (
+                <div className="mb-6">
+                    <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-3">Education</h2>
+                    {Array.isArray(education) ? (
+                        education.map((edu: any, index: number) => (
+                            <div key={index} className="mb-3">
+                                <div className="flex justify-between items-start">
+                                    <h3 className="font-bold">{edu.school || 'University Name'}</h3>
+                                    <span className="font-bold">{edu.year}</span>
+                                </div>
+                                {edu.degree && <p className="text-sm mt-1">{edu.degree} {edu.gpax && `(GPAX: ${edu.gpax})`}</p>}
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-sm leading-relaxed whitespace-pre-line">{String(education)}</p>
+                    )}
+                </div>
+            )}
+
+            {/* Section: Experience */}
+            {experience && (Array.isArray(experience) ? experience.length > 0 : String(experience).trim().length > 0) && (
+                <div className="mb-6">
+                    <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-3">Experience</h2>
+                    {Array.isArray(experience) ? (
+                        experience.map((exp: any, index: number) => (
+                            <div key={index} className="mb-3">
+                                <div className="flex justify-between items-start">
+                                    <h3 className="font-bold">{exp.company || exp.role || 'Company Name'}</h3>
+                                    <span className="font-bold">{exp.year}</span>
+                                </div>
+                                {exp.description && <p className="text-sm mt-1">{exp.description}</p>}
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-sm leading-relaxed whitespace-pre-line">{String(experience)}</p>
+                    )}
+                </div>
+            )}
 
             {/* Section: Activity & Achievement */}
             {activities.length > 0 && <div className="mb-6">

@@ -84,7 +84,7 @@ const app = new Elysia()
 
         const genAI = new GoogleGenerativeAI(apiKey)
         const model = genAI.getGenerativeModel({
-            model: "gemini-3.1-flash-lite-preview",
+            model: "gemini-flash-lite-latest",
             generationConfig: { responseMimeType: "application/json" }
         })
 
@@ -145,7 +145,54 @@ const app = new Elysia()
             models: availableModels
         };
     })
-    
+    .post('/generate-project-description', async ({ body, set }) => {
+        const { projectName, language, description } = body
+        const apiKey = process.env.GEMINI_API_KEY || Bun.env.GEMINI_API_KEY
+
+        if (!apiKey) {
+            set.status = 500
+            return { error: "GEMINI_API_KEY not configured in AI Service" }
+        }
+
+        const genAI = new GoogleGenerativeAI(apiKey)
+        const model = genAI.getGenerativeModel({
+            model: "gemini-flash-lite-latest",
+            generationConfig: { responseMimeType: "application/json" }
+        })
+
+        const prompt = `You are an expert Resume/CV writer.
+            Generate exactly 2 or 3 short, high-impact bullet points describing accomplishments and responsibilities for a software project to be put on a professional resume.
+            Each bullet point must start with a strong action verb in past tense (e.g., Designed, Developed, Implemented, Integrated, Built, Refactored, Optimized).
+            The bullet points must be professional, clear, and concise.
+
+            Project Details:
+            - Project Name: "${projectName}"
+            - Primary Language/Technology: "${language || 'Not specified'}"
+            - Short Description: "${description || 'No description provided'}"
+
+            You MUST return the output strictly as a JSON array of strings, containing exactly 2 to 3 bullet points. No markdown code blocks, no other text.
+            Example JSON output:
+            [
+              "Designed and built a secure user authentication system using TypeScript and JSON Web Tokens.",
+              "Implemented efficient database queries to optimize performance and reduce request latency."
+            ]`
+
+        try {
+            const result = await model.generateContent(prompt)
+            const text = result.response.text()
+            const cleanedText = cleanJsonText(text)
+            return JSON.parse(cleanedText)
+        } catch (error: any) {
+            set.status = 500
+            return { error: error.message }
+        }
+    }, {
+        body: t.Object({
+            projectName: t.String(),
+            language: t.Optional(t.String()),
+            description: t.Optional(t.String())
+        })
+    })
     .listen(parseInt(process.env.PORT || Bun.env.PORT || '3002'))
 
 console.log(`AI Microservice READY at http://localhost:${app.server?.port || 3002}`)

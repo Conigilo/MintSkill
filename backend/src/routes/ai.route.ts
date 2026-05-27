@@ -50,4 +50,14 @@ export const aiRoute = new Elysia({ prefix: '/ai', tags: ['AI'] })
             description: 'อัปเดตความคืบหน้าของภารกิจเรียนรู้ในโรดแมป',
         }
     })
+    .post('/repo-bullets', AiController.generateProjectBulletsHandler, {
+        body: t.Object({
+            repoDocId: t.String(),
+        }),
+        detail: {
+            summary: 'Generate Project Bullet Points via AI',
+            description: 'สร้างข้อความจุดเด่น (Bullet points) 2-3 ข้อสำหรับโครงการจาก AI พร้อมจัดเก็บแคชลงฐานข้อมูล',
+            security: [{ bearerAuth: [] }],
+        }
+    })
 

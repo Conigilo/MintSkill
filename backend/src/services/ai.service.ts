@@ -44,6 +44,28 @@ export class AiService {
             throw new Error("ระบบ AI ขัดข้องชั่วคราว ไม่สามารถสร้างโรดแมปได้ในขณะนี้");
         }
     }
+
+    async generateProjectDescription(projectName: string, language?: string, description?: string): Promise<string[]> {
+        try {
+            console.log(`[Microservice Call] Requesting project description from AI Service for: ${projectName}`);
+            
+            const response = await fetch(`${this.MICROSERVICE_URL}/generate-project-description`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ projectName, language, description })
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error || "Failed to fetch project description from AI Microservice");
+            }
+
+            return await response.json();
+        } catch (error: any) {
+            console.error("AI Service Error (Project Description via Microservice):", error.message);
+            throw new Error("ระบบ AI ขัดข้องชั่วคราว ไม่สามารถสร้างรายละเอียดโปรเจกต์ได้ในขณะนี้");
+        }
+    }
 }
 
 export const aiService = new AiService();

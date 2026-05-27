@@ -4,38 +4,73 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useUserSkills, useUserBadges } from '@/lib/hooks/useProfileData'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { githubService } from '@/lib/services/github.service'
-import { Star, Github, ExternalLink, RefreshCw, Award, Code, FolderGit2 } from 'lucide-react'
+import {
+  Star, Github, ExternalLink, RefreshCw, Award, Code, FolderGit2,
+  MapPin, Linkedin, Sparkles, Activity, TrendingUp, ArrowUpRight
+} from 'lucide-react'
 import { getSkillLogoUrl } from '@/lib/utils/skill-logo'
 
+// Heat Map
+
+const HEAT = [
+  'bg-slate-100 dark:bg-[#161b22]',
+  'bg-emerald-200 dark:bg-emerald-900/60',
+  'bg-emerald-400 dark:bg-emerald-700/80',
+  'bg-emerald-500 dark:bg-emerald-500',
+  'bg-emerald-600 dark:bg-emerald-400',
+]
+
+function Heatmap({ grid }: { grid: number[] }) {
+  const ROWS = 5, COLS = 26
+  const cells = useMemo(() => {
+    const r: number[][] = []
+    for (let i = 0; i < ROWS; i++) {
+      const row: number[] = []
+      for (let j = 0; j < COLS; j++) row.push(grid[i * COLS + j] ?? 0)
+      r.push(row)
+    }
+    return r
+  }, [grid])
+
+  return (
+    <div className="overflow-x-auto">
+      <div className="flex flex-col gap-[3px] min-w-fit">
+        {cells.map((row, ri) => (
+          <div key={ri} className="flex gap-[3px]">
+            {row.map((lv, ci) => (
+              <div
+                key={ci}
+                className={`w-[11px] h-[11px] rounded-[2px] transition-all hover:scale-150 hover:ring-1 hover:ring-emerald-400/50 ${HEAT[Math.min(lv, 4)]}`}
+                title={`${lv} contribution${lv !== 1 ? 's' : ''}`}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center justify-end gap-1 mt-2">
+        <span className="text-[9px] text-[var(--muted)] mr-0.5">Less</span>
+        {HEAT.map((c, i) => <div key={i} className={`w-[9px] h-[9px] rounded-[2px] ${c}`} />)}
+        <span className="text-[9px] text-[var(--muted)] ml-0.5">More</span>
+      </div>
+    </div>
+  )
+}
+
+
+// ──────────────────────────────────────────────
 export default function OverviewTab() {
   const { user, loading } = useAuth()
   const uid = user?.uid
   const { skills, isLoading: skillsLoading } = useUserSkills(uid)
   const { badges } = useUserBadges(uid)
   const [badgeModal, setBadgeModal] = useState<{ isOpen: boolean; badge: any | null }>({ isOpen: false, badge: null })
-  const [profile, setProfile] = useState<{
-    uid?: string,
-    email?: string | null,
-    photoURL?: string | null,
-    displayName?: string | null,
-    contributions?: number,
-    projects?: any[],
-    github?: {
-      repoCount?: number,
-      totalContributions?: number
-    },
-    recentRepos?: any[],
-    stats?: {
-      skillCount?: number,
-      verifiedSkills?: number,
-      endorsementCount?: number,
-      contributions?: number,
-      projectCount?: number
-    }
-  } | null>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [isSyncing, setIsSyncing] = useState(false)
 
-  // ⚡ Cache stats calculations to avoid re-creating object reference on each render
+  const dashProfile = useMemo(() => profile?.profile || {}, [profile])
+  const dashGithub = useMemo(() => profile?.github || {}, [profile])
+  const contributionGrid = useMemo(() => dashGithub?.contributionGrid || [], [dashGithub])
+
   const stats = useMemo(() => ({
     verifiedSkills: profile?.stats?.verifiedSkills || 0,
     endorsements: profile?.stats?.endorsementCount || 0,
@@ -43,7 +78,6 @@ export default function OverviewTab() {
     projects: profile?.stats?.projectCount || 0,
   }), [profile])
 
-  // ⚡ Cache loadProfile function to maintain functional reference
   const loadProfile = useCallback(async () => {
     if (!uid) return
     try {
@@ -55,19 +89,16 @@ export default function OverviewTab() {
   }, [uid])
 
   useEffect(() => {
-    if (!loading && uid) {
-      loadProfile()
-    }
+    if (!loading && uid) loadProfile()
   }, [uid, loading, loadProfile])
 
-  // ⚡ Cache event handler callback functions
   const handleSync = useCallback(async () => {
     setIsSyncing(true)
     try {
       await githubService.syncGitHub()
       await loadProfile()
     } catch (err: any) {
-      alert(err.message || 'GitHub sync failed. Please reconnect your account.')
+      alert(err.message || 'GitHub sync failed.')
     } finally {
       setIsSyncing(false)
     }
@@ -76,284 +107,199 @@ export default function OverviewTab() {
   const toggleSpotlight = useCallback(async (repoId: string) => {
     try {
       await githubService.toggleSpotlight(repoId)
-      // Optimistic update
-      setProfile(prev => {
+      setProfile((prev: any) => {
         if (!prev) return prev
-        return {
-          ...prev,
-          recentRepos: prev.recentRepos?.map((r: any) =>
-            r.id === repoId ? { ...r, isSpotlight: !r.isSpotlight } : r
-          )
-        }
+        return { ...prev, recentRepos: prev.recentRepos?.map((r: any) => r.id === repoId ? { ...r, isSpotlight: !r.isSpotlight } : r) }
       })
-    } catch (err) {
-      console.error(err)
-    }
+    } catch (err) { console.error(err) }
   }, [])
 
-  // ⚡ Cache array operations to avoid array re-allocation on every render
-  const topSkills = useMemo(() => skills?.filter(s => s.verified).slice(0, 5) || [], [skills])
   const recentRepos = useMemo(() => profile?.recentRepos || [], [profile])
 
-  return (
-    <div className="space-y-6 select-none animate-in fade-in duration-300">
+  // Profile display
+  const displayName = dashProfile.displayName || user?.displayName || 'Developer'
+  const avatarUrl = dashProfile.avatarUrl || user?.photoURL || null
+  const jobTitle = dashProfile.title || 'Software Developer'
+  const bio = dashProfile.bio || ''
+  const location = dashProfile.location || ''
+  const linkedinUrl = dashProfile.linkedinUrl || ''
+  const ghLogin = dashGithub.login || ''
 
-      {/* 1. Stats Grid (Single Row - 4 Columns) - Elegant Icon Blocks */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  const isReady = !loading && !skillsLoading
+
+  return (
+    <div className="space-y-4 select-none animate-in fade-in duration-300">
+
+      {/* ═══════════════════════════════════════════════════════════
+          1. STATS
+         ═══════════════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Verified Skills", value: stats.verifiedSkills.toString(), icon: <Code size={16} />, accent: "text-indigo-500 bg-indigo-500/10 border-indigo-500/20" },
-          { label: "Endorsements", value: stats.endorsements.toString(), icon: <Award size={16} />, accent: "text-amber-500 bg-amber-500/10 border-amber-500/20" },
-          { label: "Contributions", value: stats.contributions.toString(), icon: <Star size={16} />, accent: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" },
-          { label: "GitHub Projects", value: stats.projects.toString(), icon: <FolderGit2 size={16} />, accent: "text-purple-500 bg-purple-500/10 border-purple-500/20" },
-        ].map((stat, i) => (
-          <div
-            key={i}
-            className="bg-[var(--surface)] border border-[var(--border)] p-5 rounded-2xl flex items-center gap-4 transition-colors"
-          >
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center border shrink-0 ${stat.accent}`}>
-              {stat.icon}
+          { label: "Verified Skills", value: stats.verifiedSkills, icon: <Code size={20} />, color: "#6366f1" },
+          { label: "Endorsements", value: stats.endorsements, icon: <Award size={20} />, color: "#f59e0b" },
+          { label: "Contributions", value: stats.contributions, icon: <TrendingUp size={20} />, color: "#10b981" },
+          { label: "GitHub Repos", value: stats.projects, icon: <FolderGit2 size={20} />, color: "#a855f7" },
+        ].map((s, i) => (
+          <div key={i} className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/5 dark:hover:shadow-black/20">
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${s.color}15`, color: s.color }}>
+              {s.icon}
             </div>
             <div>
-              <p className="text-xs text-[var(--muted)] font-medium tracking-wide">{stat.label}</p>
-              <p className="text-2xl font-bold text-[var(--text)] mt-0.5">{skillsLoading || loading ? '...' : stat.value}</p>
+              <p className="text-2xl font-extrabold text-[var(--text)] tabular-nums leading-none">
+                {isReady ? s.value.toLocaleString() : '...'}
+              </p>
+              <p className="text-[11px] font-medium text-[var(--muted)] mt-1">{s.label}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* 2. Middle Row: Skills and Badges Side-by-Side - Clean & Balanced */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        {/* Top Skills Card */}
-        <div className="bg-[var(--surface)] border border-[var(--border)] p-6 rounded-2xl flex flex-col justify-between shadow-sm">
-          <div>
-            <div className="flex justify-between items-center mb-5">
-              <div>
-                <h3 className="text-base font-bold text-[var(--text)]">Top Skills</h3>
-                <p className="text-xs text-[var(--muted)] mt-0.5">ทักษะที่ได้รับการยืนยันความสามารถสูงสุด</p>
-              </div>
-              <span className="text-xs font-semibold border border-[var(--border)] bg-[var(--surface2)] px-3 py-1 rounded-full text-[var(--muted)] uppercase tracking-wider">
-                {topSkills.length} Verified
-              </span>
+      {/* ═══════════════════════════════════════════════════════════
+          2. ACHIEVEMENTS — Organized Badge Grid
+         ═══════════════════════════════════════════════════════════ */}
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg bg-amber-500/10 flex items-center justify-center">
+              <Award size={13} className="text-amber-500" />
             </div>
-
-            <div className="space-y-3">
-              {skillsLoading ? (
-                <p className="text-xs text-[var(--muted)]">Loading skills...</p>
-              ) : topSkills.length > 0 ? (
-                <div className="grid grid-cols-1 gap-2.5">
-                  {topSkills.map((skill, idx) => {
-                    const levelLabel = skill.level === 3 ? "Senior" : skill.level === 2 ? "Middle" : "Junior";
-                    const levelColor = skill.level === 3 
-                      ? "text-amber-500 bg-amber-500/10 border-amber-500/20" 
-                      : skill.level === 2 
-                        ? "text-blue-500 bg-blue-500/10 border-blue-500/20" 
-                        : "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
-                    return (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between p-3 bg-[var(--surface2)]/60 border border-[var(--border)] rounded-xl"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-lg bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center p-1.5 shrink-0">
-                            <img
-                              src={getSkillLogoUrl(skill.name)}
-                              className="w-5 h-5 object-contain"
-                              alt=""
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none";
-                              }}
-                            />
-                          </div>
-                          <div className="min-w-0">
-                            <h4 className="text-sm font-semibold text-[var(--text)] truncate">{skill.name}</h4>
-                            <p className="text-[10px] text-[var(--muted)]">Quiz Score: {skill.quizScore || 0}/15</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${levelColor}`}>
-                            {levelLabel}
-                          </span>
-                          <span className="text-[10px] font-bold text-[var(--text)] bg-[var(--surface)] border border-[var(--border)] px-2 py-0.5 rounded-md">
-                            Lvl {skill.level}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-xs text-[var(--muted)] leading-relaxed">ยังไม่มีการเพิ่มทักษะ เริ่มทำควิซเพื่อปลดล็อกทักษะแรกของคุณได้ทันที!</p>
-              )}
-            </div>
+            <h3 className="text-sm font-bold text-[var(--text)]">Achievements</h3>
           </div>
+          <span className="text-[10px] font-semibold text-[var(--muted)] bg-[var(--surface2)] border border-[var(--border)] px-2.5 py-0.5 rounded-full">
+            {badges?.length || 0} badges
+          </span>
         </div>
 
-        {/* Earned Badges Card */}
-        <div className="bg-[var(--surface)] border border-[var(--border)] p-6 rounded-2xl flex flex-col justify-between shadow-sm">
-          <div>
-            <div className="flex justify-between items-center mb-5">
-              <div>
-                <h3 className="text-base font-bold text-[var(--text)]">Earned Badges</h3>
-                <p className="text-xs text-[var(--muted)] mt-0.5">เหรียญรางวัลรับรองระดับความสามารถ</p>
-              </div>
-              <span className="text-xs font-semibold border border-[var(--border)] bg-[var(--surface2)] px-3 py-1 rounded-full text-[var(--muted)] uppercase tracking-wider">
-                {badges?.length || 0} Total
-              </span>
-            </div>
+        {isReady && badges && badges.length > 0 ? (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5">
+            {badges.map((badge, idx) => {
+              const bName = (badge.skillName || "").toLowerCase().trim();
+              const s = skills?.find(sk => (sk.name || "").toLowerCase().trim() === bName);
+              let lvl = Number(badge.level || s?.level || 1);
+              if (s) {
+                const q = s.quizScore || 0;
+                const e = s.endorsementScore || 0;
+                if (e >= 5 && q >= 10) lvl = 3;
+                else if (e >= 3 && q >= 7) lvl = 2;
+                else if (e >= 1 && q >= 4) lvl = 1;
+              }
 
-            {skillsLoading ? (
-              <div className="flex flex-col items-center justify-center py-10">
-                <div className="w-6 h-6 border-2 border-slate-350 dark:border-slate-700 border-t-transparent rounded-full animate-spin mb-2"></div>
-                <p className="text-xs text-[var(--muted)] font-bold uppercase tracking-wider">Loading...</p>
-              </div>
-            ) : badges && badges.length > 0 ? (
-              <div className="grid grid-cols-1 gap-2.5">
-                {badges.map((badge, idx) => {
-                  const bName = (badge.skillName || "").toLowerCase().trim();
-                  const s = skills?.find(sk => (sk.name || "").toLowerCase().trim() === bName);
-                  let lvl = Number(badge.level || s?.level || 1);
+              const lvlConfig: Record<number, { name: string, border: string, bg: string, text: string }> = {
+                3: { name: "Senior", border: "border-amber-500/30", bg: "bg-amber-500/10", text: "text-amber-500" },
+                2: { name: "Middle", border: "border-blue-500/30", bg: "bg-blue-500/10", text: "text-blue-500" },
+                1: { name: "Junior", border: "border-emerald-500/30", bg: "bg-emerald-500/10", text: "text-emerald-500" },
+              };
+              const cfg = lvlConfig[lvl] || { name: "Verified", border: "border-[var(--border)]", bg: "bg-slate-500/10", text: "text-slate-400" };
 
-                  if (s) {
-                    const q = s.quizScore || 0;
-                    const e = s.endorsementScore || 0;
-                    if (e >= 5 && q >= 10) lvl = 3;
-                    else if (e >= 3 && q >= 7) lvl = 2;
-                    else if (e >= 1 && q >= 4) lvl = 1;
-                  }
-
-                  const lvlLabels: Record<number, { name: string, color: string }> = {
-                    3: { name: "Senior", color: "text-amber-500 bg-amber-500/10 border-amber-500/20" },
-                    2: { name: "Middle", color: "text-blue-500 bg-blue-500/10 border-blue-500/20" },
-                    1: { name: "Junior", color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" }
-                  };
-
-                  const label = lvlLabels[lvl] || { name: "Verified", color: "text-slate-400 bg-slate-500/10 border-slate-500/20" };
-
-                  return (
-                    <div
-                      key={idx}
-                      onClick={() => setBadgeModal({ isOpen: true, badge })}
-                      className="flex items-center justify-between p-3 bg-[var(--surface2)]/60 border border-[var(--border)] rounded-xl hover:bg-[var(--surface2)] transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center p-1.5 shrink-0">
-                          <img
-                            src={getSkillLogoUrl(badge.skillName || badge.name || '')}
-                            className="w-5 h-5 object-contain shrink-0"
-                            alt=""
-                            onError={(e) => {
-                              e.currentTarget.src = 'https://cdn-icons-png.flaticon.com/512/8146/8146003.png';
-                            }}
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <h4 className="text-sm font-semibold text-[var(--text)] truncate">{badge.name}</h4>
-                          <p className="text-[10px] text-[var(--muted)] mt-0.5">Verified via AI Quiz & Endorsements</p>
-                        </div>
-                      </div>
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider shrink-0 ${label.color}`}>
-                        {label.name}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-xs text-[var(--muted)]">สะสมการรับรองเพื่อเริ่มปลดล็อกเหรียญรางวัลของคุณ</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-      </div>
-
-      {/* 3. Bottom Row: GitHub Spotlight (Full Width) - Glowing Spotlight */}
-      <div className="bg-[var(--surface)] border border-[var(--border)] p-6 rounded-2xl shadow-sm">
-        <div>
-          <div className="flex justify-between items-center mb-5">
-            <div>
-              <h3 className="text-base font-bold text-[var(--text)]">GitHub Spotlight</h3>
-              <p className="text-xs text-[var(--muted)] mt-0.5">โปรเจกต์เด่นที่ได้รับการ Sync มาจาก GitHub</p>
-            </div>
-            <button
-              onClick={handleSync}
-              disabled={isSyncing}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--surface2)] hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-[var(--text)] border border-[var(--border)] text-xs font-semibold transition-all disabled:opacity-50 cursor-pointer"
-            >
-              <RefreshCw size={12} className={isSyncing ? "animate-spin" : ""} />
-              {isSyncing ? "Syncing..." : "Sync Profile"}
-            </button>
-          </div>
-
-          {recentRepos.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {recentRepos.slice(0, 4).map((repo: any, idx: number) => (
+              return (
                 <div
                   key={idx}
-                  className={`p-5 rounded-xl border transition-all flex flex-col justify-between h-[130px] ${repo.isSpotlight
-                    ? 'border-indigo-500/50 bg-indigo-500/[0.02] dark:border-indigo-500/30 dark:bg-indigo-500/[0.01] shadow-[0_0_12px_rgba(99,102,241,0.03)]'
-                    : 'border-[var(--border)] bg-transparent hover:bg-[var(--surface2)]/50 hover:border-slate-300 dark:hover:border-slate-700'
-                    }`}
+                  onClick={() => setBadgeModal({ isOpen: true, badge })}
+                  className={`flex flex-col items-center text-center p-3 rounded-xl border ${cfg.border} bg-[var(--surface2)]/40 hover:bg-[var(--surface2)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm cursor-pointer group`}
                 >
-                  <div>
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <Github size={14} className="text-[var(--muted)] shrink-0" />
-                        <h4 className="font-bold text-[var(--text)] text-xs truncate">{repo.name}</h4>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          onClick={() => toggleSpotlight(repo.id)}
-                          className={`p-1 rounded transition-colors cursor-pointer ${repo.isSpotlight
-                            ? 'text-indigo-500 dark:text-indigo-400'
-                            : 'text-slate-300 hover:text-slate-650 dark:text-slate-600 dark:hover:text-slate-400'
-                            }`}
-                          title={repo.isSpotlight ? "Remove Spotlight" : "Add Spotlight"}
-                        >
-                          <Star size={12} fill={repo.isSpotlight ? "currentColor" : "none"} />
-                        </button>
-                        <a
-                          href={repo.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="p-1 text-[var(--muted)] hover:text-[var(--text)]"
-                        >
-                          <ExternalLink size={12} />
-                        </a>
-                      </div>
-                    </div>
-                    <p className="text-xs text-[var(--muted)] line-clamp-2 leading-relaxed mb-3">
-                      {repo.description || "ไม่มีรายละเอียดของโปรเจกต์นี้"}
-                    </p>
+                  <div className="w-11 h-11 rounded-xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center p-2 mb-2 group-hover:scale-105 transition-transform">
+                    <img
+                      src={getSkillLogoUrl(badge.skillName || badge.name || '')}
+                      className="w-7 h-7 object-contain"
+                      alt=""
+                      onError={(e) => { e.currentTarget.src = 'https://cdn-icons-png.flaticon.com/512/8146/8146003.png' }}
+                    />
                   </div>
-
-                  <div className="flex items-center gap-3 text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">
-                    {repo.language && (
-                      <span className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--muted)]"></span>
-                        {repo.language}
-                      </span>
-                    )}
-                    {repo.stars > 0 && (
-                      <span className="flex items-center gap-0.5">
-                        ★ {repo.stars}
-                      </span>
-                    )}
-                  </div>
+                  <p className="text-[11px] font-semibold text-[var(--text)] truncate w-full leading-tight">{badge.name}</p>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${cfg.bg} ${cfg.text} uppercase tracking-wider mt-1.5`}>
+                    {cfg.name}
+                  </span>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-10 bg-slate-50/50 dark:bg-white/5 rounded-xl border border-dashed border-slate-200 dark:border-[#30363d] my-auto">
-              <Github size={24} className="mx-auto mb-2 text-slate-400" />
-              <p className="text-xs text-slate-400 dark:text-slate-500">เชื่อมต่อ GitHub เพื่อไฮไลท์ผลงานของคุณ</p>
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        ) : isReady ? (
+          <div className="text-center py-8 bg-[var(--surface2)]/30 rounded-xl border border-dashed border-[var(--border)]">
+            <Award size={22} className="mx-auto mb-2 text-[var(--muted)]" />
+            <p className="text-[11px] text-[var(--muted)]">ยังไม่มีเหรียญรางวัล — สะสมการรับรองเพื่อปลดล็อก</p>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center py-8">
+            <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-700 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
       </div>
 
+      {/* ═══════════════════════════════════════════════════════════
+          3. ALL GITHUB REPOS
+         ═══════════════════════════════════════════════════════════ */}
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg bg-purple-500/10 flex items-center justify-center">
+              <Github size={13} className="text-purple-500" />
+            </div>
+            <h3 className="text-sm font-bold text-[var(--text)]">GitHub Repositories</h3>
+          </div>
+          <span className="text-[10px] font-semibold text-[var(--muted)] bg-[var(--surface2)] border border-[var(--border)] px-2.5 py-0.5 rounded-full">
+            {recentRepos.length} repos
+          </span>
+        </div>
+
+        {recentRepos.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {recentRepos.map((repo: any, idx: number) => (
+              <div
+                key={idx}
+                className={`group p-3.5 rounded-xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm flex flex-col justify-between min-h-[105px] ${repo.isSpotlight
+                    ? 'border-indigo-500/30 bg-indigo-500/[0.03] dark:bg-indigo-500/[0.02]'
+                    : 'border-[var(--border)] bg-[var(--surface2)]/40 hover:bg-[var(--surface2)]'
+                  }`}
+              >
+                <div>
+                  <div className="flex items-start justify-between mb-1.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Github size={13} className="text-[var(--muted)] shrink-0" />
+                      <h4 className="text-xs font-bold text-[var(--text)] truncate">{repo.name}</h4>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => toggleSpotlight(repo.id)}
+                        className={`p-1 rounded cursor-pointer transition-colors ${repo.isSpotlight ? 'text-amber-500' : 'text-[var(--muted)] hover:text-amber-500'}`}
+                        title={repo.isSpotlight ? "Remove Spotlight" : "Add Spotlight"}
+                      >
+                        <Star size={11} fill={repo.isSpotlight ? "currentColor" : "none"} />
+                      </button>
+                      <a href={repo.url} target="_blank" rel="noreferrer" className="p-1 text-[var(--muted)] hover:text-[var(--text)] transition-colors">
+                        <ArrowUpRight size={11} />
+                      </a>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-[var(--muted)] line-clamp-2 leading-relaxed">
+                    {repo.description || "ไม่มีรายละเอียด"}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 text-[10px] font-semibold text-[var(--muted)] mt-3 pt-2 border-t border-[var(--border)]/50">
+                  {repo.language && (
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" /> {repo.language}
+                    </span>
+                  )}
+                  {repo.stars > 0 && <span>★ {repo.stars}</span>}
+                  {repo.isSpotlight && (
+                    <span className="ml-auto text-[9px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider">★ Spotlight</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 bg-[var(--surface2)]/30 rounded-xl border border-dashed border-[var(--border)]">
+            <Github size={22} className="mx-auto mb-2 text-[var(--muted)]" />
+            <p className="text-[11px] text-[var(--muted)]">เชื่อมต่อ GitHub เพื่อแสดงผลงานทั้งหมดของคุณ</p>
+          </div>
+        )}
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════
+          BADGE CERTIFICATE MODAL
+         ═══════════════════════════════════════════════════════════ */}
       {badgeModal.isOpen && badgeModal.badge && (() => {
         const activeBadge = badgeModal.badge;
         const bName = (activeBadge.skillName || "").toLowerCase().trim();
@@ -368,10 +314,10 @@ export default function OverviewTab() {
         }
 
         const lvlNames: Record<number, string> = { 3: "Senior", 2: "Middle", 1: "Junior" };
-        const lvlColors: Record<number, string> = { 
-          3: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border-amber-500/20", 
-          2: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border-blue-500/20", 
-          1: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-500/20" 
+        const lvlColors: Record<number, string> = {
+          3: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border-amber-500/20",
+          2: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border-blue-500/20",
+          1: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-500/20"
         };
         const modalBorders: Record<number, string> = {
           3: "border-amber-500/30 dark:border-amber-500/20",
@@ -380,25 +326,16 @@ export default function OverviewTab() {
         };
 
         const credId = `skw-${String(activeBadge.id).replace(/[^a-z0-9]/gi, '').substring(0, 8) || Math.random().toString(36).substring(2, 10)}`;
-        
-        // 🗓️ Safely parse and format dates
+
         let dateStr = "ไม่ระบุวันที่";
         const unlockedAt = activeBadge.unlockedAt;
         if (unlockedAt) {
           let dateObj: Date | null = null;
-          if (unlockedAt.seconds) {
-            dateObj = new Date(unlockedAt.seconds * 1000);
-          } else if (unlockedAt.toDate && typeof unlockedAt.toDate === "function") {
-            dateObj = unlockedAt.toDate();
-          } else {
-            dateObj = new Date(unlockedAt);
-          }
+          if (unlockedAt.seconds) dateObj = new Date(unlockedAt.seconds * 1000);
+          else if (unlockedAt.toDate && typeof unlockedAt.toDate === "function") dateObj = unlockedAt.toDate();
+          else dateObj = new Date(unlockedAt);
           if (dateObj && !isNaN(dateObj.getTime())) {
-            dateStr = dateObj.toLocaleDateString('th-TH', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            });
+            dateStr = dateObj.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
           }
         }
 
@@ -406,64 +343,41 @@ export default function OverviewTab() {
         const labelStyle = lvlColors[bLvl] || "text-slate-700 dark:text-slate-400 bg-slate-50 dark:bg-slate-500/10";
 
         return (
-          <div
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-            onClick={() => setBadgeModal({ isOpen: false, badge: null })}
-          >
-            <div
-              className={`bg-white dark:bg-[#0d1117] border-2 ${borderStyle} rounded-2xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-150 overflow-hidden p-1`}
-              onClick={e => e.stopPropagation()}
-            >
-              {/* Inner frame representing a certificate */}
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            onClick={() => setBadgeModal({ isOpen: false, badge: null })}>
+            <div className={`bg-white dark:bg-[#0d1117] border-2 ${borderStyle} rounded-2xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-150 overflow-hidden p-1`}
+              onClick={e => e.stopPropagation()}>
               <div className="border border-slate-100 dark:border-[#21262d] rounded-xl p-6 relative">
-                
-                {/* Header info */}
                 <div className="flex justify-between items-center mb-6">
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                    Skill Certificate
-                  </span>
-                  <button
-                    onClick={() => setBadgeModal({ isOpen: false, badge: null })}
-                    className="w-7 h-7 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all cursor-pointer"
-                  >
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Skill Certificate</span>
+                  <button onClick={() => setBadgeModal({ isOpen: false, badge: null })}
+                    className="w-7 h-7 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all cursor-pointer">
                     ✕
                   </button>
                 </div>
-
-                {/* Main logo and Title */}
                 <div className="flex flex-col items-center text-center mt-4">
-                  <div className={`w-20 h-20 rounded-full bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-[#30363d] flex items-center justify-center shadow-sm relative mb-4 p-4`}>
-                    <img
-                      src={getSkillLogoUrl(activeBadge.skillName || activeBadge.name || '')}
-                      alt={activeBadge.name}
+                  <div className="w-20 h-20 rounded-full bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-[#30363d] flex items-center justify-center shadow-sm relative mb-4 p-4">
+                    <img src={getSkillLogoUrl(activeBadge.skillName || activeBadge.name || '')} alt={activeBadge.name}
                       className="w-12 h-12 object-contain"
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
                         const fallback = e.currentTarget.parentElement?.querySelector(".logo-fallback-modal-large");
                         if (fallback) fallback.classList.remove("hidden");
-                      }}
-                    />
+                      }} />
                     <div className="logo-fallback-modal-large hidden font-bold text-2xl text-slate-400 dark:text-[#8b949e] select-none">
                       {(activeBadge.skillName || activeBadge.name || 'SK').slice(0, 2).toUpperCase()}
                     </div>
-                    {/* Official check stamp (Green) */}
                     <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white w-6 h-6 rounded-full flex items-center justify-center border-2 border-white dark:border-[#0d1117] shadow">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
                   </div>
-                  
-                  <h3 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight">
-                    {activeBadge.name}
-                  </h3>
-                  
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight">{activeBadge.name}</h3>
                   <span className={`text-xs font-bold px-3 py-0.5 rounded-full border uppercase tracking-wider mt-3 ${labelStyle}`}>
                     {lvlNames[bLvl] || "Verified"} Level
                   </span>
                 </div>
-
-                {/* Certificate Details */}
                 <div className="mt-8 space-y-4">
                   <div className="bg-slate-50/50 dark:bg-white/[0.02] rounded-xl p-4 border border-slate-100 dark:border-[#21262d] space-y-3 text-left">
                     <div>
@@ -473,23 +387,17 @@ export default function OverviewTab() {
                       </p>
                       <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2 font-semibold">Issued: {dateStr}</p>
                     </div>
-                    
                     <div className="pt-3 border-t border-slate-100 dark:border-[#21262d] flex justify-between items-center">
                       <div>
                         <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-0.5">Credential ID</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-mono bg-white dark:bg-[#161b22] border border-slate-200/50 dark:border-white/5 px-2 py-0.5 rounded">
-                          {credId}
-                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-mono bg-white dark:bg-[#161b22] border border-slate-200/50 dark:border-white/5 px-2 py-0.5 rounded">{credId}</p>
                       </div>
-                      
-                      {/* Certified Stamp Text (Green & Larger) */}
                       <div className="text-xs md:text-sm font-extrabold text-emerald-600 dark:text-emerald-400 uppercase border-2 border-emerald-500/25 dark:border-emerald-500/10 rounded-md px-2 py-0.5 rotate-[-12deg] tracking-widest select-none">
                         Certified
                       </div>
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
           </div>
