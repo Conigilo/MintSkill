@@ -488,7 +488,7 @@ export default function JobsPage() {
                   <button
                     onClick={() => handleApply(selectedJob.id)}
                     disabled={applying}
-                    className={`w-full text-white dark:text-slate-900 font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer ${applying ? "bg-slate-300 dark:bg-slate-700 cursor-not-allowed" : "bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100"
+                    className={`w-full text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer ${applying ? "bg-slate-300 dark:bg-slate-700 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-400"
                       }`}
                   >
                     {applying ? (

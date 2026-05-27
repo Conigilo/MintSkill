@@ -12,6 +12,7 @@ function cleanJsonText(rawText: string): string {
 
 const app = new Elysia()
     .use(cors())
+    .get('/', () => 'Hello from AI Service! This service is responsible for generating quizzes and learning roadmaps using Google Gemini API.')
     .post('/generate-quiz', async ({ body, set }) => {
         const { skillName, level } = body
         const apiKey = process.env.GEMINI_API_KEY
@@ -23,7 +24,7 @@ const app = new Elysia()
 
         const genAI = new GoogleGenerativeAI(apiKey)
         const model = genAI.getGenerativeModel({
-            model: "gemini-3.1-flash-lite-preview",
+            model: "gemini-flash-lite-latest",
             //change gemini-flash-lite-latest to gemini-3.1-flash-lite-preview when service is overloaded
             // const modelName = "gemini-flash-lite-latest";
             generationConfig: { responseMimeType: "application/json" }
@@ -144,6 +145,7 @@ const app = new Elysia()
             models: availableModels
         };
     })
+    
     .listen(parseInt(process.env.PORT || Bun.env.PORT || '3002'))
 
 console.log(`AI Microservice READY at http://localhost:${app.server?.port || 3002}`)
