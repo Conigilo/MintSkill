@@ -288,27 +288,27 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
   }
 
   return (
-    <div className="glass-panel p-8 rounded-3xl animate-in fade-in duration-500 flex flex-col min-h-[600px]">
+    <div className="glass-panel p-8 rounded-3xl animate-in fade-in duration-500 flex flex-col min-h-[600px] border border-[var(--border)]/80 shadow-lg bg-[var(--surface)]/40 backdrop-blur-md">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-[var(--border)] pb-5">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-[var(--border)]/60 pb-6">
         <div>
           <h3 className="text-xl font-bold text-[var(--text)] flex items-center gap-2 mb-1">
-            <Sparkles className="w-5 h-5 text-indigo-500 animate-pulse" />
+            <Sparkles className="w-5 h-5 text-indigo-500 animate-pulse shrink-0" />
             AI-Powered CV Builder & Export
           </h3>
-          <p className="text-xs text-[var(--muted)]">จัดหน้าและปรับปรุงเรซูเม่ด้วยพลังแห่ง AI หรือแก้ไขด้วยตัวคุณเองเพื่อพิมพ์เป็นกระดาษ A4/PDF ทันที</p>
+          <p className="text-xs text-[var(--muted)]">จัดแต่งและปรับปรุงเรซูเม่ด้วย AI หรือแก้ไขข้อมูลด้วยตนเองเพื่อออกเอกสาร A4/PDF ทันที</p>
         </div>
-        <div className="mt-2 md:mt-0 flex gap-3">
+        <div className="mt-4 md:mt-0 flex gap-3 w-full md:w-auto">
           <button
             onClick={() => setShowPreview(true)}
-            className="flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 bg-[var(--surface2)] hover:bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] rounded-xl hover:scale-[1.02] active:scale-95 cursor-pointer transition-all"
+            className="flex-1 md:flex-initial flex items-center justify-center gap-1.5 text-xs font-bold px-4 py-2.5 bg-[var(--surface2)] hover:bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] rounded-xl hover:scale-[1.02] active:scale-95 cursor-pointer transition-all shadow-sm"
           >
-            <Eye size={14} />
+            <Eye size={14} className="text-indigo-500" />
             ดูตัวอย่างเรซูเม่
           </button>
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-900/20 hover:scale-[1.02] active:scale-95 cursor-pointer transition-all"
+            className="flex-1 md:flex-initial flex items-center justify-center gap-1.5 text-xs font-bold px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white rounded-xl shadow-md shadow-indigo-500/10 hover:scale-[1.02] active:scale-95 cursor-pointer transition-all"
           >
             <Download size={14} />
             ดาวน์โหลด PDF / พิมพ์
@@ -322,20 +322,22 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
           <p className="text-xs text-[var(--muted)]">กำลังดึงข้อมูลล่าสุดจากโปรไฟล์และ GitHub เพื่อเตรียมเอกสาร...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           {/* Left Column: AI Assistant & Template Selector */}
           <div className="space-y-6">
             
             {/* AI CV Assistant Panel */}
-            <div className="bg-indigo-900/10 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
+            <div className="bg-gradient-to-br from-indigo-950/15 to-purple-950/5 border border-indigo-500/20 rounded-2xl p-5 space-y-4 shadow-sm">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-indigo-400" />
+                <div className="p-1.5 bg-indigo-500/10 rounded-lg text-indigo-400">
+                  <Sparkles className="w-4 h-4" />
+                </div>
                 <h4 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
                   AI CV Assistant (ผู้ช่วย AI จัดหน้า)
                 </h4>
               </div>
               <p className="text-[10px] text-[var(--muted)] leading-relaxed">
-                พิมพ์เป้าหมายของคุณเพื่อให้ AI ช่วยเกลาเรซูเม่ เขียนรายละเอียดโปรเจกต์แปลเป็นภาษาอังกฤษ หรือจัดวางให้สะดุดตา
+                บอกเป้าหมายของคุณกับ AI เพื่อขัดเกลาคำอธิบายทักษะ แปลภาษาอังกฤษ หรือปรับรายละเอียดโปรเจกต์ให้เป็นมืออาชีพยิ่งขึ้น
               </p>
               
               {/* Text Area */}
@@ -343,8 +345,8 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
                 <textarea
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
-                  placeholder="ตัวอย่าง: 'ปรับแต่งเรซูเม่ของฉันสำหรับสมัครงาน Senior Frontend Developer ในบริษัทระดับอินเตอร์ แปลภาษาเป็นอังกฤษ และเลือกแม่แบบที่เหมาะสม'"
-                  className="w-full h-20 bg-[var(--surface)] border border-[var(--border)] rounded-xl p-3 text-xs text-[var(--text)] placeholder-slate-600 outline-none focus:border-indigo-500 transition-colors resize-none"
+                  placeholder="ตัวอย่าง: 'ปรับแต่งประวัติให้เหมาะกับงาน Senior Frontend Developer เน้นการเขียนโปรเจกต์เป็นอังกฤษที่ดูเก่งกาจและดึงดูดสายตา'"
+                  className="w-full h-24 bg-[var(--surface)] border border-[var(--border)] rounded-xl p-3.5 text-xs text-[var(--text)] placeholder-slate-600 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all resize-none shadow-inner"
                   disabled={isAIArranging}
                 />
                 
@@ -354,7 +356,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
                     <button
                       key={p.label}
                       onClick={() => setAiPrompt(p.prompt)}
-                      className="text-[9px] px-2 py-1 rounded-lg border border-[var(--border)] bg-[var(--surface2)]/50 hover:bg-[var(--surface2)] text-[var(--text)] transition-colors cursor-pointer"
+                      className="text-[9px] px-2.5 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface2)]/50 hover:bg-[var(--surface2)] text-[var(--text)] transition-all hover:scale-[1.02] active:scale-95 cursor-pointer"
                       disabled={isAIArranging}
                     >
                       {p.label}
@@ -364,7 +366,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
               </div>
 
               {aiError && (
-                <p className="text-[10px] text-red-400 bg-red-900/15 border border-red-500/10 p-2 rounded-lg">
+                <p className="text-[10px] text-red-400 bg-red-900/15 border border-red-500/10 p-2.5 rounded-lg">
                   {aiError}
                 </p>
               )}
@@ -373,31 +375,31 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
               <button
                 onClick={handleAIArrange}
                 disabled={isAIArranging || !aiPrompt.trim()}
-                className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md ${
+                className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition-all shadow-md ${
                   isAIArranging 
                     ? 'bg-slate-800 text-slate-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white cursor-pointer active:scale-98 hover:scale-[1.01]'
+                    : 'bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:via-purple-500 hover:to-indigo-500 text-white cursor-pointer active:scale-98 hover:scale-[1.01]'
                 }`}
               >
                 {isAIArranging ? (
                   <>
                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    กำลังจัดรูปแบบด้วย AI...
+                    กำลังวิเคราะห์และจัดรูปแบบด้วย AI...
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-3.5 h-3.5" />
-                    AI จัดหน้าและเกลาเรซูเม่
+                    ให้ AI จัดแต่งและเกลาเรซูเม่
                   </>
                 )}
               </button>
 
               {/* Refinement Logs */}
               {refinementsSummary.length > 0 && (
-                <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-3 space-y-1.5">
+                <div className="bg-[var(--surface)]/80 border border-[var(--border)] rounded-xl p-3 space-y-1.5 animate-in fade-in duration-300">
                   <p className="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" />
-                    รายการที่ AI ปรับปรุงล่าสุด:
+                    <CheckCircle2 className="w-3 h-3 shrink-0" />
+                    รายการที่ AI ปรับแต่งล่าสุด:
                   </p>
                   <ul className="text-[9px] text-[var(--muted)] space-y-1 list-disc pl-3">
                     {refinementsSummary.map((item, idx) => (
@@ -409,29 +411,31 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
             </div>
 
             {/* Template Selector Card */}
-            <div className="bg-[var(--surface2)]/30 border border-[var(--border)] rounded-2xl p-5">
+            <div className="bg-[var(--surface2)]/30 border border-[var(--border)] rounded-2xl p-5 shadow-sm">
               <h4 className="text-xs font-bold text-[var(--text)] uppercase tracking-wider mb-4 flex items-center gap-1.5">
                 <Award size={14} className="text-indigo-400" />
-                Select Theme Style (เลือกรูปแบบเทมเพลต)
+                Select Theme Style (เลือกแม่แบบและสี)
               </h4>
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 {TEMPLATES.map((t) => (
                   <button
                     key={t.id}
                     onClick={() => handleTemplateChange(t.id)}
-                    className={`p-3.5 rounded-xl border text-left cursor-pointer transition-all flex items-start gap-3 ${
+                    className={`p-3.5 rounded-xl border text-left cursor-pointer transition-all flex flex-col justify-between h-24 hover:scale-[1.01] ${
                       selectedTemplate === t.id
-                        ? 'border-indigo-500 bg-indigo-500/[0.03] shadow-md'
+                        ? 'border-indigo-500 bg-indigo-500/[0.02] shadow-sm ring-1 ring-indigo-500/30'
                         : 'border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface2)]'
                     }`}
                   >
-                    <div className="w-4 h-4 rounded-full border-2 border-indigo-500 flex items-center justify-center shrink-0 mt-0.5">
-                      {selectedTemplate === t.id && <div className="w-2 h-2 bg-indigo-500 rounded-full" />}
+                    <div className="flex justify-between items-center w-full">
+                      <span className="text-[11px] font-bold text-[var(--text)] truncate">{t.name}</span>
+                      <span 
+                        className="w-2.5 h-2.5 rounded-full border border-white/20 shrink-0" 
+                        style={{ backgroundColor: t.accent }}
+                        title={`Accent: ${t.accent}`}
+                      />
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-[var(--text)]">{t.name}</p>
-                      <p className="text-[10px] text-[var(--muted)] mt-0.5">{t.desc}</p>
-                    </div>
+                    <p className="text-[9px] text-[var(--muted)] leading-tight mt-2 line-clamp-2">{t.desc}</p>
                   </button>
                 ))}
               </div>
@@ -441,20 +445,20 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
           {/* Right Column: Manual Editor & Skills */}
           <div className="space-y-6">
             {/* Manual Resume Editor (Collapsible) */}
-            <div className="bg-[var(--surface2)]/30 border border-[var(--border)] rounded-2xl overflow-hidden">
+            <div className="bg-[var(--surface2)]/30 border border-[var(--border)] rounded-2xl overflow-hidden shadow-sm">
               <button
                 onClick={() => setIsFormOpen(!isFormOpen)}
                 className="w-full px-5 py-4 flex justify-between items-center bg-[var(--surface2)]/40 hover:bg-[var(--surface2)]/70 transition-colors cursor-pointer"
               >
                 <span className="text-xs font-bold text-[var(--text)] uppercase tracking-wider flex items-center gap-2">
                   <User size={14} className="text-indigo-400" />
-                  แก้ไขเรซูเม่ด้วยตนเอง (Manual Editor)
+                  แก้ไขรายละเอียดเอง (Manual Editor)
                 </span>
                 {isFormOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </button>
 
               {isFormOpen && (
-                <div className="p-5 border-t border-[var(--border)]/40 space-y-5 animate-in slide-in-from-top-2 duration-300">
+                <div className="p-5 border-t border-[var(--border)]/40 space-y-5 animate-in slide-in-from-top-2 duration-350">
                   {/* Personal details grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormInput 
@@ -511,8 +515,8 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
                   </div>
 
                   {/* Bio Description */}
-                  <div>
-                    <label className="text-[10px] text-[var(--muted)] uppercase tracking-wider font-bold mb-1.5 flex items-center gap-1 block">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-[var(--muted)] uppercase tracking-wider font-bold flex items-center gap-1 block">
                       <FileText size={12} />
                       About Me (ประวัติย่อ)
                     </label>
@@ -520,7 +524,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
                       value={resume.bio || ''}
                       onChange={(e) => handlePersonalChange('bio', e.target.value)}
                       placeholder="เขียนสรุปประสบการณ์ ทักษะหลัก หรือเป้าหมายในการทำงาน..."
-                      className="w-full h-24 bg-[var(--surface)] border border-[var(--border)] rounded-xl p-3 text-xs text-[var(--text)] outline-none focus:border-indigo-500 transition-colors resize-y"
+                      className="w-full h-24 bg-[var(--surface)] border border-[var(--border)] rounded-xl p-3.5 text-xs text-[var(--text)] outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all resize-y shadow-inner"
                     />
                   </div>
 
@@ -542,7 +546,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
 
                     <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1 no-scrollbar">
                       {resume.projects.map((p, pIdx) => (
-                        <div key={pIdx} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 space-y-3 relative group">
+                        <div key={pIdx} className="bg-[var(--surface)] border border-[var(--border)]/80 rounded-xl p-4 space-y-3 relative group shadow-sm">
                           
                           <button
                             onClick={() => handleRemoveProject(pIdx)}
@@ -565,7 +569,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
                               <input
                                 value={p.date}
                                 onChange={(e) => handleProjectChange(pIdx, 'date', e.target.value)}
-                                className="w-full bg-[var(--surface2)] border border-[var(--border)] rounded-lg px-2.5 py-1.5 text-xs text-[var(--text)] outline-none focus:border-indigo-500 font-mono"
+                                className="w-full bg-[var(--surface2)] border border-[var(--border)] rounded-lg px-2.5 py-1.5 text-xs text-[var(--text)] outline-none focus:border-indigo-500 font-mono text-center"
                                 placeholder="ปี (เช่น 2026)"
                               />
                             </div>
@@ -586,7 +590,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
                             
                             {p.details.map((d, dIdx) => (
                               <div key={dIdx} className="flex gap-2 items-center">
-                                <span className="text-slate-400 text-xs">•</span>
+                                <span className="text-slate-400 text-xs shrink-0">•</span>
                                 <input
                                   value={d}
                                   onChange={(e) => handleProjectDetailChange(pIdx, dIdx, e.target.value)}
@@ -596,7 +600,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
                                 {p.details.length > 1 && (
                                   <button
                                     onClick={() => handleRemoveProjectDetail(pIdx, dIdx)}
-                                    className="text-red-500 hover:text-red-400 p-1 cursor-pointer"
+                                    className="text-red-500 hover:text-red-400 p-1 cursor-pointer shrink-0"
                                   >
                                     <Trash2 size={10} />
                                   </button>
@@ -613,7 +617,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
             </div>
 
             {/* Technical Skills Card */}
-            <div className="bg-[var(--surface2)]/30 border border-[var(--border)] rounded-2xl p-5">
+            <div className="bg-[var(--surface2)]/30 border border-[var(--border)] rounded-2xl p-5 shadow-sm">
               <h4 className="text-xs font-bold text-[var(--text)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <Code size={14} className="text-indigo-400" />
                 Verified Skills Included (ทักษะที่ได้รับการรับรอง)
@@ -623,7 +627,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
                   <p className="text-xs text-[var(--muted)] italic">ไม่มีทักษะที่ยืนยัน (แสดงเฉพาะ Verified Skills)</p>
                 ) : (
                   allSkillNames.map(s => (
-                    <span key={s} className="text-[10px] px-2.5 py-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] font-medium">
+                    <span key={s} className="text-[10px] px-3 py-1.5 rounded-lg border border-[var(--border)]/60 bg-[var(--surface)] text-[var(--text)] font-semibold shadow-xs hover:border-indigo-500/50 hover:-translate-y-0.5 transition-all duration-300">
                       {s}
                     </span>
                   ))
@@ -636,13 +640,13 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
 
       {/* ── 3. Preview Modal (A4 Preview Overlay) ── */}
       {showPreview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-955/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[var(--surface)] border border-[var(--border)]/80 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
             
             {/* Modal Header */}
-            <div className="p-5 border-b border-[var(--border)] flex justify-between items-center bg-[var(--surface2)]/40">
+            <div className="p-5 border-b border-[var(--border)]/60 flex justify-between items-center bg-[var(--surface2)]/40">
               <div className="flex items-center gap-2">
-                <Eye className="w-5 h-5 text-indigo-400" />
+                <Eye className="w-5 h-5 text-indigo-500" />
                 <h4 className="font-bold text-sm text-[var(--text)] uppercase tracking-wider">
                   Live Resume Mockup (A4 Preview)
                 </h4>
@@ -650,7 +654,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
               <div className="flex items-center gap-3">
                 <button
                   onClick={handlePrint}
-                  className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg cursor-pointer transition-all shadow-md"
+                  className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg cursor-pointer transition-all shadow-md"
                 >
                   <Download size={12} />
                   พิมพ์เอกสาร / PDF
@@ -665,13 +669,13 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
             </div>
             
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto flex-1 bg-[var(--surface2)]/15 flex justify-center items-start">
+            <div className="p-6 overflow-y-auto flex-1 bg-slate-900/5 flex justify-center items-start">
               <div className="w-full max-w-[500px]">
-                <div className="w-full aspect-[1/1.414] bg-white border border-slate-300 dark:border-slate-800 rounded-2xl shadow-xl overflow-y-auto no-scrollbar p-8 text-slate-800 flex flex-col justify-between select-none">
+                <div className="w-full aspect-[1/1.414] bg-white border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-y-auto no-scrollbar p-8 text-slate-800 flex flex-col justify-between select-none">
                   <div>
                     {/* Header Mockup */}
                     {selectedTemplate === 'bold' ? (
-                      <div className="bg-amber-500 -mx-8 -mt-8 p-6 text-slate-900 mb-5">
+                      <div className="bg-amber-500 -mx-8 -mt-8 p-6 text-slate-900 mb-5 shadow-sm">
                         <h2 className="text-xl font-bold uppercase tracking-wide truncate">{resume.fullName || 'YOUR NAME'}</h2>
                         <p className="text-xs font-semibold opacity-90 truncate">{resume.title}</p>
                         <p className="text-[10px] opacity-75 mt-1.5">
@@ -685,7 +689,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
                         </p>
                       </div>
                     ) : selectedTemplate === 'royal' ? (
-                      <div className="bg-[#0f172a] -mx-8 -mt-8 p-6 text-amber-400 mb-5 text-center">
+                      <div className="bg-[#0f172a] -mx-8 -mt-8 p-6 text-amber-400 mb-5 text-center shadow-sm">
                         <h2 className="text-xl font-bold uppercase tracking-wide truncate">{resume.fullName || 'YOUR NAME'}</h2>
                         <p className="text-xs font-semibold text-slate-300 truncate">{resume.title}</p>
                         <p className="text-[10px] text-slate-400 mt-1.5">
@@ -718,7 +722,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
                     <div className="flex gap-5">
                       {/* Left Column (Sidebar) for Modern layout */}
                       {selectedTemplate === 'modern' && (
-                        <div className="w-[32%] bg-purple-50 p-2.5 rounded-lg space-y-4 shrink-0 text-left">
+                        <div className="w-[32%] bg-purple-50/50 p-2.5 rounded-lg space-y-4 shrink-0 text-left border border-purple-100">
                           <div>
                             <p className="text-[10px] text-purple-700 font-bold uppercase tracking-wider mb-1.5">Contact</p>
                             <div className="text-[8px] text-slate-600 space-y-1 font-medium break-all">
@@ -821,13 +825,13 @@ interface FormInputProps {
 
 function FormInput({ label, icon, value, onChange, placeholder }: FormInputProps) {
   return (
-    <div>
-      <label className="text-[10px] text-[var(--muted)] uppercase tracking-wider font-bold mb-1.5 flex items-center gap-1 block">
-        {icon}
+    <div className="space-y-1.5">
+      <label className="text-[10px] text-[var(--muted)] uppercase tracking-wider font-semibold flex items-center gap-1.5">
+        <span className="text-indigo-500/80">{icon}</span>
         {label}
       </label>
       <input
-        className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-xl px-3.5 py-2 text-xs text-[var(--text)] placeholder-slate-600 outline-none focus:border-indigo-500 transition-colors"
+        className="w-full bg-[var(--surface)] hover:bg-[var(--surface2)]/40 border border-[var(--border)] rounded-xl px-3.5 py-2 text-xs text-[var(--text)] placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all duration-200 shadow-xs"
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder || label}
