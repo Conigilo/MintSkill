@@ -8,27 +8,37 @@ import * as path from 'path'
  * Uses environment variable FIREBASE_SERVICE_ACCOUNT_PATH
  */
 if (!getApps().length) {
+    const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON
     const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH
 
-    if (!serviceAccountPath) {
+    let serviceAccount: any
+
+    if (serviceAccountJson) {
+        try {
+            serviceAccount = JSON.parse(serviceAccountJson)
+            console.log('✓ Firebase Admin using service account JSON from environment variable')
+        } catch (e: any) {
+            throw new Error(`Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON environment variable: ${e.message}`)
+        }
+    } else if (serviceAccountPath) {
+        // Resolve to absolute path
+        const absolutePath = path.resolve(process.cwd(), serviceAccountPath)
+
+        // Read JSON file using Bun.file() for better performance
+        const serviceAccountFile = Bun.file(absolutePath)
+
+        if (!await serviceAccountFile.exists()) {
+            throw new Error(`Service account file not found at: ${absolutePath}`)
+        }
+
+        serviceAccount = await serviceAccountFile.json()
+    } else {
         throw new Error(
-            'FIREBASE_SERVICE_ACCOUNT_PATH environment variable is not set.\n' +
-            'Add this to your .env file:\n' +
-            'FIREBASE_SERVICE_ACCOUNT_PATH=./config/your-service-account.json'
+            'Neither FIREBASE_SERVICE_ACCOUNT_JSON nor FIREBASE_SERVICE_ACCOUNT_PATH environment variables are set.\n' +
+            'Please configure Firebase Admin credentials.'
         )
     }
 
-    // Resolve to absolute path
-    const absolutePath = path.resolve(process.cwd(), serviceAccountPath)
-
-    // Read JSON file using Bun.file() for better performance
-    const serviceAccountFile = Bun.file(absolutePath)
-
-    if (!await serviceAccountFile.exists()) {
-        throw new Error(`Service account file not found at: ${absolutePath}`)
-    }
-
-    const serviceAccount = await serviceAccountFile.json()
     initializeApp({ credential: cert(serviceAccount) })
     console.log('✓ Firebase Admin initialized successfully')
 }

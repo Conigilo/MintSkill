@@ -60,4 +60,16 @@ export const aiRoute = new Elysia({ prefix: '/ai', tags: ['AI'] })
             security: [{ bearerAuth: [] }],
         }
     })
+    .post('/arrange-cv', AiController.arrangeCVHandler, {
+        body: t.Object({
+            resume: t.Any(),
+            skills: t.Array(t.String()),
+            prompt: t.String()
+        }),
+        detail: {
+            summary: 'Arrange and Optimize CV layout using AI',
+            description: 'จัดหน้าและเกลาเรซูเม่ด้วย AI ตามความต้องการและทักษะ',
+            security: [{ bearerAuth: [] }],
+        }
+    })
 
