@@ -39,3 +39,59 @@
 
 ---
 *ดำเนินการแก้ไขทั้งหมดสำเร็จและตรงตามดีไซน์ Reference เรียบร้อยแล้ว*
+
+# Frame Fix - Portfolio Export System Automation
+
+## Description of Changes
+
+We modified the **Portfolio Export / Resume Builder** system to be 100% automated based on database profile details, verified skills, and synchronized GitHub repositories. In doing so, we completely bypassed the AI/LLM API description generation features (Gemini API), since the user's token is exhausted.
+
+### Modified Files:
+
+1. **[exportPortfolioTab.tsx](file:///c:/CODING/university/year2term2/web/FINALBOSSPROJECT/next-app/components/dashboard/tabs/exportPortfolioTab.tsx)**
+   - **Removed manual entry wizard steps**: Completely eliminated the 3-step wizard and manual forms (stepper progress bar, input fields for name, phone, email, education, experience).
+   - **Redesigned UI**: Changed layout to a single-screen dashboard.
+     - **Left Column**: Selected template picker, a list of synced GitHub projects (showing name, language, date, and description), and a list of verified skills.
+     - **Right Column**: Live A4 resume preview mockup.
+     - **Header/Footer**: Download PDF / Print button.
+   - **Integrated Automatic Mounting Sync**: Added an automatic fetch on component mount calling `githubService.getDashboard()` (under a visual `isSyncing` loading indicator) to pull the user's latest Firestore profile and repository data.
+   - **Bypassed AI Endpoint**: Completely removed the "✨ AI Generate Description" buttons and related API post requests (`/ai/repo-bullets`). Built the project descriptions list directly using the original repository description from GitHub (with a fallback to `"Developed and maintained the [name] repository on GitHub."` if empty).
+   - **Integrated Dynamic Profile Information**: Map personal fields automatically from Firestore data (`displayName`, `title`, `bio`, `location`, `linkedinUrl`, and `githubUsername`). The profile bio is rendered under a new "About Me" section on all printable HTML layouts and previews.
+
+2. **[CVTemplate.tsx](file:///c:/CODING/university/year2term2/web/FINALBOSSPROJECT/next-app/components/dashboard/CVTemplate.tsx)**
+   - Updated the print layout for CV Template to render the automated, non-AI fields:
+     - Header prints dynamic name, job title, email, GitHub profile path, LinkedIn profile path, and location.
+     - Replaced manual education/experience sections with the dynamic "About Me" (`resumeData?.bio`) section.
+     - Renders "Featured Projects" list from GitHub synced repositories using their original description details.
+     - Displays "Technical Skills" badges derived directly from verified skills.
+
+# Frame Fix - AI CV Arranger & Deployment Preparation (Vercel & ngrok)
+
+## Description of Changes
+
+We implemented an AI-powered CV Arranger and Enhancer that lets users prompt Gemini to polish and tailor their CV, added a collapsible Manual Resume Editor, resolved microservice port mismatches, and created deployment guides and helper scripts.
+
+### Modified Files:
+
+1. **[exportPortfolioTab.tsx](file:///c:/CODING/university/year2term2/web/FINALBOSSPROJECT/next-app/components/dashboard/tabs/exportPortfolioTab.tsx)**
+   - **AI CV Assistant Panel**: Added a text area for prompt inputs, suggestion chips (e.g. "Tailor for Frontend", "Translate to English"), a visual loading spinner while AI works, and an AI Refinements summary box.
+   - **Manual Resume Editor**: Created a collapsible editor that lets users review and manually adjust all fields (Full Name, Title, Bio, Email, Phone, Location, GitHub, LinkedIn) and add/edit/remove project names, dates, and bullet details.
+   - **Mockup & Print Enhancements**: Rendered all project bullet points (instead of just the first one) in the preview, and supported phone/LinkedIn info in both preview and print layouts for all templates.
+
+2. **[index.ts](file:///c:/CODING/university/year2term2/web/FINALBOSSPROJECT/backend/ai-service/src/index.ts)**
+   - Added a `POST /arrange-cv` endpoint that delegates requests to Gemini (`gemini-flash-lite-latest`) with a robust system prompt, returning formatted JSON and a list of refinements.
+
+3. **[ai.service.ts](file:///c:/CODING/university/year2term2/web/FINALBOSSPROJECT/backend/src/services/ai.service.ts)**
+   - Made the microservice URL dynamic (`process.env.AI_SERVICE_URL || "http://localhost:3002"`) to fix port mismatches.
+   - Added proxy method `arrangeCV` to fetch from the AI microservice.
+
+4. **[ai.controller.ts](file:///c:/CODING/university/year2term2/web/FINALBOSSPROJECT/backend/src/controllers/ai.controller.ts) & [ai.route.ts](file:///c:/CODING/university/year2term2/web/FINALBOSSPROJECT/backend/src/routes/ai.route.ts)**
+   - Added and exposed `POST /ai/arrange-cv` route with validation.
+
+5. **[firebase.service.ts](file:///c:/CODING/university/year2term2/web/FINALBOSSPROJECT/backend/src/services/firebase.service.ts)**
+   - Upgraded initialization to support stringified service account credentials via `FIREBASE_SERVICE_ACCOUNT_JSON` for cloud serverless deployments (like Vercel).
+
+### New Files:
+- **[deploy-guide.md](file:///c:/CODING/university/year2term2/web/FINALBOSSPROJECT/deploy-guide.md)**: Full guide to configure Vercel, CORS, ngrok tunnels, and GitHub OAuth callback links.
+- **[start-ngrok.ps1](file:///c:/CODING/university/year2term2/web/FINALBOSSPROJECT/start-ngrok.ps1)**: Automation script to start ngrok on port 8000.
+

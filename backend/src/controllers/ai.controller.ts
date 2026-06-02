@@ -187,3 +187,30 @@ export async function generateProjectBulletsHandler({ body, headers, set }: any)
     };
   }
 }
+
+export async function arrangeCVHandler({ body, headers, set }: any) {
+  try {
+    const user = await verifyToken(headers['authorization'] || null);
+    const { resume, skills, prompt } = body;
+
+    if (!resume || !skills || !prompt) {
+      set.status = 400;
+      return { success: false, error: 'resume, skills, and prompt are required in body.' };
+    }
+
+    const arranged = await aiService.arrangeCV(resume, skills, prompt);
+
+    return {
+      success: true,
+      data: arranged
+    };
+  } catch (error: any) {
+    console.error('AI CV Arrangement Error:', error.message);
+    set.status = 500;
+    return {
+      success: false,
+      error: 'Failed to arrange CV using AI.',
+      details: error.message
+    };
+  }
+}

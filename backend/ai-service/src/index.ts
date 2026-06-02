@@ -193,6 +193,84 @@ const app = new Elysia()
             description: t.Optional(t.String())
         })
     })
+    .post('/arrange-cv', async ({ body, set }) => {
+        const { resume, skills, prompt } = body
+        const apiKey = process.env.GEMINI_API_KEY || Bun.env.GEMINI_API_KEY
+
+        if (!apiKey) {
+            set.status = 500
+            return { error: "GEMINI_API_KEY not configured in AI Service" }
+        }
+
+        const genAI = new GoogleGenerativeAI(apiKey)
+        const model = genAI.getGenerativeModel({
+            model: "gemini-flash-lite-latest",
+            generationConfig: { responseMimeType: "application/json" }
+        })
+
+        const systemPrompt = `You are an expert resume writer and layout designer. Your job is to format, optimize, and arrange the user's CV to match their specified request/prompt.
+
+Current CV Data:
+${JSON.stringify(resume, null, 2)}
+
+User's Verified Skills:
+${JSON.stringify(skills, null, 2)}
+
+User's Request/Prompt:
+"${prompt}"
+
+Instructions:
+1. Re-format and polish the title, bio (about me), and project details based on the user's request.
+2. If the user's request is in Thai or asks to adjust/translate, rewrite the content in the requested language (typically English or Thai). Maintain a professional tone.
+3. For project details (accomplishments/responsibilities), rewrite them as clean, professional, action-oriented bullet points (each project should have 1-3 bullet points).
+4. Do not change the user's core contact details (fullName, email, phone, location, linkedinUrl, githubUsername) unless the user's prompt explicitly asks for a change, but make sure they are clean.
+5. Recommend the best matching CV template ID from the following available templates:
+   - "classic" (Clean single column standard resume)
+   - "modern" (Elegant two-column layout with sidebar)
+   - "minimal" (Emerald Sleek, ultra-clean)
+   - "bold" (Stylish dark gold header bar resume)
+   - "royal" (Premium deep blue template with gold headings)
+6. Write a short list of changes you made in the "refinementsSummary" field (e.g. "Translated bio to English", "Formatted projects using active verbs", "Recommended Modern template").
+
+You MUST return a JSON object with this exact structure:
+{
+  "fullName": "string",
+  "title": "string",
+  "bio": "string",
+  "phone": "string",
+  "email": "string",
+  "location": "string",
+  "linkedinUrl": "string",
+  "githubUsername": "string",
+  "projects": [
+    {
+      "name": "string",
+      "date": "string",
+      "details": ["string", "string"]
+    }
+  ],
+  "recommendedTemplate": "classic" | "modern" | "minimal" | "bold" | "royal",
+  "refinementsSummary": ["string", "string"]
+}
+
+Do not include any explanation or markdown tags outside the JSON object.`
+
+        try {
+            const result = await model.generateContent(systemPrompt)
+            const text = result.response.text()
+            const cleanedText = cleanJsonText(text)
+            return JSON.parse(cleanedText)
+        } catch (error: any) {
+            set.status = 500
+            return { error: error.message }
+        }
+    }, {
+        body: t.Object({
+            resume: t.Any(),
+            skills: t.Array(t.String()),
+            prompt: t.String()
+        })
+    })
     .listen(parseInt(process.env.PORT || Bun.env.PORT || '3002'))
 
 console.log(`AI Microservice READY at http://localhost:${app.server?.port || 3002}`)

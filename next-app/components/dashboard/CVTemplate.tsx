@@ -25,19 +25,19 @@ export default function CVTemplate({ user, skills }: CVTemplateProps) {
     // 2. ดึง Skill ที่ Verified จากระบบ (ทักษะทางเทคนิคจะแยกจากข้อมูลแมนวลอื่นๆ)
     const verifiedSkills = skills?.filter(s => s.verified).map(s => s.name) || [];
 
-    // 3. เตรียมข้อมูล ถ้ายังไม่มีให้ใส่ Placeholder กัน Error
-    const fullName = resumeData?.fullName || user?.displayName || "Sarit Sridit";
+    // 3. เตรียมข้อมูล
+    const fullName = resumeData?.fullName || user?.displayName || "User";
     const jobTitle = resumeData?.title || "Developer";
+    
     const contactLine = [
-        resumeData?.phone && `Tel: ${resumeData.phone}`,
         resumeData?.email && `Email: ${resumeData.email}`,
-    ].filter(Boolean).join(' • ');
+        resumeData?.githubUsername && `GitHub: github.com/${resumeData.githubUsername}`,
+        resumeData?.linkedinUrl && `LinkedIn: ${resumeData.linkedinUrl}`,
+        resumeData?.location && `Location: ${resumeData.location}`
+    ].filter(Boolean).join('  •  ');
 
-    const education = resumeData?.education || [];
-    const experience = resumeData?.experience || [];
-    const activities = Array.isArray(resumeData?.activities) ? resumeData.activities : [];
+    const bio = resumeData?.bio || "";
     const projects = Array.isArray(resumeData?.projects) ? resumeData.projects : [];
-    const strengths = Array.isArray(resumeData?.strengths) ? resumeData.strengths : [];
 
     return (
         // สำคัญมาก: ต้องมีคลาส `print-visible` เพื่อให้ทะลุการซ่อน (visibility: hidden) ใน globals.css
@@ -46,107 +46,52 @@ export default function CVTemplate({ user, skills }: CVTemplateProps) {
             {/* Header: ข้อมูลส่วนตัว */}
             <div className="text-center border-b-2 border-black pb-4 mb-6">
                 <h1 className="text-4xl font-bold uppercase tracking-widest mb-2">{fullName}</h1>
-                {contactLine && <p className="text-sm">{contactLine}</p>}
-                <p className="text-sm mt-1">{jobTitle}</p>
+                <p className="text-sm font-semibold mb-1">{jobTitle}</p>
+                {contactLine && <p className="text-xs">{contactLine}</p>}
             </div>
 
-            {/* Section: Education */}
-            {education && (Array.isArray(education) ? education.length > 0 : String(education).trim().length > 0) && (
+            {/* Section: About Me */}
+            {bio && (
                 <div className="mb-6">
-                    <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-3">Education</h2>
-                    {Array.isArray(education) ? (
-                        education.map((edu: any, index: number) => (
-                            <div key={index} className="mb-3">
-                                <div className="flex justify-between items-start">
-                                    <h3 className="font-bold">{edu.school || 'University Name'}</h3>
-                                    <span className="font-bold">{edu.year}</span>
-                                </div>
-                                {edu.degree && <p className="text-sm mt-1">{edu.degree} {edu.gpax && `(GPAX: ${edu.gpax})`}</p>}
-                            </div>
-                        ))
-                    ) : (
-                        <p className="text-sm leading-relaxed whitespace-pre-line">{String(education)}</p>
-                    )}
+                    <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-3">About Me</h2>
+                    <p className="text-sm leading-relaxed whitespace-pre-line">{bio}</p>
                 </div>
             )}
 
-            {/* Section: Experience */}
-            {experience && (Array.isArray(experience) ? experience.length > 0 : String(experience).trim().length > 0) && (
+            {/* Section: Technical Projects (GitHub) */}
+            {projects.length > 0 && (
                 <div className="mb-6">
-                    <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-3">Experience</h2>
-                    {Array.isArray(experience) ? (
-                        experience.map((exp: any, index: number) => (
-                            <div key={index} className="mb-3">
-                                <div className="flex justify-between items-start">
-                                    <h3 className="font-bold">{exp.company || exp.role || 'Company Name'}</h3>
-                                    <span className="font-bold">{exp.year}</span>
-                                </div>
-                                {exp.description && <p className="text-sm mt-1">{exp.description}</p>}
+                    <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-3">Featured Projects</h2>
+                    {projects.map((proj: any, index: number) => (
+                        <div key={index} className="mb-4">
+                            <div className="flex justify-between items-baseline">
+                                <h3 className="font-bold">"{proj.name || 'Project Name'}"</h3>
+                                <span className="text-sm font-mono text-gray-500">{proj.date}</span>
                             </div>
-                        ))
-                    ) : (
-                        <p className="text-sm leading-relaxed whitespace-pre-line">{String(experience)}</p>
-                    )}
+                            {proj.details && proj.details.length > 0 && (
+                                <ul className="list-disc list-inside text-sm mt-1">
+                                    {proj.details.map((detail: string, i: number) => (
+                                        <li key={i} className="leading-relaxed">{detail}</li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    ))}
                 </div>
             )}
-
-            {/* Section: Activity & Achievement */}
-            {activities.length > 0 && <div className="mb-6">
-                <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-3">Activity & Achievement</h2>
-                {activities.map((act: any, index: number) => (
-                    <div key={index} className="mb-4">
-                        <div className="flex justify-between items-baseline">
-                            <h3 className="font-bold">{act.title || 'Activity Title'}</h3>
-                            <span className="text-sm">{act.date}</span>
-                        </div>
-                        {act.details && act.details.length > 0 && (
-                            <ul className="list-disc list-inside text-sm mt-1">
-                                {act.details.map((detail: string, i: number) => (
-                                    <li key={i}>{detail}</li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-                ))}
-            </div>}
-
-            {/* Section: Technical Projects */}
-            {projects.length > 0 && <div className="mb-6">
-                <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-3">Technical Projects</h2>
-                {projects.map((proj: any, index: number) => (
-                    <div key={index} className="mb-4">
-                        <div className="flex justify-between items-baseline">
-                            <h3 className="font-bold">{proj.name || 'Project Name'}</h3>
-                            <span className="text-sm">{proj.date}</span>
-                        </div>
-                        {proj.details && proj.details.length > 0 && (
-                            <ul className="list-disc list-inside text-sm mt-1">
-                                {proj.details.map((detail: string, i: number) => (
-                                    <li key={i}>{detail}</li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-                ))}
-            </div>}
 
             {/* Section: Technical Skills */}
             <div className="mb-6">
-                <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-3">Technical Skills & Strengths</h2>
+                <h2 className="text-lg font-bold uppercase border-b border-gray-400 mb-3">Technical Skills</h2>
                 
                 {verifiedSkills.length > 0 && (
-                    <div className="text-sm mb-3">
-                        <span className="font-bold">Verified Skills: </span>
-                        {verifiedSkills.join(', ')}
-                    </div>
-                )}
-                
-                {strengths.length > 0 && (
-                     <ul className="list-disc list-inside text-sm space-y-1">
-                        {strengths.map((str: string, index: number) => (
-                            <li key={index}>{str}</li>
+                    <div className="text-sm flex flex-wrap gap-2 mt-1">
+                        {verifiedSkills.map((skill, sIdx) => (
+                            <span key={sIdx} className="bg-gray-150 border border-gray-300 px-2 py-0.5 rounded text-xs font-semibold">
+                                • {skill}
+                            </span>
                         ))}
-                    </ul>
+                    </div>
                 )}
             </div>
 
