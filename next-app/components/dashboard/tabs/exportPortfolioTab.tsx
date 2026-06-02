@@ -93,6 +93,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
 
   // Editor states
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
 
   // Load saved template preference and data on mount & auto-sync from profile/Github
   useEffect(() => {
@@ -297,7 +298,14 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
           </h3>
           <p className="text-xs text-[var(--muted)]">จัดหน้าและปรับปรุงเรซูเม่ด้วยพลังแห่ง AI หรือแก้ไขด้วยตัวคุณเองเพื่อพิมพ์เป็นกระดาษ A4/PDF ทันที</p>
         </div>
-        <div className="mt-2 md:mt-0">
+        <div className="mt-2 md:mt-0 flex gap-3">
+          <button
+            onClick={() => setShowPreview(true)}
+            className="flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 bg-[var(--surface2)] hover:bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] rounded-xl hover:scale-[1.02] active:scale-95 cursor-pointer transition-all"
+          >
+            <Eye size={14} />
+            ดูตัวอย่างเรซูเม่
+          </button>
           <button
             onClick={handlePrint}
             className="flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-900/20 hover:scale-[1.02] active:scale-95 cursor-pointer transition-all"
@@ -314,9 +322,9 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
           <p className="text-xs text-[var(--muted)]">กำลังดึงข้อมูลล่าสุดจากโปรไฟล์และ GitHub เพื่อเตรียมเอกสาร...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Column: AI Assistant & Controls & Editor */}
-          <div className="lg:col-span-5 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column: AI Assistant & Template Selector */}
+          <div className="space-y-6">
             
             {/* AI CV Assistant Panel */}
             <div className="bg-indigo-900/10 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
@@ -400,6 +408,38 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
               )}
             </div>
 
+            {/* Template Selector Card */}
+            <div className="bg-[var(--surface2)]/30 border border-[var(--border)] rounded-2xl p-5">
+              <h4 className="text-xs font-bold text-[var(--text)] uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                <Award size={14} className="text-indigo-400" />
+                Select Theme Style (เลือกรูปแบบเทมเพลต)
+              </h4>
+              <div className="grid grid-cols-1 gap-3">
+                {TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => handleTemplateChange(t.id)}
+                    className={`p-3.5 rounded-xl border text-left cursor-pointer transition-all flex items-start gap-3 ${
+                      selectedTemplate === t.id
+                        ? 'border-indigo-500 bg-indigo-500/[0.03] shadow-md'
+                        : 'border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface2)]'
+                    }`}
+                  >
+                    <div className="w-4 h-4 rounded-full border-2 border-indigo-500 flex items-center justify-center shrink-0 mt-0.5">
+                      {selectedTemplate === t.id && <div className="w-2 h-2 bg-indigo-500 rounded-full" />}
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-[var(--text)]">{t.name}</p>
+                      <p className="text-[10px] text-[var(--muted)] mt-0.5">{t.desc}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Manual Editor & Skills */}
+          <div className="space-y-6">
             {/* Manual Resume Editor (Collapsible) */}
             <div className="bg-[var(--surface2)]/30 border border-[var(--border)] rounded-2xl overflow-hidden">
               <button
@@ -572,35 +612,6 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
               )}
             </div>
 
-            {/* Template Selector Card */}
-            <div className="bg-[var(--surface2)]/30 border border-[var(--border)] rounded-2xl p-5">
-              <h4 className="text-xs font-bold text-[var(--text)] uppercase tracking-wider mb-4 flex items-center gap-1.5">
-                <Award size={14} className="text-indigo-400" />
-                Select Theme Style (เลือกรูปแบบเทมเพลต)
-              </h4>
-              <div className="grid grid-cols-1 gap-3">
-                {TEMPLATES.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => handleTemplateChange(t.id)}
-                    className={`p-3.5 rounded-xl border text-left cursor-pointer transition-all flex items-start gap-3 ${
-                      selectedTemplate === t.id
-                        ? 'border-indigo-500 bg-indigo-500/[0.03] shadow-md'
-                        : 'border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface2)]'
-                    }`}
-                  >
-                    <div className="w-4 h-4 rounded-full border-2 border-indigo-500 flex items-center justify-center shrink-0 mt-0.5">
-                      {selectedTemplate === t.id && <div className="w-2 h-2 bg-indigo-500 rounded-full" />}
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-[var(--text)]">{t.name}</p>
-                      <p className="text-[10px] text-[var(--muted)] mt-0.5">{t.desc}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Technical Skills Card */}
             <div className="bg-[var(--surface2)]/30 border border-[var(--border)] rounded-2xl p-5">
               <h4 className="text-xs font-bold text-[var(--text)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
@@ -620,149 +631,177 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
               </div>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Right Column: High-Fidelity Mini A4 Page Preview Mockup */}
-          <div className="lg:col-span-7 flex flex-col items-center">
-            <p className="text-[10px] text-[var(--muted)] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 self-start">
-              <Eye size={12} />
-              Live Resume Mockup (A4 Preview)
-            </p>
-            <div className="w-full aspect-[1/1.414] bg-white border border-slate-300 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden p-8 text-slate-800 flex flex-col justify-between select-none">
-              <div>
-                {/* Header Mockup */}
-                {selectedTemplate === 'bold' ? (
-                  <div className="bg-amber-500 -mx-8 -mt-8 p-5 text-slate-900 mb-5">
-                    <h2 className="text-base font-bold uppercase tracking-wide truncate">{resume.fullName || 'YOUR NAME'}</h2>
-                    <p className="text-[9px] font-semibold opacity-90 truncate">{resume.title}</p>
-                    <p className="text-[7px] opacity-75 mt-1.5">
-                      {[
-                        resume.email, 
-                        resume.phone, 
-                        resume.location,
-                        resume.githubUsername && `github.com/${resume.githubUsername}`,
-                        resume.linkedinUrl && `linkedin.com/in/${resume.linkedinUrl.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, '')}`
-                      ].filter(Boolean).join('  ·  ')}
-                    </p>
-                  </div>
-                ) : selectedTemplate === 'royal' ? (
-                  <div className="bg-[#0f172a] -mx-8 -mt-8 p-5 text-amber-400 mb-5 text-center">
-                    <h2 className="text-base font-bold uppercase tracking-wide truncate">{resume.fullName || 'YOUR NAME'}</h2>
-                    <p className="text-[9px] font-semibold text-slate-300 truncate">{resume.title}</p>
-                    <p className="text-[7px] text-slate-400 mt-1.5">
-                      {[
-                        resume.email, 
-                        resume.phone, 
-                        resume.location,
-                        resume.githubUsername && `github.com/${resume.githubUsername}`,
-                        resume.linkedinUrl && `linkedin.com/in/${resume.linkedinUrl.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, '')}`
-                      ].filter(Boolean).join('  ·  ')}
-                    </p>
-                  </div>
-                ) : (
-                  <div className={`mb-5 pb-3 border-b border-slate-200 ${selectedTemplate === 'classic' ? 'text-center' : 'text-left'}`}>
-                    <h2 className="text-base font-bold uppercase tracking-tight text-slate-900">{resume.fullName || 'YOUR NAME'}</h2>
-                    <p className="text-[9px] text-slate-500 font-medium">{resume.title}</p>
-                    <p className="text-[7px] text-slate-400 mt-1.5">
-                      {[
-                        resume.email, 
-                        resume.phone, 
-                        resume.location,
-                        resume.githubUsername && `github.com/${resume.githubUsername}`,
-                        resume.linkedinUrl && `linkedin.com/in/${resume.linkedinUrl.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, '')}`
-                      ].filter(Boolean).join('  ·  ')}
-                    </p>
-                  </div>
-                )}
-
-                {/* Layout Body Mockup */}
-                <div className="flex gap-5">
-                  {/* Left Column (Sidebar) for Modern layout */}
-                  {selectedTemplate === 'modern' && (
-                    <div className="w-[32%] bg-purple-50 p-2.5 rounded-lg space-y-4 shrink-0 text-left">
-                      <div>
-                        <p className="text-[8px] text-purple-700 font-bold uppercase tracking-wider mb-1.5">Contact</p>
-                        <div className="text-[6px] text-slate-600 space-y-1 font-medium break-all">
-                          {resume.email && <p>✉️ {resume.email}</p>}
-                          {resume.phone && <p>📞 {resume.phone}</p>}
-                          {resume.location && <p>📍 {resume.location}</p>}
-                          {resume.githubUsername && <p>🐙 github.com/{resume.githubUsername}</p>}
-                          {resume.linkedinUrl && <p>💼 {resume.linkedinUrl.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, '')}</p>}
-                        </div>
+      {/* ── 3. Preview Modal (A4 Preview Overlay) ── */}
+      {showPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
+            
+            {/* Modal Header */}
+            <div className="p-5 border-b border-[var(--border)] flex justify-between items-center bg-[var(--surface2)]/40">
+              <div className="flex items-center gap-2">
+                <Eye className="w-5 h-5 text-indigo-400" />
+                <h4 className="font-bold text-sm text-[var(--text)] uppercase tracking-wider">
+                  Live Resume Mockup (A4 Preview)
+                </h4>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handlePrint}
+                  className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg cursor-pointer transition-all shadow-md"
+                >
+                  <Download size={12} />
+                  พิมพ์เอกสาร / PDF
+                </button>
+                <button
+                  onClick={() => setShowPreview(false)}
+                  className="text-slate-400 hover:text-[var(--text)] p-1.5 rounded-lg bg-[var(--surface2)] hover:bg-[var(--surface2)]/80 transition-colors cursor-pointer text-sm font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto flex-1 bg-[var(--surface2)]/15 flex justify-center items-start">
+              <div className="w-full max-w-[500px]">
+                <div className="w-full aspect-[1/1.414] bg-white border border-slate-300 dark:border-slate-800 rounded-2xl shadow-xl overflow-y-auto no-scrollbar p-8 text-slate-800 flex flex-col justify-between select-none">
+                  <div>
+                    {/* Header Mockup */}
+                    {selectedTemplate === 'bold' ? (
+                      <div className="bg-amber-500 -mx-8 -mt-8 p-6 text-slate-900 mb-5">
+                        <h2 className="text-xl font-bold uppercase tracking-wide truncate">{resume.fullName || 'YOUR NAME'}</h2>
+                        <p className="text-xs font-semibold opacity-90 truncate">{resume.title}</p>
+                        <p className="text-[10px] opacity-75 mt-1.5">
+                          {[
+                            resume.email, 
+                            resume.phone, 
+                            resume.location,
+                            resume.githubUsername && `github.com/${resume.githubUsername}`,
+                            resume.linkedinUrl && `linkedin.com/in/${resume.linkedinUrl.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, '')}`
+                          ].filter(Boolean).join('  ·  ')}
+                        </p>
                       </div>
-                      <div>
-                        <p className="text-[8px] text-purple-700 font-bold uppercase tracking-wider mb-1.5">Skills</p>
-                        <div className="space-y-1">
-                          {allSkillNames.slice(0, 8).map(s => (
-                            <p key={s} className="text-[6px] text-slate-600 font-medium">• {s}</p>
-                          ))}
-                        </div>
+                    ) : selectedTemplate === 'royal' ? (
+                      <div className="bg-[#0f172a] -mx-8 -mt-8 p-6 text-amber-400 mb-5 text-center">
+                        <h2 className="text-xl font-bold uppercase tracking-wide truncate">{resume.fullName || 'YOUR NAME'}</h2>
+                        <p className="text-xs font-semibold text-slate-300 truncate">{resume.title}</p>
+                        <p className="text-[10px] text-slate-400 mt-1.5">
+                          {[
+                            resume.email, 
+                            resume.phone, 
+                            resume.location,
+                            resume.githubUsername && `github.com/${resume.githubUsername}`,
+                            resume.linkedinUrl && `linkedin.com/in/${resume.linkedinUrl.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, '')}`
+                          ].filter(Boolean).join('  ·  ')}
+                        </p>
                       </div>
-                    </div>
-                  )}
-
-                  {/* Main Column */}
-                  <div className="flex-1 space-y-4 text-left">
-                    {/* About Me */}
-                    {resume.bio && (
-                      <div>
-                        <h3 className={`text-[8px] font-bold uppercase tracking-wider mb-1.5 ${
-                          selectedTemplate === 'modern' ? 'text-purple-600' : 
-                          selectedTemplate === 'minimal' ? 'text-emerald-600' : 
-                          selectedTemplate === 'royal' ? 'text-[#0f172a] border-b border-amber-500/20 pb-0.5' : 
-                          'text-slate-900'
-                        }`}>About Me</h3>
-                        <p className="text-[7px] text-slate-600 leading-relaxed whitespace-pre-line">{resume.bio}</p>
-                      </div>
-                    )}
-
-                    {/* Projects */}
-                    {resume.projects.length > 0 && (
-                      <div>
-                        <h3 className={`text-[8px] font-bold uppercase tracking-wider mb-1.5 ${
-                          selectedTemplate === 'modern' ? 'text-purple-600' : 
-                          selectedTemplate === 'minimal' ? 'text-emerald-600' : 
-                          selectedTemplate === 'royal' ? 'text-[#0f172a] border-b border-amber-500/20 pb-0.5' : 
-                          'text-slate-900'
-                        }`}>Featured Projects</h3>
-                        <div className="space-y-2">
-                          {resume.projects.slice(0, 3).map((p, pIdx) => (
-                            <div key={pIdx}>
-                              <div className="flex justify-between text-[7px] font-bold text-slate-800">
-                                <span>"{p.name}"</span>
-                                <span className="font-mono text-slate-400 font-normal">{p.date}</span>
-                              </div>
-                              <div className="space-y-0.5 mt-0.5">
-                                {p.details.map((d, dIdx) => (
-                                  <p key={dIdx} className="text-[6px] text-slate-500 leading-relaxed">• {d}</p>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Skills for non-sidebar templates */}
-                    {selectedTemplate !== 'modern' && allSkillNames.length > 0 && (
-                      <div>
-                        <h3 className={`text-[8px] font-bold uppercase tracking-wider mb-1.5 ${
-                          selectedTemplate === 'minimal' ? 'text-emerald-600' : 
-                          selectedTemplate === 'royal' ? 'text-[#0f172a] border-b border-amber-500/20 pb-0.5' : 
-                          'text-slate-900'
-                        }`}>Technical Skills</h3>
-                        <p className="text-[7px] text-slate-600 leading-relaxed">
-                          {allSkillNames.map(s => `• ${s}`).join('   ')}
+                    ) : (
+                      <div className={`mb-5 pb-3 border-b border-slate-200 ${selectedTemplate === 'classic' ? 'text-center' : 'text-left'}`}>
+                        <h2 className="text-xl font-bold uppercase tracking-tight text-slate-900">{resume.fullName || 'YOUR NAME'}</h2>
+                        <p className="text-xs text-slate-500 font-medium">{resume.title}</p>
+                        <p className="text-[10px] text-slate-400 mt-1.5">
+                          {[
+                            resume.email, 
+                            resume.phone, 
+                            resume.location,
+                            resume.githubUsername && `github.com/${resume.githubUsername}`,
+                            resume.linkedinUrl && `linkedin.com/in/${resume.linkedinUrl.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, '')}`
+                          ].filter(Boolean).join('  ·  ')}
                         </p>
                       </div>
                     )}
+
+                    {/* Layout Body Mockup */}
+                    <div className="flex gap-5">
+                      {/* Left Column (Sidebar) for Modern layout */}
+                      {selectedTemplate === 'modern' && (
+                        <div className="w-[32%] bg-purple-50 p-2.5 rounded-lg space-y-4 shrink-0 text-left">
+                          <div>
+                            <p className="text-[10px] text-purple-700 font-bold uppercase tracking-wider mb-1.5">Contact</p>
+                            <div className="text-[8px] text-slate-600 space-y-1 font-medium break-all">
+                              {resume.email && <p>✉️ {resume.email}</p>}
+                              {resume.phone && <p>📞 {resume.phone}</p>}
+                              {resume.location && <p>📍 {resume.location}</p>}
+                              {resume.githubUsername && <p>🐙 github.com/{resume.githubUsername}</p>}
+                              {resume.linkedinUrl && <p>💼 {resume.linkedinUrl.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, '')}</p>}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-purple-700 font-bold uppercase tracking-wider mb-1.5">Skills</p>
+                            <div className="space-y-1">
+                              {allSkillNames.slice(0, 8).map(s => (
+                                <p key={s} className="text-[10px] text-slate-600 font-medium">• {s}</p>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Main Column */}
+                      <div className="flex-1 space-y-4 text-left">
+                        {/* About Me */}
+                        {resume.bio && (
+                          <div>
+                            <h3 className={`text-[10px] font-bold uppercase tracking-wider mb-1.5 ${selectedTemplate === 'modern' ? 'text-purple-600' :
+                              selectedTemplate === 'minimal' ? 'text-emerald-600' :
+                                selectedTemplate === 'royal' ? 'text-[#0f172a] border-b border-amber-500/20 pb-0.5' :
+                                  'text-slate-900'
+                            }`}>About Me</h3>
+                            <p className="text-[10px] text-slate-600 leading-relaxed whitespace-pre-line">{resume.bio}</p>
+                          </div>
+                        )}
+
+                        {/* Projects */}
+                        {resume.projects.length > 0 && (
+                          <div>
+                            <h3 className={`text-[10px] font-bold uppercase tracking-wider mb-1.5 ${selectedTemplate === 'modern' ? 'text-purple-600' :
+                              selectedTemplate === 'minimal' ? 'text-emerald-600' :
+                                selectedTemplate === 'royal' ? 'text-[#0f172a] border-b border-amber-500/20 pb-0.5' :
+                                  'text-slate-900'
+                            }`}>Featured Projects</h3>
+                            <div className="space-y-2">
+                              {resume.projects.slice(0, 3).map((p, pIdx) => (
+                                <div key={pIdx}>
+                                  <div className="flex justify-between text-[10px] font-bold text-slate-800">
+                                    <span>"{p.name}"</span>
+                                    <span className="font-mono text-slate-400 font-normal">{p.date}</span>
+                                  </div>
+                                  <div className="space-y-0.5 mt-0.5">
+                                    {p.details.map((d, dIdx) => (
+                                      <p key={dIdx} className="text-[9px] text-slate-500 leading-relaxed">• {d}</p>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Skills for non-sidebar templates */}
+                        {selectedTemplate !== 'modern' && allSkillNames.length > 0 && (
+                          <div>
+                            <h3 className={`text-[10px] font-bold uppercase tracking-wider mb-1.5 ${selectedTemplate === 'minimal' ? 'text-emerald-600' :
+                              selectedTemplate === 'royal' ? 'text-[#0f172a] border-b border-amber-500/20 pb-0.5' :
+                                'text-slate-900'
+                            }`}>Technical Skills</h3>
+                            <p className="text-[10px] text-slate-600 leading-relaxed">
+                              {allSkillNames.map(s => `• ${s}`).join('   ')}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Footer Mockup */}
+                  <p className="text-[9px] text-slate-400 text-center border-t border-slate-100 pt-2">
+                    Skill Wallet Resume · Dynamic Verification
+                  </p>
                 </div>
               </div>
-
-              {/* Footer Mockup */}
-              <p className="text-[6px] text-slate-400 text-center border-t border-slate-100 pt-2">
-                Skill Wallet Resume · Dynamic Verification
-              </p>
             </div>
           </div>
         </div>
