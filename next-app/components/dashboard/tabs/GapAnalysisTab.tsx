@@ -29,9 +29,12 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
   const [animateIn, setAnimateIn] = useState(false)
 
   useEffect(() => {
-    setAnimateIn(false)
-    const t = setTimeout(() => setAnimateIn(true), 50)
-    return () => clearTimeout(t)
+    const t1 = setTimeout(() => setAnimateIn(false), 0)
+    const t2 = setTimeout(() => setAnimateIn(true), 50)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
   }, [targetRole, activeFilter, searchQuery])
 
   // Calculate mySkills object

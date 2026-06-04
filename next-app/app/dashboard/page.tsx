@@ -119,9 +119,12 @@ export default function DashboardPage() {
       const newest = visibleNotifs[0];
       if (newest && newest.id !== prevNewestIdRef.current) {
         prevNewestIdRef.current = newest.id;
-        setActiveToast(newest);
-        const timer = setTimeout(() => setActiveToast(null), 6000);
-        return () => clearTimeout(timer);
+        const timer = setTimeout(() => setActiveToast(newest), 0);
+        const dismissTimer = setTimeout(() => setActiveToast(null), 6000);
+        return () => {
+          clearTimeout(timer);
+          clearTimeout(dismissTimer);
+        };
       }
     }
     prevNotificationsLength.current = visibleNotifs.length;
@@ -131,8 +134,11 @@ export default function DashboardPage() {
   useEffect(() => {
     const redirectTab = localStorage.getItem('activeDashboardTab');
     if (redirectTab) {
-      setActiveTab(redirectTab);
-      localStorage.removeItem('activeDashboardTab');
+      const t = setTimeout(() => {
+        setActiveTab(redirectTab);
+        localStorage.removeItem('activeDashboardTab');
+      }, 0);
+      return () => clearTimeout(t);
     }
   }, []);
 
@@ -231,7 +237,7 @@ export default function DashboardPage() {
                       </div>
 
                       {profile?.github?.login ? (
-                        <div className="w-full overflow-x-auto mb-6 flex justify-center py-2 no-scrollbar">
+                        <div className="w-full overflow-x-auto mb-6 flex justify-start lg:justify-center py-2 no-scrollbar">
                           <GitHubCalendar
                             username={profile.github.login}
                             blockSize={9}
@@ -293,7 +299,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Right Column: Tabs */}
-              <div className="lg:col-span-7 space flex flex-col h-full">
+              <div className="lg:col-span-8 flex flex-col h-full min-w-0">
                 <div className="flex justify-between items-center border-b border-slate-200/50">
                   <div className="flex gap-6 overflow-x-auto no-scrollbar">
                     {TABS.map((tab) => (

@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { getSkillLogoUrl } from '@/lib/utils/skill-logo'
 import { getCurrentLevel } from '@/lib/utils/level'
@@ -16,7 +17,12 @@ interface SkillBadgeModalProps {
  */
 export default function SkillBadgeModal({ skill, onClose, onUpgrade }: SkillBadgeModalProps) {
   const currentLvl = getCurrentLevel(skill.quizScore, skill.endorsementScore)
-  const credId = `skw-${String(skill.id).replace(/[^a-z0-9]/gi, '').substring(0, 8) || Math.random().toString(36).substring(2, 10)}`
+  const credId = useMemo(() => {
+    const cleanedId = String(skill.id).replace(/[^a-z0-9]/gi, '').substring(0, 8)
+    if (cleanedId) return `skw-${cleanedId}`
+    const cleanedName = String(skill.name).toLowerCase().replace(/[^a-z0-9]/gi, '').substring(0, 8)
+    return `skw-${cleanedName || 'unknown'}`
+  }, [skill.id, skill.name])
 
   // สไตล์สำหรับแต่ละระดับเลเวล (Beginner, Junior, Mid, Senior) เพื่อความพรีเมียม (ไม่มี Glow Effect)
   const LEVEL_STYLES = {

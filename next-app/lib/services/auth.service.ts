@@ -18,6 +18,11 @@ const githubProvider = new GithubAuthProvider()
 githubProvider.addScope('read:user')
 githubProvider.addScope('user:email')
 
+// Force GitHub to prompt for consent/re-authorization during presentation/demo
+githubProvider.setCustomParameters({
+  prompt: 'consent'
+})
+
 /**
  * Convert Firebase User to App User type
  */

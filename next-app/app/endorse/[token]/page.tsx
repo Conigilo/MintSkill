@@ -115,7 +115,7 @@ export default function EndorsePage() {
         ) : success ? (
           <div className="text-center p-12 bg-white dark:bg-[#161b22] rounded-3xl border border-green-500/30">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Endorsement Sent!</h2>
-            <p className="text-slate-500 dark:text-[#8b949e] mb-8 text-sm">Thank you for validating your colleague's skills. They will earn 6 points towards their skill verification badge.</p>
+            <p className="text-slate-500 dark:text-[#8b949e] mb-8 text-sm">{"Thank you for validating your colleague's skills. They will earn 6 points towards their skill verification badge."}</p>
             <button
               onClick={() => router.push("/dashboard")}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold cursor-pointer"

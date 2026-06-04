@@ -17,22 +17,20 @@ export default function NotificationBell({
   onRefresh,
 }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [dismissedIds, setDismissedIds] = useState<string[]>([])
-  const [selectedFeedback, setSelectedFeedback] = useState<any | null>(null)
-  const [selectedApproveRequest, setSelectedApproveRequest] = useState<any | null>(null)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-
-  // Load dismissed notifications from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('dismissed_notifications')
-    if (saved) {
+  const [dismissedIds, setDismissedIds] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
       try {
-        setDismissedIds(JSON.parse(saved))
+        const saved = localStorage.getItem('dismissed_notifications')
+        return saved ? JSON.parse(saved) : []
       } catch (e) {
         console.error('Error parsing dismissed notifications', e)
       }
     }
-  }, [])
+    return []
+  })
+  const [selectedFeedback, setSelectedFeedback] = useState<any | null>(null)
+  const [selectedApproveRequest, setSelectedApproveRequest] = useState<any | null>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Close dropdown on click outside
   useEffect(() => {

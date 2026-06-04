@@ -170,7 +170,7 @@ export default function SidebarLayout({
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto h-screen md:pt-0 pt-16">
+      <main className="flex-1 min-w-0 overflow-y-auto h-screen md:pt-0 pt-16">
         {children}
       </main>
     </div>

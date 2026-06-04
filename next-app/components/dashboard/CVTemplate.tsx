@@ -8,14 +8,28 @@ interface CVTemplateProps {
 }
 
 export default function CVTemplate({ user, skills }: CVTemplateProps) {
-    const [resumeData, setResumeData] = useState<any>(null);
+    const [resumeData, setResumeData] = useState<any>(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const savedData = localStorage.getItem('skill-wallet-resume');
+                return savedData ? JSON.parse(savedData).resume : null;
+            } catch (e) {
+                console.error("Error loading resume data:", e);
+            }
+        }
+        return null;
+    });
 
-    // 1. ดึงข้อมูลจาก LocalStorage ทุกครั้งที่เริ่มการเรนเดอร์ (Mount)
+    // 1. ดึงข้อมูลจาก LocalStorage เมื่อ user?.uid เปลี่ยนแปลง
     useEffect(() => {
         try {
             const savedData = localStorage.getItem('skill-wallet-resume');
             if (savedData) {
-                setResumeData(JSON.parse(savedData).resume);
+                const resume = JSON.parse(savedData).resume;
+                setResumeData((prev: any) => {
+                    if (JSON.stringify(prev) === JSON.stringify(resume)) return prev;
+                    return resume;
+                });
             }
         } catch (e) {
             console.error("Error loading resume data:", e);
@@ -65,7 +79,7 @@ export default function CVTemplate({ user, skills }: CVTemplateProps) {
                     {projects.map((proj: any, index: number) => (
                         <div key={index} className="mb-4">
                             <div className="flex justify-between items-baseline">
-                                <h3 className="font-bold">"{proj.name || 'Project Name'}"</h3>
+                                <h3 className="font-bold">{`"${proj.name || 'Project Name'}"`}</h3>
                                 <span className="text-sm font-mono text-gray-500">{proj.date}</span>
                             </div>
                             {proj.details && proj.details.length > 0 && (

@@ -26,7 +26,7 @@ export default function ProfileView({ username, initialPortfolio }: ProfileViewP
     // Always try client-side fetch if we don't have portfolio data
     // This handles cases where SSR fails (e.g., server can't reach backend)
     if (portfolio?.profile) {
-      setIsLoading(false);
+      if (isLoading) setIsLoading(false);
       return;
     }
     if (!username) return;
@@ -60,7 +60,7 @@ export default function ProfileView({ username, initialPortfolio }: ProfileViewP
       <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center text-slate-900 px-4 text-center">
         <div className="text-6xl mb-6">🔍</div>
         <h2 className="text-2xl font-bold mb-2">Profile not found</h2>
-        <p className="text-slate-500 mb-8 max-w-md">We couldn't find the developer you're looking for. They might have changed their username or the link is incorrect.</p>
+        <p className="text-slate-500 mb-8 max-w-md">{"We couldn't find the developer you're looking for. They might have changed their username or the link is incorrect."}</p>
         <button 
           onClick={() => router.push("/explore")} 
           className="bg-slate-100 hover:bg-slate-200 text-slate-900 px-6 py-3 rounded-xl transition-all border border-slate-300 cursor-pointer"

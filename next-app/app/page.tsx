@@ -94,7 +94,7 @@ export default function LandingPage() {
                                 <button
                                     onClick={handleGitHubLogin}
                                     disabled={isGithubLoading}
-                                    className="px-8 py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-3 disabled:opacity-50"
+                                    className="px-8 py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-3 disabled:opacity-50 shadow-md shadow-blue-650/20"
                                 >
                                     {isGithubLoading ? (
                                         <span>Loading...</span>

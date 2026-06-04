@@ -471,7 +471,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
 
           {/* ─── Step 1: Template Selection ─── */}
           {currentStep === 'template' && (
-            <div className="space-y-6 animate-in fade-in duration-300 flex-1 overflow-y-auto max-h-[calc(100vh-220px)] pr-2">
+            <div className="space-y-6 animate-in fade-in duration-300 flex-1 overflow-y-auto max-h-[calc(100vh-220px)] px-3">
               <div>
                 <h3 className="text-lg font-bold text-[var(--text)] flex items-center gap-2 mb-2">
                   <Layout className="w-5 h-5 text-indigo-500" />
@@ -480,130 +480,101 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
                 <p className="text-xs text-[var(--muted)]">เลือกสไตล์ที่ชอบใจมากที่สุด</p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                {/* Left Column: Templates + AI */}
-                <div className="lg:col-span-2 space-y-6">
-                  {/* Template Grid */}
-                  <div>
-                    <div className="grid grid-cols-3 gap-4">
-                      {TEMPLATES.map((t) => (
-                        <button
-                          key={t.id}
-                          onClick={() => {
-                            setSelectedTemplate(t.id)
-                            localStorage.setItem('skill-wallet-resume', JSON.stringify({ resume, template: t.id, refinementsSummary }))
-                          }}
-                          className={`relative group overflow-hidden rounded-2xl border-2 transition-all duration-300 p-4 text-left hover:scale-105 ${
-                            selectedTemplate === t.id
-                              ? 'border-indigo-500 bg-indigo-500/[0.08] shadow-lg shadow-indigo-500/20'
-                              : 'border-[var(--border)] bg-[var(--surface2)]/50 hover:border-indigo-500/50'
-                          }`}
-                        >
-                          {selectedTemplate === t.id && (
-                            <div className="absolute top-2 right-2 bg-indigo-600 rounded-full p-1">
-                              <Check className="w-4 h-4 text-white" />
-                            </div>
-                          )}
-                          
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="text-sm font-bold text-[var(--text)]">{t.name}</h4>
-                            <div 
-                              className="w-3 h-3 rounded-full border border-white/20" 
-                              style={{ backgroundColor: t.accent }}
-                            />
-                          </div>
-                          <p className="text-xs text-[var(--muted)] line-clamp-2">{t.desc}</p>
-
-                          {/* Accent Color Indicator */}
-                          <div className="mt-3 h-1 rounded-full" style={{ backgroundColor: t.accent, opacity: 0.3 }} />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* AI Assistant Section */}
-                  <div className="bg-gradient-to-br from-indigo-950/20 to-purple-950/10 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-indigo-400" />
-                        <h4 className="text-sm font-bold text-[var(--text)]">AI Template Assistant</h4>
+              {/* Template Grid - Full Width */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                {TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => {
+                      setSelectedTemplate(t.id)
+                      localStorage.setItem('skill-wallet-resume', JSON.stringify({ resume, template: t.id, refinementsSummary }))
+                    }}
+                    className={`relative group overflow-hidden rounded-2xl border-2 transition-all duration-300 p-4 text-left hover:scale-105 ${
+                      selectedTemplate === t.id
+                        ? 'border-indigo-500 bg-indigo-500/[0.08] shadow-lg shadow-indigo-500/20'
+                        : 'border-[var(--border)] bg-[var(--surface2)]/50 hover:border-indigo-500/50'
+                    }`}
+                  >
+                    {selectedTemplate === t.id && (
+                      <div className="absolute top-2 right-2 bg-indigo-600 rounded-full p-1">
+                        <Check className="w-4 h-4 text-white" />
                       </div>
-                      
-                      <textarea
-                        value={aiPrompt}
-                        onChange={(e) => setAiPrompt(e.target.value)}
-                        placeholder="บอก AI ว่าคุณต้องการอะไร เช่น 'ปรับแต่งให้เหมาะกับงาน Frontend Developer'"
-                        className="w-full h-20 bg-[var(--surface)] border border-[var(--border)] rounded-xl p-3 text-xs text-[var(--text)] outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 resize-none"
-                        disabled={isAIArranging}
+                    )}
+                    
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-bold text-[var(--text)]">{t.name}</h4>
+                      <div 
+                        className="w-3 h-3 rounded-full border border-white/20" 
+                        style={{ backgroundColor: t.accent }}
                       />
-
-                      {aiError && (
-                        <p className="text-xs text-red-400 bg-red-900/15 border border-red-500/10 p-2.5 rounded-lg">
-                          {aiError}
-                        </p>
-                      )}
-
-                      <button
-                        onClick={handleAIArrange}
-                        disabled={isAIArranging || !aiPrompt.trim()}
-                        className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                          isAIArranging
-                            ? 'bg-slate-800 text-slate-400 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white cursor-pointer active:scale-95'
-                        }`}
-                      >
-                        {isAIArranging ? (
-                          <>
-                            <RefreshCw className="w-4 h-4 animate-spin" />
-                            ให้ AI จัดแต่ง...
-                          </>
-                        ) : (
-                          <>
-                            <Wand2 className="w-4 h-4" />
-                            ให้ AI ช่วยจัดแต่ง
-                          </>
-                        )}
-                      </button>
-
-                      {refinementsSummary.length > 0 && (
-                        <div className="bg-emerald-900/15 border border-emerald-500/20 rounded-lg p-3 space-y-1.5">
-                          <p className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                            <CheckCircle2 className="w-4 h-4 shrink-0" />
-                            ปรับแต่งแล้ว:
-                          </p>
-                          <ul className="text-[11px] text-[var(--muted)] space-y-1">
-                            {refinementsSummary.map((item, idx) => (
-                              <li key={idx} className="flex gap-2 items-start">
-                                <span className="text-emerald-400 shrink-0">✓</span>
-                                <span>{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
                     </div>
+                    <p className="text-xs text-[var(--muted)] line-clamp-2">{t.desc}</p>
+
+                    {/* Accent Color Indicator */}
+                    <div className="mt-3 h-1 rounded-full" style={{ backgroundColor: t.accent, opacity: 0.3 }} />
+                  </button>
+                ))}
+              </div>
+
+              {/* AI Assistant Section - Full Width */}
+              <div className="bg-gradient-to-br from-indigo-950/20 to-purple-950/10 border border-indigo-500/20 rounded-2xl p-5 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-indigo-400" />
+                  <h4 className="text-sm font-bold text-[var(--text)]">AI Template Assistant</h4>
                 </div>
+                
+                <textarea
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  placeholder="บอก AI ว่าคุณต้องการอะไร เช่น 'ปรับแต่งให้เหมาะกับงาน Frontend Developer'"
+                  className="w-full h-20 bg-[var(--surface)] border border-[var(--border)] rounded-xl p-3 text-xs text-[var(--text)] outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 resize-none"
+                  disabled={isAIArranging}
+                />
 
-                {/* Right Column: Live Preview */}
-                <div className="sticky top-20">
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-xs font-bold text-[var(--text)] uppercase tracking-wide flex items-center gap-2">
-                      <Eye className="w-4 h-4 text-indigo-400" />
-                      Live Preview
-                    </p>
-                    <span className="text-[10px] px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 font-semibold border border-indigo-500/20">
-                      {TEMPLATES.find(t => t.id === selectedTemplate)?.name}
-                    </span>
-                  </div>
-
-                  {/* Preview Card */}
-                  <div className="bg-slate-900/20 border border-[var(--border)] rounded-2xl p-4 flex justify-center">
-                    <LivePreviewCard selectedTemplate={selectedTemplate} resume={resume} selectedSkills={selectedSkills} />
-                  </div>
-
-                  <p className="text-[10px] text-[var(--muted)] mt-3 text-center italic">
-                    สไตล์ {TEMPLATES.find(t => t.id === selectedTemplate)?.name} - {TEMPLATES.find(t => t.id === selectedTemplate)?.desc}
+                {aiError && (
+                  <p className="text-xs text-red-400 bg-red-900/15 border border-red-500/10 p-2.5 rounded-lg">
+                    {aiError}
                   </p>
-                </div>
+                )}
+
+                <button
+                  onClick={handleAIArrange}
+                  disabled={isAIArranging || !aiPrompt.trim()}
+                  className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                    isAIArranging
+                      ? 'bg-slate-800 text-slate-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white cursor-pointer active:scale-95'
+                  }`}
+                >
+                  {isAIArranging ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      ให้ AI จัดแต่ง...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="w-4 h-4" />
+                      ให้ AI ช่วยจัดแต่ง
+                    </>
+                  )}
+                </button>
+
+                {refinementsSummary.length > 0 && (
+                  <div className="bg-emerald-900/15 border border-emerald-500/20 rounded-lg p-3 space-y-1.5">
+                    <p className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      ปรับแต่งแล้ว:
+                    </p>
+                    <ul className="text-[11px] text-[var(--muted)] space-y-1">
+                      {refinementsSummary.map((item, idx) => (
+                        <li key={idx} className="flex gap-2 items-start">
+                          <span className="text-emerald-400 shrink-0">✓</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
 
               {/* Next Button */}
@@ -619,7 +590,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
 
           {/* ─── Step 2: Details Editor ─── */}
           {currentStep === 'details' && (
-            <div className="space-y-6 animate-in fade-in duration-300 flex-1 overflow-y-auto max-h-[calc(100vh-220px)] pr-2">
+            <div className="space-y-6 animate-in fade-in duration-300 flex-1 overflow-y-auto max-h-[calc(100vh-220px)] px-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border)]/50 pb-4">
                 <div>
                   <h3 className="text-lg font-bold text-[var(--text)] flex items-center gap-2 mb-1">
@@ -915,7 +886,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
 
           {/* ─── Step 3: Preview ─── */}
           {currentStep === 'preview' && (
-            <div className="space-y-6 animate-in fade-in duration-300 flex-1 overflow-y-auto max-h-[calc(100vh-220px)] pr-2">
+            <div className="space-y-6 animate-in fade-in duration-300 flex-1 overflow-y-auto max-h-[calc(100vh-220px)] px-3">
               <div>
                 <h3 className="text-lg font-bold text-[var(--text)] flex items-center gap-2 mb-2">
                   <Eye className="w-5 h-5 text-indigo-500" />
@@ -959,7 +930,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
 
           {/* ─── Step 4: Export Options ─── */}
           {currentStep === 'export' && (
-            <div className="space-y-6 animate-in fade-in duration-300 flex-1 overflow-y-auto max-h-[calc(100vh-220px)] pr-2">
+            <div className="space-y-6 animate-in fade-in duration-300 flex-1 overflow-y-auto max-h-[calc(100vh-220px)] px-3">
               <div>
                 <h3 className="text-lg font-bold text-[var(--text)] flex items-center gap-2 mb-2">
                   <Download className="w-5 h-5 text-indigo-500" />
@@ -1079,9 +1050,9 @@ function generateResumeHtml(
 
   const head = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${r.fullName || 'Resume'}</title>
 <style>
-  @page { margin: 15mm; size: A4; }
+  @page { margin: 0; size: A4; }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: system-ui, -apple-system, sans-serif; font-size: 12px; color: #1a1a1a; line-height: 1.5; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { font-family: system-ui, -apple-system, sans-serif; font-size: 12px; color: #1a1a1a; line-height: 1.5; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background: #ffffff; }
   h1 { font-size: 28px; }
   h2 { font-size: 15px; margin-top: 18px; margin-bottom: 8px; }
   ul { padding-left: 18px; }
@@ -1095,52 +1066,57 @@ function generateResumeHtml(
     const accent = templateId === 'classic' ? '#000' : '#10b981'
     const headingStyle = `font-weight:700;border-bottom:2px solid ${accent};padding-bottom:4px;`
     return `${head}
-<div style="max-width:21cm;margin:0 auto;padding:20px 0;">
-  <div style="text-align:center;margin-bottom:16px;">
-    <h1 style="font-weight:900;margin-bottom:4px;">${r.fullName || r.username}</h1>
-    <p style="font-size:11px;color:#555;font-weight:500;margin-bottom:2px;">${r.title}</p>
-    ${contactLine ? `<p style="font-size:11px;color:#555;">${contactLine}</p>` : ''}
+<div style="width:21cm;min-height:29.7cm;margin:0 auto;padding:20mm 15mm;background:white;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="text-align:center;margin-bottom:16px;">
+      <h1 style="font-weight:900;margin-bottom:4px;">${r.fullName || r.username}</h1>
+      <p style="font-size:11px;color:#555;font-weight:500;margin-bottom:2px;">${r.title}</p>
+      ${contactLine ? `<p style="font-size:11px;color:#555;">${contactLine}</p>` : ''}
+    </div>
+    ${r.bio ? `
+      <h2 style="${headingStyle}">About Me</h2>
+      <div style="margin-bottom:12px;font-size:11px;white-space:pre-line;">${r.bio}</div>
+    ` : ''}
+    ${projHtml ? `<h2 style="${headingStyle}">Featured Projects</h2>${projHtml}` : ''}
+    <h2 style="${headingStyle}">Technical Skills</h2>
+    <div style="margin-bottom:12px;">${skillsHtml}</div>
   </div>
-  ${r.bio ? `
-    <h2 style="${headingStyle}">About Me</h2>
-    <div style="margin-bottom:12px;font-size:11px;white-space:pre-line;">${r.bio}</div>
-  ` : ''}
-  ${projHtml ? `<h2 style="${headingStyle}">Featured Projects</h2>${projHtml}` : ''}
-  <h2 style="${headingStyle}">Technical Skills</h2>
-  <div style="margin-bottom:12px;">${skillsHtml}</div>
-  <p style="font-size:9px;color:#aaa;margin-top:40px;text-align:center;">Generated from Skill Wallet · ${now}</p>
+  <p style="font-size:9px;color:#aaa;margin-top:20px;text-align:center;">Generated from Skill Wallet · ${now}</p>
 </div>${end}`
   }
 
   // ── Modern template ──
   if (templateId === 'modern') {
     return `${head}
-<div style="display:flex;min-height:29.7cm;max-width:21cm;margin:0 auto;">
-  <div style="width:35%;background:#8b5cf6;color:white;padding:32px 20px;">
-    <div style="width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;margin-bottom:16px;">${(r.fullName || 'U')[0].toUpperCase()}</div>
-    <h1 style="font-size:18px;color:white;margin-bottom:2px;">${r.fullName || r.username}</h1>
-    <p style="font-size:11px;opacity:0.8;margin-bottom:12px;">${r.title}</p>
-    
-    <div style="font-size:10px;opacity:0.85;margin-bottom:20px;line-height:1.6;">
-      ${r.email ? `<p>✉️ ${r.email}</p>` : ''}
-      ${r.phone ? `<p>📞 ${r.phone}</p>` : ''}
-      ${r.location ? `<p>📍 ${r.location}</p>` : ''}
-      ${r.githubUsername ? `<p>🐙 github.com/${r.githubUsername}</p>` : ''}
-      ${r.linkedinUrl ? `<p>💼 ${r.linkedinUrl.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, '')}</p>` : ''}
-    </div>
+<div style="display:flex;width:21cm;min-height:29.7cm;margin:0 auto;background:white;box-sizing:border-box;">
+  <div style="width:35%;background:#8b5cf6;color:white;padding:20mm 12mm;display:flex;flex-direction:column;justify-content:space-between;">
+    <div>
+      <div style="width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;margin-bottom:16px;">${(r.fullName || 'U')[0].toUpperCase()}</div>
+      <h1 style="font-size:18px;color:white;margin-bottom:2px;">${r.fullName || r.username}</h1>
+      <p style="font-size:11px;opacity:0.8;margin-bottom:12px;">${r.title}</p>
+      
+      <div style="font-size:10px;opacity:0.85;margin-bottom:20px;line-height:1.6;">
+        ${r.email ? `<p style="word-break:break-all;">✉️ ${r.email}</p>` : ''}
+        ${r.phone ? `<p>📞 ${r.phone}</p>` : ''}
+        ${r.location ? `<p>📍 ${r.location}</p>` : ''}
+        ${r.githubUsername ? `<p style="word-break:break-all;">🐙 github.com/${r.githubUsername}</p>` : ''}
+        ${r.linkedinUrl ? `<p style="word-break:break-all;">💼 ${r.linkedinUrl.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, '')}</p>` : ''}
+      </div>
 
-    <h3 style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;border-bottom:1px solid rgba(255,255,255,0.3);padding-bottom:4px;margin:20px 0 8px;">Skills</h3>
-    ${allSkills.map(s => `<p style="font-size:11px;margin-bottom:3px;">• ${s}</p>`).join('')}
+      <h3 style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;border-bottom:1px solid rgba(255,255,255,0.3);padding-bottom:4px;margin:20px 0 8px;">Skills</h3>
+      ${allSkills.map(s => `<p style="font-size:11px;margin-bottom:3px;">• ${s}</p>`).join('')}
+    </div>
+    <p style="font-size:9px;opacity:0.5;margin-top:20px;">Skill Wallet</p>
   </div>
-  <div style="flex:1;padding:32px 28px;">
-    ${r.bio ? `
-      <h2 style="color:#8b5cf6;border-bottom:2px solid #8b5cf6;padding-bottom:4px;margin-top:14px;margin-bottom:6px;">About Me</h2>
-      <div style="font-size:11px;color:#333;margin-bottom:12px;white-space:pre-line;line-height:1.6;">${r.bio}</div>
-    ` : ''}
-    ${projHtml ? `<h2 style="color:#8b5cf6;border-bottom:2px solid #8b5cf6;padding-top:14px;margin-top:14px;">Featured Projects</h2>${projHtml}` : ''}
-    <h2 style="color:#8b5cf6;border-bottom:2px solid #8b5cf6;padding-top:14px;margin-top:14px;">Technical Skills</h2>
-    <div style="margin-bottom:12px;font-size:11px;color:#333;">${skillsHtml}</div>
-    <p style="font-size:9px;color:#aaa;margin-top:40px;">Skill Wallet · ${now}</p>
+  <div style="flex:1;padding:20mm 15mm;display:flex;flex-direction:column;justify-content:space-between;color:#334155;">
+    <div>
+      ${r.bio ? `
+        <h2 style="color:#8b5cf6;border-bottom:2px solid #8b5cf6;padding-bottom:4px;margin-bottom:10px;font-size:14px;font-weight:700;text-transform:uppercase;">About Me</h2>
+        <div style="font-size:11px;color:#475569;margin-bottom:16px;white-space:pre-line;line-height:1.6;">${r.bio}</div>
+      ` : ''}
+      ${projHtml ? `<h2 style="color:#8b5cf6;border-bottom:2px solid #8b5cf6;padding-bottom:4px;margin-bottom:10px;font-size:14px;font-weight:700;text-transform:uppercase;">Featured Projects</h2>${projHtml}` : ''}
+    </div>
+    <p style="font-size:9px;color:#aaa;margin-top:20px;text-align:right;">Generated on ${now}</p>
   </div>
 </div>${end}`
   }
@@ -1148,58 +1124,62 @@ function generateResumeHtml(
   // ── Bold Charcoal & Gold template ──
   if (templateId === 'bold') {
     return `${head}
-<div style="max-width:21cm;margin:0 auto;border:1px solid #e5e7eb;min-height:29.7cm;background:#ffffff;display:flex;flex-direction:column;box-shadow:0 4px 6px rgba(0,0,0,0.05);">
-  <div style="background:#1e293b;color:#ffffff;padding:32px 24px;border-bottom:5px solid #d97706;">
-    <h1 style="font-weight:900;font-size:26px;color:#f59e0b;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">${r.fullName || r.username}</h1>
-    <p style="font-size:12px;color:#e2e8f0;font-weight:500;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase;">${r.title}</p>
-    ${contactLine ? `<p style="font-size:10px;color:#cbd5e1;letter-spacing:0.3px;">${contactLine}</p>` : ''}
+<div style="width:21cm;min-height:29.7cm;margin:0 auto;background:#ffffff;display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box;color:#334155;">
+  <div>
+    <div style="background:#1e293b;color:#ffffff;padding:20mm 20mm 12mm;border-bottom:5px solid #d97706;">
+      <h1 style="font-weight:900;font-size:26px;color:#f59e0b;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">${r.fullName || r.username}</h1>
+      <p style="font-size:12px;color:#e2e8f0;font-weight:500;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase;">${r.title}</p>
+      ${contactLine ? `<p style="font-size:10px;color:#cbd5e1;letter-spacing:0.3px;">${contactLine}</p>` : ''}
+    </div>
+    <div style="padding:12mm 20mm;">
+      ${r.bio ? `
+        <h2 style="font-weight:700;color:#1e293b;border-left:4px solid #d97706;padding-left:8px;margin-bottom:10px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">About Me</h2>
+        <div style="margin-bottom:20px;font-size:11px;white-space:pre-line;color:#475569;line-height:1.6;">${r.bio}</div>
+      ` : ''}
+      ${projHtml ? `
+        <h2 style="font-weight:700;color:#1e293b;border-left:4px solid #d97706;padding-left:8px;margin-bottom:10px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">Featured Projects</h2>
+        ${projHtml}
+      ` : ''}
+      <h2 style="font-weight:700;color:#1e293b;border-left:4px solid #d97706;padding-left:8px;margin-bottom:10px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">Technical Skills</h2>
+      <div style="margin-bottom:20px;font-size:11px;color:#475569;line-height:1.6;">${skillsHtml}</div>
+    </div>
   </div>
-  <div style="padding:28px 24px;flex-grow:1;">
-    ${r.bio ? `
-      <h2 style="font-weight:700;color:#1e293b;border-left:4px solid #d97706;padding-left:8px;margin-bottom:10px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">About Me</h2>
-      <div style="margin-bottom:20px;font-size:11px;white-space:pre-line;color:#334155;line-height:1.6;">${r.bio}</div>
-    ` : ''}
-    ${projHtml ? `
-      <h2 style="font-weight:700;color:#1e293b;border-left:4px solid #d97706;padding-left:8px;margin-bottom:10px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">Featured Projects</h2>
-      ${projHtml}
-    ` : ''}
-    <h2 style="font-weight:700;color:#1e293b;border-left:4px solid #d97706;padding-left:8px;margin-bottom:10px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">Technical Skills</h2>
-    <div style="margin-bottom:20px;font-size:11px;color:#334155;line-height:1.6;">${skillsHtml}</div>
-  </div>
-  <p style="font-size:9px;color:#9ca3af;padding:16px;text-align:center;border-top:1px solid #f3f4f6;margin-top:auto;">Generated from Skill Wallet · ${now}</p>
+  <p style="font-size:9px;color:#9ca3af;padding:16px;text-align:center;border-top:1px solid #f3f4f6;margin-top:20px;">Generated from Skill Wallet · ${now}</p>
 </div>${end}`
   }
 
   // ── Royal Premium template ──
   if (templateId === 'royal') {
     return `${head}
-<div style="max-width:21cm;margin:0 auto;min-height:29.7cm;background:#ffffff;display:flex;flex-direction:column;border:1px solid #e5e7eb;box-shadow:0 4px 6px rgba(0,0,0,0.05);">
-  <div style="background:#0f172a;color:#ffffff;padding:32px 28px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #b45309;">
-    <div>
-      <h1 style="font-weight:800;font-size:26px;color:#ffffff;margin-bottom:2px;letter-spacing:-0.5px;">${r.fullName || r.username}</h1>
-      <p style="font-size:11px;color:#f59e0b;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;margin-top:2px;">${r.title}</p>
+<div style="width:21cm;min-height:29.7cm;margin:0 auto;background:#ffffff;display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box;color:#334155;">
+  <div>
+    <div style="background:#0f172a;color:#ffffff;padding:20mm 20mm 12mm;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #b45309;">
+      <div>
+        <h1 style="font-weight:800;font-size:26px;color:#ffffff;margin-bottom:2px;letter-spacing:-0.5px;">${r.fullName || r.username}</h1>
+        <p style="font-size:11px;color:#f59e0b;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;margin-top:2px;">${r.title}</p>
+      </div>
+      <div style="text-align:right;font-size:10px;color:#cbd5e1;line-height:1.6;max-width:45%;letter-spacing:0.2px;">
+        ${r.email ? `<p style="word-break:break-all;">✉️ ${r.email}</p>` : ''}
+        ${r.phone ? `<p>📞 ${r.phone}</p>` : ''}
+        ${r.location ? `<p>📍 ${r.location}</p>` : ''}
+        ${r.githubUsername ? `<p style="word-break:break-all;">🐙 github.com/${r.githubUsername}</p>` : ''}
+        ${r.linkedinUrl ? `<p style="word-break:break-all;">💼 ${r.linkedinUrl.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, '')}</p>` : ''}
+      </div>
     </div>
-    <div style="text-align:right;font-size:10px;color:#cbd5e1;line-height:1.6;max-width:45%;letter-spacing:0.2px;">
-      ${r.email ? `<p>✉️ ${r.email}</p>` : ''}
-      ${r.phone ? `<p>📞 ${r.phone}</p>` : ''}
-      ${r.location ? `<p>📍 ${r.location}</p>` : ''}
-      ${r.githubUsername ? `<p>🐙 github.com/${r.githubUsername}</p>` : ''}
-      ${r.linkedinUrl ? `<p>💼 ${r.linkedinUrl.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, '')}</p>` : ''}
+    <div style="padding:12mm 20mm;">
+      ${r.bio ? `
+        <h2 style="font-weight:700;color:#0f172a;border-bottom:2px solid #f3f4f6;padding-bottom:6px;margin-bottom:12px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">About Me</h2>
+        <div style="margin-bottom:24px;font-size:11px;white-space:pre-line;color:#475569;line-height:1.6;">${r.bio}</div>
+      ` : ''}
+      ${projHtml ? `
+        <h2 style="font-weight:700;color:#0f172a;border-bottom:2px solid #f3f4f6;padding-bottom:6px;margin-bottom:12px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">Featured Projects</h2>
+        ${projHtml}
+      ` : ''}
+      <h2 style="font-weight:700;color:#0f172a;border-bottom:2px solid #f3f4f6;padding-bottom:6px;margin-bottom:12px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">Technical Skills</h2>
+      <div style="margin-bottom:24px;font-size:11px;color:#475569;line-height:1.6;">${skillsHtml}</div>
     </div>
   </div>
-  <div style="padding:32px 28px;flex-grow:1;">
-    ${r.bio ? `
-      <h2 style="font-weight:700;color:#0f172a;border-bottom:2px solid #f3f4f6;padding-bottom:6px;margin-bottom:12px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">About Me</h2>
-      <div style="margin-bottom:24px;font-size:11px;white-space:pre-line;color:#334155;line-height:1.6;">${r.bio}</div>
-    ` : ''}
-    ${projHtml ? `
-      <h2 style="font-weight:700;color:#0f172a;border-bottom:2px solid #f3f4f6;padding-bottom:6px;margin-bottom:12px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">Featured Projects</h2>
-      ${projHtml}
-    ` : ''}
-    <h2 style="font-weight:700;color:#0f172a;border-bottom:2px solid #f3f4f6;padding-bottom:6px;margin-bottom:12px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">Technical Skills</h2>
-    <div style="margin-bottom:24px;font-size:11px;color:#334155;line-height:1.6;">${skillsHtml}</div>
-  </div>
-  <p style="font-size:9px;color:#9ca3af;padding:16px;text-align:center;border-top:1px solid #f3f4f6;margin-top:auto;">Generated from Skill Wallet · ${now}</p>
+  <p style="font-size:9px;color:#9ca3af;padding:16px;text-align:center;border-top:1px solid #f3f4f6;margin-top:20px;">Generated from Skill Wallet · ${now}</p>
 </div>${end}`
   }
 
