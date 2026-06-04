@@ -79,11 +79,22 @@
     color: #0f172a !important;
   }
 
+  html.dark select {
+    color-scheme: dark;
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
+  }
+
   option {
     background-color: #ffffff !important;
     color: #0f172a !important;
     padding: 8px;
     background-image: none !important;
+  }
+
+  html.dark option {
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
   }
 
   option:hover,
@@ -92,9 +103,20 @@
     color: #0f172a !important;
   }
 
+  html.dark option:hover,
+  html.dark option:checked {
+    background-color: var(--surface2) !important;
+    color: var(--text) !important;
+  }
+
   option:disabled {
     background-color: #f8fafc !important;
     color: #94a3b8 !important;
+  }
+
+  html.dark option:disabled {
+    background-color: var(--surface2) !important;
+    color: var(--muted) !important;
   }
 
   /* ตั้งค่า Cursor รูปมือให้ปุ่ม ลิงก์ และตัวเลือกต่างๆ */

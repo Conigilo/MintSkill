@@ -94,6 +94,18 @@ export async function requestEndorsementHandler({ headers, body, set }: any) {
             data: result 
         }
     } catch (error: any) {
+        if (error.message === 'DUPLICATE_PENDING_REQUEST') {
+            set.status = 409
+            return { success: false, error: 'คุณเคยส่งคำขอรับรองถึงผู้ใช้นี้ไปแล้วและยังค้างอยู่', code: 'DUPLICATE_PENDING_REQUEST' }
+        }
+        if (error.message === 'CANNOT_REQUEST_SELF') {
+            set.status = 400
+            return { success: false, error: 'คุณไม่สามารถขอคำรับรองจากตัวเองได้', code: 'CANNOT_REQUEST_SELF' }
+        }
+        if (error.message === 'ALREADY_ENDORSED') {
+            set.status = 409
+            return { success: false, error: 'ผู้ใช้นี้เพิ่งรับรองทักษะให้คุณไปในช่วง 30 วันที่ผ่านมา', code: 'ALREADY_ENDORSED' }
+        }
         if (error instanceof ValidationError) {
             set.status = 400
             return { 

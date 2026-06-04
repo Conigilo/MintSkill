@@ -1,6 +1,5 @@
 
 import {
-  getAuth,
   Auth,
   User,
   signOut as firebaseSignOut,

@@ -20,13 +20,32 @@ export default function EndorseModal({ targetUserId, targetName, onClose, onSucc
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  const DEFAULT_COMMON_SKILLS = [
+    "TypeScript",
+    "JavaScript",
+    "React",
+    "Node.js",
+    "Next.js",
+    "Python",
+    "HTML",
+    "CSS",
+    "SQL",
+    "C++",
+    "Java",
+    "Go",
+    "Docker",
+    "Git"
+  ];
+
   useEffect(() => {
     const loadSkills = async () => {
       try {
         const data = await endorsementService.getUserSkills(targetUserId);
-        setSkills(Array.from(new Set(data.map((s) => s.name))));
+        const userSkills = data.map((s) => s.name);
+        const combined = Array.from(new Set([...userSkills, ...DEFAULT_COMMON_SKILLS]));
+        setSkills(combined);
       } catch {
-        setSkills([]);
+        setSkills(DEFAULT_COMMON_SKILLS);
       } finally {
         setIsFetchingSkills(false);
       }

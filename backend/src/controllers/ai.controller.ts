@@ -6,13 +6,13 @@ import { db, Collections } from '../services/firebase.service';
 export async function generateQuizHandler({ body, set }: any) {
   try {
     const { skillName, level } = body;
-    
+
     if (!skillName) {
       set.status = 400;
       return { success: false, error: 'Skill Name is required.' };
     }
 
-    const quizLevel = level || 1; // Default to Beginner
+    const quizLevel = level || 1;
 
     const generatedQuestions = await aiService.generateQuizForSkill(skillName, quizLevel);
 

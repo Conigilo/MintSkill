@@ -23,8 +23,9 @@ export default function ProfileView({ username, initialPortfolio }: ProfileViewP
   const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
-    if (initialPortfolio) {
-      setPortfolio(initialPortfolio);
+    // Always try client-side fetch if we don't have portfolio data
+    // This handles cases where SSR fails (e.g., server can't reach backend)
+    if (portfolio?.profile) {
       setIsLoading(false);
       return;
     }
@@ -35,7 +36,7 @@ export default function ProfileView({ username, initialPortfolio }: ProfileViewP
       .then((data) => { if (data) setPortfolio(data); else setError("User not found"); })
       .catch(() => setError("Failed to load profile"))
       .finally(() => setIsLoading(false));
-  }, [username, initialPortfolio]);
+  }, [username]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleShare = () => {
     if (typeof window !== "undefined") {

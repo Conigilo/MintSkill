@@ -8,8 +8,10 @@ interface Props {
 async function getPortfolio(username: string) {
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    const res = await fetch(`${apiUrl}/users/${username}/portfolio`, {
-      next: { revalidate: 30 }, // cache for 30s
+    const url = `${apiUrl}/users/${username}/portfolio`;
+    const res = await fetch(url, {
+      next: { revalidate: 30 },
+      signal: AbortSignal.timeout(5000), // 5s timeout to avoid hanging
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -19,6 +21,7 @@ async function getPortfolio(username: string) {
     return null;
   }
 }
+
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params;

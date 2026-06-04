@@ -120,7 +120,7 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 select-none">
+    <div className="space-y-8 animate-in fade-in duration-500 select-none overflow-y-auto max-h-[calc(100vh-150px)] pr-2">
 
       {/* ═══ 1. Role Selection Grid ═══ */}
       <div>

@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { skillsService } from "@/lib/services/skills.service";
+import { fetchAPI } from "@/lib/services/api";
 import SidebarLayout from "@/components/dashboard/SidebarLayout";
 
 // Match calculation helper
@@ -130,10 +131,7 @@ export default function JobsPage() {
 
         // 2. Get jobs from API
         const endpoint = user ? "/jobs/recommendations" : "/jobs";
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
-          headers: user ? { 'Authorization': `Bearer ${await user.getIdToken()}` } : {}
-        });
-        const jobsData = await response.json();
+        const jobsData = await fetchAPI(endpoint, { method: "GET" });
         console.log("DEBUG: Jobs from API:", jobsData);
 
         if (jobsData && Array.isArray(jobsData.data)) {
@@ -162,19 +160,12 @@ export default function JobsPage() {
 
     setApplying(true);
     try {
-      const token = await user.getIdToken();
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs/${jobId}/apply`, {
+      const data = await fetchAPI(`/jobs/${jobId}/apply`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify({
           coverLetter: "Interested in this position based on my verified skills."
         })
       });
-
-      const data = await response.json();
 
       if (data.success) {
         alert(`Successfully applied for ${selectedJob?.title}!`);

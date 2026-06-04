@@ -74,9 +74,6 @@ export const usersRoute = new Elysia({ prefix: '/users', tags: ['Users'] })
         },
     })
     
-    // ⚠️ ต้องประกาศ /:username/portfolio ก่อน /:username เสมอ
-    // ไม่งั้น Elysia จะ match "portfolio" เป็น :username แทน
-    // GET /users/:username/portfolio — ดึงข้อมูลทั้งหมดสำหรับ Resume/CV
     .get('/:username/portfolio', UsersController.getPortfolioHandler, {
         detail: {
             summary: 'Get User Portfolio (CV/Resume data)',

@@ -173,36 +173,110 @@ export async function getPortfolio(identifier: string) {
 }
 
 /**
+ * Helper: deduplicate users by email, keeping the account with the most data.
+ * Filters out empty ghost accounts (GitHub OAuth accounts with @skillwallet.dev email).
+ */
+function deduplicateUsers(users: any[], limit: number): any[] {
+    const emailMap = new Map<string, any>()
+    const noEmailAccounts: any[] = []
+
+    for (const user of users) {
+        const email = user.email
+        // Skip ghost emails generated for GitHub OAuth accounts (format: gh_xxx@skillwallet.dev)
+        const isGhostEmail = !email || email.includes('@skillwallet.dev')
+
+        if (isGhostEmail) {
+            // Only include ghost accounts if they have actual data
+            const skillCount = user.stats?.skillCount || 0
+            if (skillCount > 0) noEmailAccounts.push(user)
+            // Otherwise silently skip empty ghost accounts
+            continue
+        }
+
+        const existing = emailMap.get(email)
+        if (!existing) {
+            emailMap.set(email, user)
+        } else {
+            // Keep the account with more skills/data
+            const existingScore = (existing.stats?.skillCount || 0) + (existing.stats?.endorsementCount || 0)
+            const newScore = (user.stats?.skillCount || 0) + (user.stats?.endorsementCount || 0)
+            if (newScore > existingScore) emailMap.set(email, user)
+        }
+    }
+
+    return [...emailMap.values(), ...noEmailAccounts].slice(0, limit)
+}
+
+/**
  * Search for users by basic filters
  */
 export async function searchUsers(query?: string, filters?: any) {
-    let usersQuery: any = db.collection(Collections.USERS)
+    const requestedLimit = filters?.limit || 20
 
-    // Simplified search logic for Firestore
-    if (query) {
-        // Firestore doesn't support full-text search out of the box
-        // We do a simple prefix search on display name
-        usersQuery = usersQuery
-            .where('displayName', '>=', query)
-            .where('displayName', '<=', query + '\uf8ff')
+    try {
+        let usersQuery: any = db.collection(Collections.USERS)
+        if (filters?.location) {
+            usersQuery = usersQuery.where('location', '==', filters.location)
+        }
+
+        // Fetch up to 150 users to search/filter in memory
+        const snapshot = await usersQuery.limit(150).get()
+        let allUsers = snapshot.docs.map((doc: any) => {
+            const data = { id: doc.id, ...doc.data() }
+            // Mask sensitive data before returning
+            if (data.github?.accessToken) {
+                data.github = { ...data.github, accessToken: undefined }
+            }
+            return data
+        })
+
+        // Apply case-insensitive query filter in memory (searches display name & username)
+        if (query) {
+            const lowerQuery = query.trim().toLowerCase()
+            allUsers = allUsers.filter((u: any) => 
+                (u.displayName && String(u.displayName).toLowerCase().includes(lowerQuery)) || 
+                (u.username && String(u.username).toLowerCase().includes(lowerQuery))
+            )
+        }
+
+        return deduplicateUsers(allUsers, requestedLimit)
+    } catch (error: any) {
+        console.error('searchUsers failed, returning empty array fallback:', error.message)
+        return []
     }
-
-    if (filters?.location) {
-        usersQuery = usersQuery.where('location', '==', filters.location)
-    }
-
-    const snapshot = await usersQuery.limit(filters?.limit || 20).get()
-    return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
 }
 
 /**
  * Get recommended developers for discovery
  */
 export async function getRecommendations(limit = 10) {
-    const querySnapshot = await db.collection(Collections.USERS)
-        .orderBy('stats.verifiedSkills', 'desc')
-        .limit(limit)
-        .get()
+    try {
+        const querySnapshot = await db.collection(Collections.USERS)
+            .orderBy('stats.verifiedSkills', 'desc')
+            .limit(limit * 3)
+            .get()
 
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        const users = querySnapshot.docs.map(doc => {
+            const data = { id: doc.id, ...doc.data() }
+            if ((data as any).github?.accessToken) {
+                (data as any).github = { ...(data as any).github, accessToken: undefined }
+            }
+            return data
+        })
+        return deduplicateUsers(users, limit)
+    } catch (error: any) {
+        // Fallback: if the Firestore index is missing, just return latest users
+        console.warn('getRecommendations orderBy failed (index missing?), falling back to latest users:', error.message)
+        const fallbackSnapshot = await db.collection(Collections.USERS)
+            .limit(limit * 3)
+            .get()
+        const users = fallbackSnapshot.docs.map(doc => {
+            const data = { id: doc.id, ...doc.data() }
+            if ((data as any).github?.accessToken) {
+                (data as any).github = { ...(data as any).github, accessToken: undefined }
+            }
+            return data
+        })
+        return deduplicateUsers(users, limit)
+    }
 }
