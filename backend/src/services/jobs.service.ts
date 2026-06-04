@@ -21,8 +21,20 @@ export async function getAllJobs(filters?: any) {
         jobsQuery = jobsQuery.where('location', '==', filters.location)
     }
 
-    const snapshot = await jobsQuery.orderBy('postedAt', 'desc').limit(filters?.limit || 20).get()
-    return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
+    try {
+        const snapshot = await jobsQuery.orderBy('postedAt', 'desc').limit(filters?.limit || 20).get()
+        return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
+    } catch (error: any) {
+        console.warn('Jobs query orderBy failed (index might be missing), falling back to unordered Firestore query with in-memory sorting:', error.message)
+        const snapshot = await jobsQuery.limit(filters?.limit || 20).get()
+        const jobs = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
+        // Sort in memory by postedAt DESC
+        return jobs.sort((a: any, b: any) => {
+            const timeA = a.postedAt?.toDate ? a.postedAt.toDate().getTime() : new Date(a.postedAt || 0).getTime()
+            const timeB = b.postedAt?.toDate ? b.postedAt.toDate().getTime() : new Date(b.postedAt || 0).getTime()
+            return timeB - timeA
+        })
+    }
 }
 
 /**

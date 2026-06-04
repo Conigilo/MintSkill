@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { userService } from "@/lib/services/user.service";
@@ -78,7 +78,7 @@ export default function DashboardPage() {
   }, [user, authLoading, refreshProfile]);
 
   // Combine pending requests (to me) and verified endorsements (received by me)
-  const notifications = [
+  const notifications = useMemo(() => [
     ...(pendingRequestsToMe || []).map((req: any) => ({
       id: req.id,
       type: 'request',
@@ -103,9 +103,10 @@ export default function DashboardPage() {
     const timeA = new Date(a.createdAt?.toDate ? a.createdAt.toDate() : (a.createdAt || 0)).getTime();
     const timeB = new Date(b.createdAt?.toDate ? b.createdAt.toDate() : (b.createdAt || 0)).getTime();
     return timeB - timeA;
-  });
+  }), [pendingRequestsToMe, myEndorsements]);
 
   // Real-time Toast System for new notifications
+  const prevNewestIdRef = useRef<string | null>(null);
   useEffect(() => {
     const savedDismissed = localStorage.getItem('dismissed_notifications');
     let dismissed: string[] = [];
@@ -116,7 +117,8 @@ export default function DashboardPage() {
 
     if (prevNotificationsLength.current !== null && visibleNotifs.length > prevNotificationsLength.current) {
       const newest = visibleNotifs[0];
-      if (newest) {
+      if (newest && newest.id !== prevNewestIdRef.current) {
+        prevNewestIdRef.current = newest.id;
         setActiveToast(newest);
         const timer = setTimeout(() => setActiveToast(null), 6000);
         return () => clearTimeout(timer);

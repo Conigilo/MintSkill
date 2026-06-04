@@ -25,8 +25,13 @@ export default function ExplorePage() {
             setIsLoading(true);
             try {
                 const data = await developersService.searchDevelopers(searchQuery || undefined, { limit: 12 });
-                setDevelopers(data || []);
-                setError(null);
+                if (data === null) {
+                    setError('ไม่สามารถเชื่อมต่อ API ได้ กรุณาตรวจสอบว่า Backend กำลังทำงานอยู่');
+                    setDevelopers([]);
+                } else {
+                    setDevelopers(data);
+                    setError(null);
+                }
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Failed to load developers');
                 setDevelopers([]);
