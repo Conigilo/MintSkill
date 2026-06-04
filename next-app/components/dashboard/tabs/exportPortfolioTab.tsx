@@ -12,7 +12,6 @@ import {
   FileText, 
   Download, 
   Eye, 
-  Award, 
   CheckCircle2,
   Github,
   Linkedin,
@@ -22,8 +21,6 @@ import {
   Phone,
   Plus,
   Trash2,
-  ChevronDown,
-  ChevronUp,
   Layout,
   Wand2,
   Edit3,
@@ -73,13 +70,7 @@ const DEFAULT_RESUME: ResumeData = {
   projects: [],
 }
 
-const QUICK_PROMPTS = [
-  { label: 'Tailor for Frontend', prompt: 'Tailor my resume for a Senior Frontend Developer role. Rephrase my projects to highlight React, Next.js, and TypeScript, and make my bio sound highly professional.' },
-  { label: 'Tailor for Backend', prompt: 'Tailor my resume for a Backend Developer role. Rephrase my project descriptions to highlight Elysia, Node.js, and database performance. Emphasize APIs.' },
-  { label: 'Translate to English', prompt: 'Translate all content (including my bio, title, and project descriptions) into professional English. Use strong action verbs.' },
-  { label: 'Make it Concise (Single Page)', prompt: 'Condense and streamline all text to be clean and concise, ensuring it easily fits on a single page CV. Make bullets punchy and short.' },
-  { label: 'High-Impact Verbs', prompt: 'Rewrite my project descriptions using strong, professional developer action verbs (e.g., Designed, Optimized, Implemented, Streamlined, Spearheaded).' }
-]
+
 
 export default function ExportPortfolioTab({ userName = 'user', skills = [] }: WidgetExportTabProps) {
   const { user } = useAuth()
@@ -103,9 +94,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
   const [refinementsSummary, setRefinementsSummary] = useState<string[]>([])
   const [aiError, setAiError] = useState<string | null>(null)
 
-  // Editor states
-  const [isEditing, setIsEditing] = useState(false)
-  const [showPreview, setShowPreview] = useState(false)
+
 
   // Load saved template preference and data on mount & auto-sync from profile/Github
   useEffect(() => {
@@ -373,11 +362,7 @@ export default function ExportPortfolioTab({ userName = 'user', skills = [] }: W
     }
   }
 
-  // Manual Edit Handlers
-  const handlePersonalChange = (key: keyof ResumeData, value: string) => {
-    const updated = { ...resume, [key]: value }
-    saveResumeAndTemplate(updated, selectedTemplate)
-  }
+
 
   const handleProjectChange = (idx: number, key: 'name' | 'date', value: string) => {
     const nextProjects = [...resume.projects]

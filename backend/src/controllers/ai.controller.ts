@@ -12,7 +12,7 @@ export async function generateQuizHandler({ body, set }: any) {
       return { success: false, error: 'Skill Name is required.' };
     }
 
-    const quizLevel = level || 1; // Default to Beginner
+    const quizLevel = level || 1;
 
     const generatedQuestions = await aiService.generateQuizForSkill(skillName, quizLevel);
 
