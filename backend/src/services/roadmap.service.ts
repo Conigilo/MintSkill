@@ -11,6 +11,7 @@ export interface RoadmapWeek {
   desc: string
   tasks: RoadmapTask[]
   resources: string[]
+  quizPassed?: boolean
 }
 
 export interface UserRoadmap {
@@ -45,7 +46,8 @@ export const roadmapService = {
       title: String(w.title),
       desc: String(w.desc),
       tasks: (w.tasks || []).map((t: string) => ({ text: t, completed: false })),
-      resources: w.resources || []
+      resources: w.resources || [],
+      quizPassed: false
     }))
 
     const roadmapData: UserRoadmap = {
@@ -77,6 +79,14 @@ export const roadmapService = {
   },
 
   /**
+   * Fetch all roadmaps for a user
+   */
+  getUserRoadmaps: async (userId: string): Promise<UserRoadmap[]> => {
+    const snapshot = await db.collection(COLLECTION).where('userId', '==', userId).get()
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as UserRoadmap)
+  },
+
+  /**
    * Toggle task completion status
    */
   updateTaskStatus: async (
@@ -101,6 +111,40 @@ export const roadmapService = {
 
     // Modify specific task status
     data.weeks[weekIndex].tasks[taskIndex].completed = completed
+    data.updatedAt = new Date().toISOString()
+
+    await docRef.update({
+      weeks: data.weeks,
+      updatedAt: data.updatedAt
+    })
+
+    return true
+  },
+
+  /**
+   * Update weekly quiz pass status
+   */
+  updateQuizStatus: async (
+    userId: string,
+    skillName: string,
+    weekIndex: number,
+    quizPassed: boolean
+  ): Promise<boolean> => {
+    const docId = `${userId}_${skillName.replace(/[^a-zA-Z0-9]/g, '_')}`
+    const docRef = db.collection(COLLECTION).doc(docId)
+    const doc = await docRef.get()
+
+    if (!doc.exists) {
+      return false
+    }
+
+    const data = doc.data() as UserRoadmap
+    if (!data.weeks || !data.weeks[weekIndex]) {
+      return false
+    }
+
+    // Modify specific week quizPassed status
+    data.weeks[weekIndex].quizPassed = quizPassed
     data.updatedAt = new Date().toISOString()
 
     await docRef.update({

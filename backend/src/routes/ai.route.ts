@@ -39,6 +39,12 @@ export const aiRoute = new Elysia({ prefix: '/ai', tags: ['AI'] })
             description: 'ดึงแผนการเรียนรู้ที่บันทึกไว้ในระบบ',
         }
     })
+    .get('/roadmaps', AiController.getUserRoadmapsHandler, {
+        detail: {
+            summary: 'Get All User Learning Roadmaps',
+            description: 'ดึงแผนการเรียนรู้ทั้งหมดของผู้ใช้ปัจจุบัน',
+        }
+    })
     .patch('/roadmap/:skillName/task', AiController.updateRoadmapTaskHandler, {
         body: t.Object({
             weekIndex: t.Number(),
@@ -48,6 +54,16 @@ export const aiRoute = new Elysia({ prefix: '/ai', tags: ['AI'] })
         detail: {
             summary: 'Update Task Completion Status',
             description: 'อัปเดตความคืบหน้าของภารกิจเรียนรู้ในโรดแมป',
+        }
+    })
+    .patch('/roadmap/:skillName/quiz', AiController.updateRoadmapQuizHandler, {
+        body: t.Object({
+            weekIndex: t.Number(),
+            quizPassed: t.Boolean()
+        }),
+        detail: {
+            summary: 'Update Roadmap Quiz Status',
+            description: 'อัปเดตสถานะการสอบผ่านของแต่ละสัปดาห์ในโรดแมป',
         }
     })
     .post('/repo-bullets', AiController.generateProjectBulletsHandler, {

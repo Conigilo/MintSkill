@@ -98,6 +98,20 @@ export async function getRoadmapHandler({ params, headers, set }: any) {
   }
 }
 
+export async function getUserRoadmapsHandler({ headers, set }: any) {
+  try {
+    const user = await verifyToken(headers['authorization'] || null);
+    const roadmaps = await roadmapService.getUserRoadmaps(user.uid);
+    return {
+      success: true,
+      data: roadmaps
+    };
+  } catch (error: any) {
+    set.status = 500;
+    return { success: false, error: error.message };
+  }
+}
+
 export async function updateRoadmapTaskHandler({ params, body, headers, set }: any) {
   try {
     const user = await verifyToken(headers['authorization'] || null);
@@ -118,6 +132,33 @@ export async function updateRoadmapTaskHandler({ params, body, headers, set }: a
     return {
       success: true,
       message: 'Task status updated successfully.'
+    };
+  } catch (error: any) {
+    set.status = 500;
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateRoadmapQuizHandler({ params, body, headers, set }: any) {
+  try {
+    const user = await verifyToken(headers['authorization'] || null);
+    const skillName = params.skillName;
+    const { weekIndex, quizPassed } = body;
+
+    if (weekIndex === undefined || quizPassed === undefined) {
+      set.status = 400;
+      return { success: false, error: 'weekIndex and quizPassed are required in body.' };
+    }
+
+    const success = await roadmapService.updateQuizStatus(user.uid, skillName, weekIndex, quizPassed);
+    if (!success) {
+      set.status = 404;
+      return { success: false, error: 'Roadmap not found.' };
+    }
+
+    return {
+      success: true,
+      message: 'Quiz status updated successfully.'
     };
   } catch (error: any) {
     set.status = 500;

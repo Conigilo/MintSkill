@@ -1,6 +1,7 @@
 import { Elysia } from 'elysia'
 import { cors } from '@elysiajs/cors'
 import { swagger } from '@elysiajs/swagger'
+import { logger } from '@bogeychan/elysia-logger'
 import { authRoute } from './routes/auth.route'
 import { usersRoute } from './routes/users.route'
 import { skillsRoute } from './routes/skills.route'
@@ -39,6 +40,7 @@ setInterval(() => {
 }, 5 * 60_000)
 
 const app = new Elysia()
+    .use(logger())
     .use(cors({ origin: FRONTEND_URL ?? 'http://localhost:3000', credentials: true }))
     .onBeforeHandle(({ request, set }) => {
         const isDev = process.env.NODE_ENV !== 'production'
