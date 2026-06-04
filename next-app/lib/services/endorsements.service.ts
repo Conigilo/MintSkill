@@ -86,6 +86,11 @@ export const endorsementService = {
     const data = await fetchAPI(`/skills/${userId}`);
     return (data.data || []) as Array<{ id: string; name: string }>;
   },
+
+  // ค้นหาผู้ใช้อื่นในระบบ สำหรับขอคำรับรองโดยตรง
+  searchUsers: async (query: string) => {
+    return await fetchAPI(`/users/search?q=${encodeURIComponent(query)}`, { method: 'GET' });
+  },
 };
 
 export interface Endorsement {

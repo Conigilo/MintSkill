@@ -21,13 +21,35 @@ export default function EndorsePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const DEFAULT_COMMON_SKILLS = [
+    "TypeScript",
+    "JavaScript",
+    "React",
+    "Node.js",
+    "Next.js",
+    "Python",
+    "HTML",
+    "CSS",
+    "SQL",
+    "C++",
+    "Java",
+    "Go",
+    "Docker",
+    "Git"
+  ];
+
   useEffect(() => {
     if (!token) return;
     fetchAPI(`/endorsements/verify/${token}`)
       .then((res: any) => {
         const payload = res.data || res;
         if (payload.valid) {
-          setInfo(payload);
+          const userSkills = payload.availableSkills || [];
+          const combined = Array.from(new Set([...userSkills, ...DEFAULT_COMMON_SKILLS]));
+          setInfo({
+            ...payload,
+            availableSkills: combined
+          });
         } else {
           setError("This endorsement link is invalid or has expired.");
         }

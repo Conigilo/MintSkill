@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { userService } from "@/lib/services/user.service";
@@ -18,6 +18,8 @@ import { GitHubCalendar } from "react-github-calendar";
 import EditProfileModal from "@/components/dashboard/EditProfileModal";
 import { Alert } from "@/components/ui";
 import NotificationBell from "@/components/dashboard/notifications/NotificationBell";
+import { endorsementService } from "@/lib/services/endorsements.service";
+import { Clock, CheckCircle, X } from "lucide-react";
 
 const TABS = ["Overview", "Skills", "Endorsements", "Gap Analysis", "Export Portfolio"] as const;
 
@@ -38,6 +40,24 @@ export default function DashboardPage() {
 
   const { skills } = useUserSkills(user?.uid);
   const { endorsements: myEndorsements, refetch: refetchEndorsements } = useMyEndorsements();
+  const [pendingRequestsToMe, setPendingRequestsToMe] = useState<any[]>([]);
+  const [activeToast, setActiveToast] = useState<any | null>(null);
+  const prevNotificationsLength = useRef<number | null>(null);
+
+  const fetchPendingRequestsToMe = useCallback(async () => {
+    if (!user?.uid) return;
+    try {
+      const res = await endorsementService.getPendingEndorsementRequests();
+      setPendingRequestsToMe(res.data || res || []);
+    } catch (e) {
+      console.error('Failed to fetch pending requests in Dashboard:', e);
+    }
+  }, [user?.uid]);
+
+  const refreshNotifications = useCallback(async () => {
+    refetchEndorsements();
+    fetchPendingRequestsToMe();
+  }, [refetchEndorsements, fetchPendingRequestsToMe]);
 
   const refreshProfile = useCallback(() => {
     userService.getProfile().then((res) => {
@@ -47,9 +67,63 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
+    if (user?.uid) {
+      fetchPendingRequestsToMe();
+    }
+  }, [user?.uid, fetchPendingRequestsToMe]);
+
+  useEffect(() => {
     if (authLoading || !user) return;
     refreshProfile();
   }, [user, authLoading, refreshProfile]);
+
+  // Combine pending requests (to me) and verified endorsements (received by me)
+  const notifications = [
+    ...(pendingRequestsToMe || []).map((req: any) => ({
+      id: req.id,
+      type: 'request',
+      title: req.toUserName || 'ผู้ใช้อื่น',
+      avatar: (req.toUserName || 'U')[0].toUpperCase(),
+      message: `ส่งคำขอให้คุณช่วยรับรองทักษะ: ${req.skills?.join(', ') || 'ทักษะ'}`,
+      detailMessage: req.message,
+      createdAt: req.createdAt,
+      raw: req
+    })),
+    ...(myEndorsements || []).filter((e: any) => e.status === 'verified').map((end: any) => ({
+      id: end.id,
+      type: 'endorsement',
+      title: end.fromName || end.fromUserName || 'ผู้ใช้อื่น',
+      avatar: (end.fromName || end.fromUserName || 'U')[0].toUpperCase(),
+      message: `ได้ยืนยันการรับรองทักษะให้คุณ: ${end.skills?.join(', ') || end.skill || 'ทักษะ'}`,
+      detailMessage: end.message,
+      createdAt: end.verifiedAt || end.createdAt,
+      raw: end
+    }))
+  ].sort((a: any, b: any) => {
+    const timeA = new Date(a.createdAt?.toDate ? a.createdAt.toDate() : (a.createdAt || 0)).getTime();
+    const timeB = new Date(b.createdAt?.toDate ? b.createdAt.toDate() : (b.createdAt || 0)).getTime();
+    return timeB - timeA;
+  });
+
+  // Real-time Toast System for new notifications
+  useEffect(() => {
+    const savedDismissed = localStorage.getItem('dismissed_notifications');
+    let dismissed: string[] = [];
+    if (savedDismissed) {
+      try { dismissed = JSON.parse(savedDismissed); } catch {}
+    }
+    const visibleNotifs = notifications.filter((n: any) => !dismissed.includes(n.id));
+
+    if (prevNotificationsLength.current !== null && visibleNotifs.length > prevNotificationsLength.current) {
+      const newest = visibleNotifs[0];
+      if (newest) {
+        setActiveToast(newest);
+        const timer = setTimeout(() => setActiveToast(null), 6000);
+        return () => clearTimeout(timer);
+      }
+    }
+    prevNotificationsLength.current = visibleNotifs.length;
+  }, [notifications]);
 
   // Support redirecting to specific tab from other pages (like Jobs)
   useEffect(() => {
@@ -233,9 +307,9 @@ export default function DashboardPage() {
                   </div>
                   <div className="pb-3 px-2">
                     <NotificationBell
-                      pendingRequests={myEndorsements?.filter((e: any) => e.status === "pending") || []}
+                      notifications={notifications}
                       onNavigateToEndorseTab={() => setActiveTab("Endorsements")}
-                      onRefresh={refetchEndorsements}
+                      onRefresh={refreshNotifications}
                     />
                   </div>
                 </div>
@@ -272,6 +346,50 @@ export default function DashboardPage() {
           linkedinUrl: profile?.linkedinUrl || '',
         }}
       />
+      {/* Real-time floating Notification Toast */}
+      {activeToast && (
+        <div className="fixed bottom-6 right-6 z-[300] bg-slate-900/95 dark:bg-[#161b22]/95 backdrop-blur-md border border-slate-800 dark:border-[#30363d] text-white p-4 rounded-2xl shadow-2xl flex gap-3 items-start max-w-xs animate-in slide-in-from-bottom-5 duration-300">
+          <div className="shrink-0 mt-0.5">
+            {activeToast.type === 'request' ? (
+              <div className="w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                <Clock size={14} />
+              </div>
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center">
+                <CheckCircle size={14} />
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h5 className="text-[10px] font-bold text-blue-400 uppercase tracking-wider mb-0.5">การแจ้งเตือนใหม่</h5>
+            <p className="text-xs font-semibold text-slate-100">{activeToast.title}</p>
+            <p className="text-[11px] text-slate-300 leading-snug mt-0.5">{activeToast.message}</p>
+            <div className="flex gap-2 mt-3">
+              <button 
+                onClick={() => {
+                  setActiveToast(null);
+                  setActiveTab("Endorsements");
+                }}
+                className="px-3 py-1.5 bg-blue-650 hover:bg-blue-500 text-white font-bold rounded-lg text-[10px] transition-all cursor-pointer shadow-sm"
+              >
+                เปิดดูหน้าหลัก
+              </button>
+              <button 
+                onClick={() => setActiveToast(null)}
+                className="px-2.5 py-1.5 border border-slate-700 text-slate-400 hover:text-white rounded-lg text-[10px] transition-all cursor-pointer"
+              >
+                ปิด
+              </button>
+            </div>
+          </div>
+          <button 
+            onClick={() => setActiveToast(null)}
+            className="text-slate-500 hover:text-white transition-colors mt-0.5"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
     </>
   );
 }

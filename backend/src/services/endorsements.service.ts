@@ -161,7 +161,31 @@ export async function createEndorsementRequest(
         throw new Error('EMPTY_NAME')
     }
 
-    // Generate unique token for endorsement link
+    // Check if recipientEmail exists in users collection (case insensitive)
+    if (recipientEmail && recipientEmail.trim()) {
+        const trimmedEmail = recipientEmail.trim().toLowerCase()
+        const userSnapshot = await db.collection(Collections.USERS)
+            .where('email', '==', trimmedEmail)
+            .limit(1)
+            .get()
+
+        if (!userSnapshot.empty) {
+            const targetUserDoc = userSnapshot.docs[0]
+            const targetUserId = targetUserDoc.id
+            const targetUserData = targetUserDoc.data()
+
+            // Automatically route to Direct Request instead of Link Request
+            await createDirectRequest(uid, targetUserId, { message: body.message })
+            return { 
+                success: true, 
+                direct: true, 
+                targetUserId,
+                targetName: targetUserData?.displayName || targetUserData?.username || recipientName 
+            }
+        }
+    }
+
+    // Fallback to Link Request
     const token = randomBytes(32).toString('hex')
 
     await db.collection(Collections.ENDORSEMENTS).add({
@@ -178,10 +202,9 @@ export async function createEndorsementRequest(
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
     })
 
-    // TODO: Send email with endorsement link
     const endorseLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/endorse/${token}`
 
-    return { success: true, link: endorseLink }
+    return { success: true, direct: false, link: endorseLink }
 }
 
 /**
@@ -304,10 +327,16 @@ export async function directEndorse(fromUserId: string, body: any) {
         .where('toUserId', '==', toUserId)
         .where('fromUserId', '==', fromUserId)
         .where('status', '==', 'verified')
-        .limit(1)
         .get()
 
-    if (!recentSnap.empty) {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    const hasRecentEndorsement = recentSnap.docs.some(doc => {
+        const data = doc.data()
+        const verifiedAt = data.verifiedAt?.toDate ? data.verifiedAt.toDate() : new Date(data.verifiedAt || 0)
+        return verifiedAt >= thirtyDaysAgo
+    })
+
+    if (hasRecentEndorsement) {
         throw new Error('ALREADY_ENDORSED')
     }
 
@@ -368,10 +397,16 @@ export async function createDirectRequest(toUserId: string, fromUserId: string, 
         .where('toUserId', '==', toUserId)
         .where('fromUserId', '==', fromUserId)
         .where('status', '==', 'verified')
-        .limit(1)
         .get()
 
-    if (!recentSnap.empty) {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    const hasRecentEndorsement = recentSnap.docs.some(doc => {
+        const data = doc.data()
+        const verifiedAt = data.verifiedAt?.toDate ? data.verifiedAt.toDate() : new Date(data.verifiedAt || 0)
+        return verifiedAt >= thirtyDaysAgo
+    })
+
+    if (hasRecentEndorsement) {
         throw new Error('ALREADY_ENDORSED')
     }
 
@@ -379,14 +414,18 @@ export async function createDirectRequest(toUserId: string, fromUserId: string, 
     const toUserDoc = await db.collection(Collections.USERS).doc(toUserId).get()
     const toUserData = toUserDoc.data()
 
+    // Get targeted endorser (from-user) info to cache on the endorsement for easy viewing
+    const fromUserDoc = await db.collection(Collections.USERS).doc(fromUserId).get()
+    const fromUserData = fromUserDoc.data()
+
     const requestRef = await db.collection(Collections.ENDORSEMENTS).add({
         toUserId,
         toUserName: toUserData?.displayName || toUserData?.username || 'Anonymous Developer',
         toUserAvatarUrl: toUserData?.avatarUrl || '',
         fromUserId, // targeted endorser
-        fromName: '', // will be populated on approval
-        fromRole: '', // will be populated on approval
-        fromAvatarUrl: '', // will be populated on approval
+        fromName: fromUserData?.displayName || fromUserData?.username || 'Anonymous Colleague',
+        fromRole: fromUserData?.title || '',
+        fromAvatarUrl: fromUserData?.avatarUrl || '',
         message: message || 'ช่วยรับรองทักษะให้ฉันหน่อยครับ',
         skills: [], // will be populated on approval
         status: 'pending',
