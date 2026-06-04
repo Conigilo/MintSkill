@@ -10,11 +10,12 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { rolesData, skillResources, skillDetails } from '@/lib/constants/gap-analysis-data'
 import RadialProgress from '@/components/dashboard/gap-analysis/RadialProgress'
 import SkillGapCard from '@/components/dashboard/gap-analysis/SkillGapCard'
 import AILearningRoadmap from '@/components/dashboard/gap-analysis/AILearningRoadmap'
+import { roadmapService } from '@/lib/services/roadmap.service'
 
 interface GapAnalysisTabProps {
   skills: Array<{ name: string; level?: number; quizScore?: number; endorsementScore?: number; [key: string]: any }>
@@ -27,6 +28,23 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
   const [expandedSkill, setExpandedSkill] = useState<string | null>(null)
   const [activeRoadmapSkill, setActiveRoadmapSkill] = useState<string | null>(null)
   const [animateIn, setAnimateIn] = useState(false)
+  const [roadmaps, setRoadmaps] = useState<any[]>([])
+
+  // Fetch roadmaps
+  const loadRoadmaps = async () => {
+    try {
+      const res = await roadmapService.getUserRoadmaps()
+      if (res.success && res.data) {
+        setRoadmaps(res.data)
+      }
+    } catch (err) {
+      console.error('Failed to load user roadmaps in GapAnalysisTab:', err)
+    }
+  }
+
+  useEffect(() => {
+    loadRoadmaps()
+  }, [])
 
   useEffect(() => {
     const t1 = setTimeout(() => setAnimateIn(false), 0)
@@ -37,17 +55,49 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
     }
   }, [targetRole, activeFilter, searchQuery])
 
-  // Calculate mySkills object
-  const mySkills: Record<string, number> = (skills || []).reduce(
-    (acc: Record<string, number>, s) => {
-      const quiz = Math.min(10, s.quizScore || 0)
-      const endorse = Math.min(5, s.endorsementScore || 0)
-      const testScorePercentage = Math.round(((quiz / 10) * 50) + ((endorse / 5) * 50))
-      acc[s.name] = (quiz > 0 || endorse > 0) ? testScorePercentage : ((s.level || 0) * 20)
-      return acc
-    },
-    {} as Record<string, number>
-  )
+  // Calculate mySkills and baseSkills objects, incorporating roadmap progress
+  const { mySkills, baseSkills } = useMemo(() => {
+    const base = (skills || []).reduce(
+      (acc: Record<string, number>, s) => {
+        const quiz = Math.min(10, s.quizScore || 0)
+        const endorse = Math.min(5, s.endorsementScore || 0)
+        const testScorePercentage = Math.round(((quiz / 10) * 50) + ((endorse / 5) * 50))
+        acc[s.name] = (quiz > 0 || endorse > 0) ? testScorePercentage : ((s.level || 0) * 20)
+        return acc
+      },
+      {} as Record<string, number>
+    )
+
+    const merged = { ...base }
+
+    // Merge roadmap progress
+    roadmaps.forEach((roadmap) => {
+      const { skillName, myLevel: initialLevel, targetLevel, weeks } = roadmap
+      
+      // Calculate overall progress of this roadmap
+      let totalTasks = 0
+      let completedTasks = 0
+      if (Array.isArray(weeks)) {
+        weeks.forEach((w: any) => {
+          if (Array.isArray(w.tasks)) {
+            w.tasks.forEach((t: any) => {
+              totalTasks++
+              if (t.completed) completedTasks++
+            })
+          }
+        })
+      }
+
+      const progress = totalTasks > 0 ? (completedTasks / totalTasks) : 0
+      const calculatedRoadmapLevel = Math.round(initialLevel + (targetLevel - initialLevel) * progress)
+
+      // Only apply if it's higher than the base skill level (or if the base skill level doesn't exist)
+      const currentVal = merged[skillName] || 0
+      merged[skillName] = Math.max(currentVal, calculatedRoadmapLevel)
+    })
+
+    return { mySkills: merged, baseSkills: base }
+  }, [skills, roadmaps])
 
   const currentRole = rolesData[targetRole]
 
@@ -383,9 +433,12 @@ export default function GapAnalysisTab({ skills }: GapAnalysisTabProps) {
       {activeRoadmapSkill && (
         <AILearningRoadmap
           skillName={activeRoadmapSkill}
-          myLevel={mySkills[activeRoadmapSkill] || 0}
+          myLevel={baseSkills[activeRoadmapSkill] || 0}
           targetLevel={currentRole.requirements.find(r => r.name === activeRoadmapSkill)?.req || 100}
-          onClose={() => setActiveRoadmapSkill(null)}
+          onClose={() => {
+            setActiveRoadmapSkill(null)
+            loadRoadmaps()
+          }}
         />
       )}
 

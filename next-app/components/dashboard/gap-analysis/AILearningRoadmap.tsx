@@ -78,8 +78,12 @@ export default function AILearningRoadmap({
     setActiveQuizWeek(null)
   }, [skillName])
 
-  // Get quiz status from localstorage
+  // Get quiz status from database with localstorage fallback
   const isQuizPassed = (weekNum: number) => {
+    if (!roadmap) return false
+    const week = roadmap.weeks.find(w => w.week === weekNum)
+    if (week && week.quizPassed) return true
+    
     if (!user) return false
     return localStorage.getItem(`roadmap_quiz_${user.uid}_${skillName}_w${weekNum}`) === "true"
   }
@@ -185,7 +189,7 @@ export default function AILearningRoadmap({
   }
 
   // Go to next question or finish
-  const handleNextQuestion = () => {
+  const handleNextQuestion = async () => {
     setSelectedOption(null)
     setShowAnswerResult(false)
     
@@ -196,7 +200,25 @@ export default function AILearningRoadmap({
       // Save state if passed (score >= 2 out of 3)
       const passed = (quizScore + (selectedOption === quizQuestions[currentQuestionIdx].a ? 1 : 0)) >= 2
       if (passed && user && activeQuizWeek) {
+        // Save to localStorage for safety / fallback
         localStorage.setItem(`roadmap_quiz_${user.uid}_${skillName}_w${activeQuizWeek}`, "true")
+        
+        // Optimistically update local state first
+        if (roadmap) {
+          const updatedWeeks = [...roadmap.weeks]
+          const targetWeekIndex = updatedWeeks.findIndex(w => w.week === activeQuizWeek)
+          if (targetWeekIndex !== -1) {
+            updatedWeeks[targetWeekIndex].quizPassed = true
+            setRoadmap({ ...roadmap, weeks: updatedWeeks })
+          }
+        }
+
+        try {
+          // weekIndex is 0-indexed in database mapping, week is 1-indexed
+          await roadmapService.updateQuizStatus(skillName, activeQuizWeek - 1, true)
+        } catch (err) {
+          console.error('Failed to save quiz passed status in database:', err)
+        }
       }
     }
   }

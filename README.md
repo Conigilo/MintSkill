@@ -146,18 +146,18 @@ Flow การ Endorse:
 │  • Custom Hooks          │         │  • Input Validation      │
 │  • Service Layer (API)   │         │  • Swagger UI            │
 │  • Client-side PDF Print │         │  • CORS Protection       │
-│  └──────────┬─────────────┘         └──────────┬───────────────┘
-│            │                                   │
-│            │      ┌────────────────────┐       │
-│            └─────►│  Firebase          │◄──────┘
-│                   │  • Authentication  │
-│                   │  • Firestore DB    │
-│                   └────────┬───────────┘
-│                             │
-│                    ┌────────▼───────────┐         ┌──────────────────────────┐
-│                    │  GitHub API        │  HTTP   │    AI Microservice       │
-│                    │  (OAuth + REST)    │◄───────►│    (Port 3002 - Gemini)  │
-│                    └────────────────────┘         └──────────────────────────┘
+│  └─────────┬─────────────┘         └──────────┬───────────────┘
+             │                                  │
+             │      ┌────────────────────┐      │
+             └─────►│  Firebase          │◄─────┘
+                    │  • Authentication  │
+                    │  • Firestore DB    │
+                    └────────┬───────────┘
+                             │
+                    ┌────────▼───────────┐         ┌──────────────────────────┐
+                    │  GitHub API        │  HTTP   │    AI Microservice       │
+                    │  (OAuth + REST)    │◄───────►│    (Port 3002 - Gemini)  │
+                    └────────────────────┘         └──────────────────────────┘
 ```
 
 ### Data Flow

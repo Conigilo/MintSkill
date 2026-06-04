@@ -8,17 +8,7 @@ interface CVTemplateProps {
 }
 
 export default function CVTemplate({ user, skills }: CVTemplateProps) {
-    const [resumeData, setResumeData] = useState<any>(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                const savedData = localStorage.getItem('skill-wallet-resume');
-                return savedData ? JSON.parse(savedData).resume : null;
-            } catch (e) {
-                console.error("Error loading resume data:", e);
-            }
-        }
-        return null;
-    });
+    const [resumeData, setResumeData] = useState<any>(null);
 
     // 1. ดึงข้อมูลจาก LocalStorage เมื่อ user?.uid เปลี่ยนแปลง
     useEffect(() => {

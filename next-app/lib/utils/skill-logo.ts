@@ -18,6 +18,7 @@ const SPECIAL_CASES: Record<string, string> = {
   "typescript": "typescript",
   "reactjs": "react",
   "nextjs": "nextjs",
+  "sql": "postgresql",
 };
 
 /**

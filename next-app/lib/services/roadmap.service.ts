@@ -11,6 +11,7 @@ export interface RoadmapWeek {
   desc: string
   tasks: RoadmapTask[]
   resources: string[]
+  quizPassed?: boolean
 }
 
 export interface UserRoadmap {
@@ -51,6 +52,15 @@ export const roadmapService = {
   },
 
   /**
+   * Get all roadmaps for the current user
+   */
+  getUserRoadmaps: async (): Promise<{ success: boolean; data: UserRoadmap[] }> => {
+    return await fetchAPI('/ai/roadmaps', {
+      method: 'GET'
+    })
+  },
+
+  /**
    * Update specific task completion status in Firestore
    */
   updateTaskStatus: async (
@@ -62,6 +72,20 @@ export const roadmapService = {
     return await fetchAPI(`/ai/roadmap/${encodeURIComponent(skillName)}/task`, {
       method: 'PATCH',
       body: JSON.stringify({ weekIndex, taskIndex, completed })
+    })
+  },
+
+  /**
+   * Update weekly quiz pass status in Firestore
+   */
+  updateQuizStatus: async (
+    skillName: string,
+    weekIndex: number,
+    quizPassed: boolean
+  ): Promise<{ success: boolean; message: string }> => {
+    return await fetchAPI(`/ai/roadmap/${encodeURIComponent(skillName)}/quiz`, {
+      method: 'PATCH',
+      body: JSON.stringify({ weekIndex, quizPassed })
     })
   }
 }
