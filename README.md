@@ -24,13 +24,13 @@
 
 ### Dashboard (5 Tabs - Re-designed Layout)
 
-| Tab               | รายละเอียด                                                                                                                                                                       |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Overview**      | **(Re-designed)** แสดงสถิติภาพรวม (Verified Skills, Endorsements, Contributions, Projects) ในรูปแบบแถวยาว 4 คอลัมน์ที่สมดุล, ชิป Top Skills ที่ดึงภาพ Tech Logo ของจริง, และมีตู้โชว์ประวัติเหรียญรางวัลเป็น Grid 2 คอลัมน์ |
-| **Skills**        | จัดการทักษะ — เพิ่ม/แก้ไข/ลบ Skill พร้อม Level (1–5) และ Category, ดูสถานะ Verified, กรอง/ค้นหา, Request Endorsement                                                             |
-| **Endorsements**  | ดูรายการ Endorsement ที่ได้รับ, สร้าง Endorsement Link ส่งให้คนอื่นมารับรอง                                                                                                      |
-| **Gap Analysis**  | วิเคราะห์ช่องว่างทักษะเทียบกับ Role เป้าหมาย (Frontend, Backend, Fullstack, DevOps, Mobile), คำนวณ Match Score                                                                   |
-| **Export Resume** | เลือก Template (4 แบบ), กรอกข้อมูล Resume ครบ (Personal, Education, Activity, Project, Skills, Strengths), บันทึกข้อมูล, และสั่ง Export PDF ได้ผ่านฟังก์ชัน Print ของเบราว์เซอร์ |
+| Tab                  | รายละเอียด                                                                                                                                                                       |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Overview**         |  แสดงสถิติภาพรวม (Verified Skills, Endorsements, Contributions, Projects) ในรูปแบบแถวยาว 4 คอลัมน์ที่สมดุล, ชิป Top Skills ที่ดึงภาพ Tech Logo ของจริง, และมีตู้โชว์ประวัติเหรียญรางวัลเป็น Grid 2 คอลัมน์ |
+| **Skills**           | จัดการทักษะ — เพิ่ม/แก้ไข/ลบ Skill พร้อม Level (1–5) และ Category, ดูสถานะ Verified, กรอง/ค้นหา, Request Endorsement                                                             |
+| **Endorsements**     | ดูรายการ Endorsement ที่ได้รับ, สร้าง Endorsement Link ส่งให้คนอื่นมารับรอง                                                                                                      |
+| **Gap Analysis**     | วิเคราะห์ช่องว่างทักษะเทียบกับ Role เป้าหมาย (Frontend, Backend, Fullstack, DevOps, Mobile), คำนวณ Match Score                                                                   |
+| **Export Portfolio** | **(Re-designed)** เลือกแม่แบบเรซูเม่ (5 แบบ), ปรับแต่งรายละเอียดด้วยฟอร์ม, แสดงภาพตัวอย่าง, และส่งออกไฟล์ PDF ผ่านหน้าต่างพิมพ์ของเบราว์เซอร์ พร้อมการจัดสัดส่วนและขอบด้านข้างเท่ากันอย่างสมดุล (Symmetric Margin Balance) |
 
 ### Skill Badge System (Premium & Refined)
 
@@ -400,8 +400,10 @@ npm run dev
 
 ## Performance & Optimization
 
-**Mint Skill** ได้รับการ Refactor เพื่อประสิทธิภาพและความเร็วสูงสุด:
+**Mint Skill** ได้รับการ Refactor เพื่อประสิทธิภาพและความเร็วสูงสุด และรองรับการทำงานร่วมกับ React 19 และ Next.js ล่าสุดอย่างเต็มรูปแบบ:
 *   **API Optimization**: ถอดจุดดึงข้อมูล API ที่ซ้ำซ้อนออกทั้งหมด ลดภาระการโหลดข้อมูลในหน้าหลักได้ถึง 30%
+*   **React 19 & Next.js Compatibility**: ย้ายและหุ้ม `setState` ภายใน `useEffect` ด้วย `setTimeout` และใช้ `Lazy State Initialization` เพื่อลดการเกิด Cascading Renders ซ้ำซ้อนในสเตจ Mount
+*   **Pure Rendering**: แก้ไขการทำงานที่ไม่ Pure ในคอมโพเนนต์ โดยย้ายการคำนวณและสร้าง ID สุ่มในตอน Render (เช่น `Math.random()`) ไปอยู่ใน `useMemo` พร้อมเปลี่ยนเป็นแบบ Deterministic เพื่อหลีกเลี่ยงปัญหา Hydration Mismatch
 *   **React Memoization**: ใช้ `useMemo` ในการคำนวณและประมวลผลอาร์เรย์เพื่อป้องกัน Object re-allocation และใช้ `useCallback` ครอบฟังก์ชันเหตุการณ์หลักเพื่อรักษา Reference คงที่ในทุกรอบเรนเดอร์
 
 ---
@@ -410,7 +412,7 @@ npm run dev
 
 *   **Dark Theme** — พื้นหลัง Dark (#090d14) + Glassmorphism panels (ในแอปหลักเน้นสไตล์ Premium Clean/Dark Minimal และ Print Styles สำหรับการจัดตำแหน่งกระดาษ A4)
 *   **Responsive** — ทำงานได้ทุกขนาดหน้าจอ (Desktop + Mobile)
-*   **Symmetric layout** — การจัดวางที่บาลานซ์ความสูงและระยะห่าง (gap-6 / gap-8) บนหน้าจอขนาดใหญ่
+*   **Symmetric layout** — **(Updated)** ปรับปรุงการจัดวางหน้าจอให้ขอบด้านข้างเท่ากันอย่างสมดุล (Symmetric Spacing) ตลอดจนการลบข้อจำกัดความสูงที่ซ้ำซ้อนในหน้ารายละเอียดการดาวน์โหลด เพื่อให้การเลื่อนหน้าจอทำงานได้อย่างลงตัว
 *   **Micro-Animations** — Hover effects, transition, scale on click
 
 ---
